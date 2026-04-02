@@ -141,4 +141,4 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 ## AUTHOR
 **Name**: Nicolas MARIE  
 **Track**: Python Developer – OpenClassrooms  
-**Project 12 – Develop a secured back-end architecture with Python and SQL – April 2025**
+**Project 12 – Develop a secured back-end architecture with Python and SQL – April 2026**
