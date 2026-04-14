@@ -5,9 +5,9 @@ from .base import Base
 
 
 class Client(Base):
-    __tablename__ = "clients"
+    __tablename__ = "client"
 
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     name = Column(String(100), nullable=False)
     email = Column(String(200), nullable=False)
     phone = Column(Integer, nullable=False)

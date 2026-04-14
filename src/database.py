@@ -17,5 +17,4 @@ engine = create_engine(
     echo=True
 )
 
-Session = sessionmaker(bind=engine)
-session = Session()
+SessionLocal = sessionmaker(bind=engine)

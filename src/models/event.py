@@ -5,9 +5,9 @@ from .base import Base
 
 
 class Event(Base):
-    __tablename__ = "events"
+    __tablename__ = "event"
 
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     name = Column(String(200), nullable=False)
     start_date = Column(DateTime, nullable=True)
     end_update = Column(DateTime, nullable=True)
