@@ -1,121 +1,144 @@
 import bcrypt
 
 from src.database import SessionLocal
+from src.models.client import Client
+from src.models.event import Event
+from src.models.contract import Contract
+from src.models.role import Role
 from src.models.user import Administrator, Commercial, Technician
-from src.seed import admin_credentials
 
 
 class CollaboratorController:
     def __init__(self, main_controller):
         self.main_controller = main_controller
         self.permissions = None
-
-        self.administrator_controller = AdministratorController(self)
-        self.commercial_controller = CommercialController(self)
-        self.technician_controller = TechnicianController(self)
+        self.models = {
+            "contract": Contract,
+            "client": Client,
+            "event": Event
+        }
+        self.collaborators = {
+            "administrator": Administrator,
+            "commercial": Commercial,
+            "technician": Technician
+        }
 
     def init_user(self, email, password):
-        models = [Commercial, Technician, Administrator]
-
         session = SessionLocal()
         user = None
-        for model in models:
-            user = session.query(model).filter_by(email=email, password=password).first()
+        collaborators = [collaborator for collaborator in self.collaborators.values()]
+        for collaborator in collaborators:
+            user = session.query(collaborator).filter_by(email=email, password=password).first()
             if user:
                 break
 
-        self.permissions = self.main_controller.role_permissions.get(user.role)
+        self.permissions = self.main_controller.role_permissions.get(user.role.name)
         session.close()
 
-    def init_super_user(self):
-        return {
-            "name": admin_credentials["name"],
-            "email": admin_credentials["email"],
-            "password": self.hash_password(admin_credentials["password"]),
-            "role": admin_credentials["role"]
-        }
-
-    @staticmethod
-    def hash_password(password):
-        return  bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-
-    @staticmethod
-    def check_password(password, user):
-        return bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8"))
-
-    def login(self):
+    def collaborator_menu(self):
         while True:
-            self.main_controller.view.display_login_submenu()
-            menu = self.main_controller.view.prompt_for_continue()
+            self.main_controller.view.display_collaborator_menu()
+            menu = self.main_controller.view.prompt_for_menu(nb=5)
 
-            if menu == 'q':
+            if menu == 5:
+                self.logout()
                 break
 
-            email = self.main_controller.view.prompt_for_email()
+            actions = {
+                1: self.collaborator_submenu,
+                2: lambda: self.action_submenu(model_type="Contract", nb=5),
+                3: lambda: self.action_submenu(model_type="Client", nb=5),
+                4: lambda: self.action_submenu(model_type="Event", nb=5)
+            }
 
-            models = [Commercial, Technician, Administrator]
+            action = actions.get(menu)
 
-            session = SessionLocal()
-            user = None
-            for model in models:
-                user = session.query(model).filter_by(email=email).first()
-                if user:
-                    break
+            action()
 
-            if user is None:
-                self.main_controller.view.display_collaborator_does_not_exist()
-                session.close()
-                continue
+    def collaborator_submenu(self):
+        while True:
+            self.main_controller.view.display_collaborator_submenu()
+            menu = self.main_controller.view.prompt_for_menu(nb=4)
 
-            password = self.main_controller.view.prompt_for_password()
+            if menu == 4:
+                self.logout()
+                break
 
-            if not self.check_password(password, user):
-                self.main_controller.view.display_wrong_password()
-                session.close()
-                continue
+            actions = {
+                1: lambda: self.action_submenu(model_type="Administrator", nb=5),
+                2: lambda: self.action_submenu(model_type="Commercial", nb=5),
+                3: lambda: self.action_submenu(model_type="Technician", nb=5)
+            }
 
-            self.authenticate_user(user.name, user.email, user.password)
-            # role = user.role.name
+            action = actions.get(menu)
 
-            session.close()
+            action()
 
-            # actions = {
-            #     "ADMINISTRATOR": self.administrator_controller.administrator_menu,
-            #     "COMMERCIAL": self.commercial_controller.commercial_menu,
-            #     "TECHNICIAN": self.technician_controller.technician_menu
-            # }
-            #
-            # action = actions.get(role)
-            # action()
+    def action_submenu(self, model_type, nb):
+        while True:
+            self.main_controller.view.display_submenu(model_type=model_type)
+            menu = self.main_controller.view.prompt_for_menu(nb=nb)
 
-    def authenticate_user(self, name, email, password):
-        self.init_user(email, password)
-        self.main_controller.view.display_successfully_logged_in(name)
+            if menu == 5:
+                break
+
+            actions = {
+                1: lambda: self.action(action="display", model_type=model_type.lower()),
+                2: lambda: self.action(action="create", model_type=model_type.lower()),
+                3: lambda: self.action(action="update", model_type=model_type.lower()),
+                4: lambda: self.action(action="filter", model_type=model_type.lower()),
+            }
+
+            action = actions.get(menu)
+
+            action()
+
+    def action(self, action, model_type):
+        if f"{action}:{model_type}" in self.permissions:
+            self.main_controller.view.display_action(action, model_type)
+
+            if action == "display":
+                models = self.get_models(model_type)
+
+                self.main_controller.view.display_models(model_type=model_type, models=models)
+
+                if models:
+                    model_id = self.main_controller.view.prompt_for_model(nb=len(models),
+                                                                          action=action,
+                                                                          model_type=model_type)
+
+                    model = self.get_model(model_type, model_id)
+
+                    if model_type in self.collaborators.keys():
+                        self.main_controller.view.display_collaborator(model)
+                    else:
+                        self.main_controller.view.display_model(model_type, model)
+
+        else:
+            self.main_controller.view.display_permission_denied(action, model_type)
+
+    def get_models(self, model_type):
+        session = SessionLocal()
+        if model_type in self.models.keys():
+            model_class = self.models.get(model_type)
+        else:
+            model_class = self.collaborators.get(model_type)
+
+        models = session.query(model_class).all()
+        session.close()
+        return models
+
+    def get_model(self, model_type, model_id):
+        session = SessionLocal()
+        if model_type in self.models.keys():
+            model = session.query(self.models.get(model_type)).filter_by(id=model_id).first()
+        else:
+            model = session.query(self.collaborators.get(model_type)).filter_by(id=model_id).first()
+            role = session.query(Role).filter_by(id=model.role_id).first()
+            model.role_name = role.name
+        session.close()
+        return model
 
     def logout(self):
         self.permissions = None
         self.main_controller.view.display_logout()
-
-
-class AdministratorController:
-    def __init__(self, collaborator_controller):
-        self.collaborator_controller = collaborator_controller
-
-    def administrator_menu(self):
-        print("Administrator menu")
-
-
-class CommercialController:
-    def __init__(self, collaborator_controller):
-        self.collaborator_controller = collaborator_controller
-
-    def commercial_menu(self):
-        print("Commercial menu")
-
-
-class TechnicianController:
-    def __init__(self, collaborator_controller):
-        self.collaborator_controller = collaborator_controller
-
-    def technician_menu(self):
-        print("Technician menu")
