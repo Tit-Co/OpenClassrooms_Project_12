@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, Float, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -14,6 +16,8 @@ class Contract(Base):
     commercial = relationship('Commercial')
     total_amount = Column(Float, nullable=False)
     bill_to_pay = Column(Float, nullable=False)
+    creation_date = Column(DateTime, nullable=False, default=datetime.now())
+    status = Column(Boolean, nullable=False, default=False)
     events = relationship(argument='Event', back_populates='contract', cascade='all, delete-orphan')
 
     def __repr__(self):

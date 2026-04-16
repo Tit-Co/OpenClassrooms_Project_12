@@ -11,7 +11,7 @@ class MainView:
 
     @staticmethod
     def display_goodbye():
-        print("\n👋 Goodbye ! 👋\n")
+        print("\n👋  Goodbye ! 👋\n")
 
     @staticmethod
     def display_logout():
@@ -70,14 +70,30 @@ class MainView:
         print("▷▷ 3. Technician")
         print("▷▷ 4. Go back\n")
 
-    @staticmethod
-    def display_models(model_type, models):
+    def display_models(self, model_type, models):
         if not models:
             print(f"\nNo {model_type} to display.\n")
         else:
             print(f"\nHere are all the {model_type}s : \n")
-            for model in models:
-                print(f"{model.id}. {model.name}")
+
+            actions = {
+                "contract": self.display_contracts,
+                "client": self.display_client_event,
+                "event": self.display_client_event,
+            }
+
+            action = actions.get(model_type)
+            action(models)
+
+    @staticmethod
+    def display_contracts(models):
+        for model in models:
+            print(f"Contract n° {model.id}")
+
+    @staticmethod
+    def display_client_event(models):
+        for model in models:
+            print(f"{model.id}. {model.name}")
 
     @staticmethod
     def display_collaborator(collaborator):
@@ -88,28 +104,54 @@ class MainView:
         print(f"Role: {collaborator.role_name}")
 
     def display_model(self, model_type, model):
-        print(f"\nHere is the required {model_type} :\n")
-
         actions = {
-            "contract": lambda: self.display_contract(model),
-            "client": lambda: self.display_client(model),
-            "event": lambda: self.display_event(model),
+            "contract": self.display_contract,
+            "client": self.display_client,
+            "event": self.display_event,
         }
 
         action = actions.get(model_type)
-        action()
+        action(model)
 
     @staticmethod
     def display_contract(model):
-        print(f"\nHere is the contract : \n{model}\n")
+        print(f"\nHere is the contract : \n")
+        print(f"Id : {model.id}")
+        print(f"Client name : {model.client_name}")
+        print(f"Client email : {model.client_email}")
+        print(f"Client phone : {model.client_phone}")
+        print(f"Total amount : {model.total_amount} $")
+        print(f"Bill to pay : {model.bill_to_pay} $")
+        print(f"Creation date : {model.creation_date}")
+        print(f"Contract signed : {'✅' if model.status else '❌'}")
 
     @staticmethod
     def display_client(model):
-        print(f"\nHere is the client : \n{model}\n")
+        print(f"\nHere is the client : \n")
+        print(f"Id : {model.id}")
+        print(f"Name : {model.name}")
+        print(f"Email : {model.email}")
+        print(f"Phone : {model.phone}")
+        print(f"Company : {model.company}")
+        print(f"Creation date : {model.creation_date}")
+        print(f"Last update : {model.last_update}")
+        print(f"Commercial name : {model.commercial_name}")
 
     @staticmethod
     def display_event(model):
-        print(f"\nHere is the event : \n{model}\n")
+        print(f"\nHere is the event : \n")
+        print(f"Id : {model.id}")
+        print(f"Name : {model.name}")
+        print(f"Client name : {model.client_name}")
+        print(f"Client email : {model.client_email}")
+        print(f"Client phone : {model.client_phone}")
+        print(f"Start date : {model.start_date}")
+        print(f"End date : {model.end_date}")
+        print(f"Support contact : {model.technician_name}")
+        print(f"Location : {model.location}")
+        print(f"Attendees : {model.attendees}")
+        print(f"Notes : {model.notes}")
+
 
     @staticmethod
     def prompt_for_menu(nb):

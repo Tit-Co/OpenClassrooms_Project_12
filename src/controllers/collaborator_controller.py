@@ -131,13 +131,56 @@ class CollaboratorController:
     def get_model(self, model_type, model_id):
         session = SessionLocal()
         if model_type in self.models.keys():
-            model = session.query(self.models.get(model_type)).filter_by(id=model_id).first()
+
+            actions = {
+                "contract": self.get_contract,
+                "client": self.get_client,
+                "event": self.get_event,
+            }
+
+            action = actions.get(model_type)
+            model = action(session, model_id)
         else:
             model = session.query(self.collaborators.get(model_type)).filter_by(id=model_id).first()
             role = session.query(Role).filter_by(id=model.role_id).first()
             model.role_name = role.name
         session.close()
         return model
+
+    @staticmethod
+    def get_contract(session, model_id):
+        contract = session.query(Contract).filter_by(id=model_id).first()
+        client = session.query(Client).filter_by(id=contract.client_id).first()
+        commercial = session.query(Commercial).filter_by(id=contract.commercial_id).first()
+        contract.commercial_name = commercial.name
+        contract.client_name = client.name
+        contract.client_email = client.email
+        contract.client_phone = client.phone
+
+        return contract
+
+    @staticmethod
+    def get_client(session, model_id):
+        client = session.query(Client).filter_by(id=model_id).first()
+        commercial = session.query(Commercial).filter_by(id=client.commercial_id).first()
+        client.commercial_name = commercial.name
+
+        return client
+
+    @staticmethod
+    def get_event(session, model_id):
+        event = session.query(Event).filter_by(id=model_id).first()
+        contract = session.query(Contract).filter_by(id=event.contract_id).first()
+        technician = session.query(Technician).filter_by(id=event.technician_id).first()
+        client = session.query(Client).filter_by(id=contract.client_id).first()
+        event.client_name = client.name
+        event.client_email = client.email
+        event.client_phone = client.phone
+        event.contract_id = contract.id
+        event.technician_name = technician.name
+
+        return event
+
 
     def logout(self):
         self.permissions = None
