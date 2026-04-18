@@ -1,5 +1,3 @@
-import bcrypt
-
 from src.database import SessionLocal
 from src.models.client import Client
 from src.models.event import Event
@@ -22,18 +20,6 @@ class CollaboratorController:
             "commercial": Commercial,
             "technician": Technician
         }
-
-    def init_user(self, email, password):
-        session = SessionLocal()
-        user = None
-        collaborators = [collaborator for collaborator in self.collaborators.values()]
-        for collaborator in collaborators:
-            user = session.query(collaborator).filter_by(email=email, password=password).first()
-            if user:
-                break
-
-        self.permissions = self.main_controller.role_permissions.get(user.role.name)
-        session.close()
 
     def collaborator_menu(self):
         while True:
@@ -180,7 +166,6 @@ class CollaboratorController:
         event.technician_name = technician.name
 
         return event
-
 
     def logout(self):
         self.permissions = None

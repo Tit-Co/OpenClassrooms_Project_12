@@ -9,7 +9,7 @@ from .base import Base
 class Contract(Base):
     __tablename__ = "contract"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False)
     client_id = Column(Integer, ForeignKey('client.id'), primary_key=True, nullable=False)
     client = relationship('Client')
     commercial_id = Column(Integer, ForeignKey('commercial.id'), primary_key=True, nullable=False)

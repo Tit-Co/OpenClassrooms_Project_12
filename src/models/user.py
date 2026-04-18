@@ -7,7 +7,7 @@ from .base import Base
 class Collaborator(Base):
     __abstract__ = True
 
-    id = Column(Integer, autoincrement=True, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String(100), nullable=False)
     email = Column(String(200), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
@@ -15,6 +15,7 @@ class Collaborator(Base):
 
 class Technician(Collaborator):
     __tablename__ = "technician"
+    __table_args__ = {'sqlite_autoincrement': True}
 
     role_id = Column(Integer, ForeignKey('role.id'), nullable=False)
     role = relationship("Role")
@@ -25,6 +26,7 @@ class Technician(Collaborator):
 
 class Commercial(Collaborator):
     __tablename__ = "commercial"
+    __table_args__ = {'sqlite_autoincrement': True}
 
     role_id = Column(Integer, ForeignKey('role.id'), nullable=False)
     role = relationship("Role")
@@ -35,6 +37,7 @@ class Commercial(Collaborator):
 
 class Administrator(Collaborator):
     __tablename__ = "administrator"
+    __table_args__ = {'sqlite_autoincrement': True}
 
     role_id = Column(Integer, ForeignKey('role.id'), nullable=False)
     role = relationship("Role")

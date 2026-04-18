@@ -104,6 +104,7 @@ class MainView:
         print(f"Role: {collaborator.role_name}")
 
     def display_model(self, model_type, model):
+        print(f"\nHere is the {model_type} : \n")
         actions = {
             "contract": self.display_contract,
             "client": self.display_client,
@@ -115,7 +116,6 @@ class MainView:
 
     @staticmethod
     def display_contract(model):
-        print(f"\nHere is the contract : \n")
         print(f"Id : {model.id}")
         print(f"Client name : {model.client_name}")
         print(f"Client email : {model.client_email}")
@@ -127,7 +127,6 @@ class MainView:
 
     @staticmethod
     def display_client(model):
-        print(f"\nHere is the client : \n")
         print(f"Id : {model.id}")
         print(f"Name : {model.name}")
         print(f"Email : {model.email}")
@@ -139,7 +138,6 @@ class MainView:
 
     @staticmethod
     def display_event(model):
-        print(f"\nHere is the event : \n")
         print(f"Id : {model.id}")
         print(f"Name : {model.name}")
         print(f"Client name : {model.client_name}")

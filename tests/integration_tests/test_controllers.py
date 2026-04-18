@@ -1,0 +1,142 @@
+import unittest
+import sys
+from platform import system
+
+from unittest.mock import Mock
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from io import StringIO
+
+from src.controllers.main_controller import MainController
+from src.models.role import Role
+from src.models.user import Administrator
+
+
+class TestMainController(unittest.TestCase):
+    controller = MainController()
+
+    credentials = {
+        'email': 'admin@epicevents.url',
+        'password': 'admin_pwd'
+    }
+
+    wrong_credentials = {
+        'email': 'admin@admin.url',
+        'password': 'admin_pwd'
+    }
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db_engine = create_engine("sqlite:///:memory:")
+        cls.session_local = sessionmaker(bind=cls.db_engine)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.db_engine.dispose()
+
+    def test_init_db_ok(self):
+        self.controller.init_db(self.db_engine, self.session_local)
+
+        session = self.session_local()
+
+        roles = session.query(Role).all()
+        self.assertEqual(len(roles), 3)
+
+        admin = session.query(Administrator).first()
+        self.assertNotEqual(admin, None)
+
+    def test_run_quit_case_ok(self):
+        captured_output = StringIO()
+        sys.stdout = captured_output
+
+        self.controller.view.prompt_for_menu = Mock(return_value=2)
+
+        with self.assertRaises(SystemExit):
+            self.controller.run()
+
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        self.assertIn("WELCOME TO EPIC EVENTS !", output)
+        self.assertIn("▶ MAIN MENU ◀", output)
+        self.assertIn("▷▷ 1. Log in", output)
+        self.assertIn("▷▷ 2. Quit the app", output)
+        self.assertIn("👋  Goodbye ! 👋", output)
+
+    def test_run_with_wrong_input_raises_exception(self):
+        captured_output = StringIO()
+        sys.stdout = captured_output
+
+        self.controller.view.prompt_for_menu = Mock(return_value=3)
+
+        with self.assertRaises(TypeError):
+            self.controller.run()
+
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        self.assertIn("WELCOME TO EPIC EVENTS !", output)
+        self.assertIn("▶ MAIN MENU ◀", output)
+        self.assertIn("▷▷ 1. Log in", output)
+        self.assertIn("▷▷ 2. Quit the app", output)
+
+    def test_login_ok(self):
+        captured_output = StringIO()
+        sys.stdout = captured_output
+
+        self.controller.init_db(self.db_engine, self.session_local)
+
+        self.controller.view.prompt_for_continuing = Mock(return_value='anything_else')
+        self.controller.view.prompt_for_email = Mock(return_value=self.credentials['email'])
+        self.controller.view.prompt_for_password = Mock(return_value=self.credentials['password'])
+        self.controller.check_password = Mock(return_value=True)
+
+        self.controller.authenticate(self.session_local, self.credentials['email'], self.credentials['password'])
+
+        self.controller.user_controller.collaborator_menu = Mock()
+
+        self.controller.login()
+
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        self.assertIn("LOG IN", output)
+        self.assertIn("You are going to enter the followings details", output)
+        self.assertIn("Admin, you are successfully logged in", output)
+
+    def test_authenticate_ok(self):
+        self.controller.init_db(self.db_engine, self.session_local)
+
+        email = self.credentials['email']
+        password = self.credentials['password']
+
+        answer = self.controller.authenticate(self.session_local, email, password)
+
+        self.assertTrue(answer)
+
+    def test_authenticate_fails(self):
+        self.controller.init_db(self.db_engine, self.session_local)
+
+        email = self.wrong_credentials['email']
+        password = self.wrong_credentials['password']
+
+        answer = self.controller.authenticate(self.session_local, email, password)
+
+        self.assertFalse(answer)
+
+    def test_init_permissions_ok(self):
+        captured_output = StringIO()
+        sys.stdout = captured_output
+        self.controller.init_db(self.db_engine, self.session_local)
+
+        session = self.session_local()
+
+        user = session.query(Administrator).filter_by(email=self.credentials['email']).first()
+
+        self.controller.init_permissions(user)
+
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        self.assertIn(f"{user.name.capitalize()}, you are successfully logged in.", output)
+        session.close()

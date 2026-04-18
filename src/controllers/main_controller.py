@@ -32,7 +32,7 @@ class MainController:
                            "display:contract", "display:client", "display:event", "update:event",
                            "filter:event"]
         }
-        self.init_db()
+        self.init_db(engine, SessionLocal)
 
     def init_super_user(self):
         return {
@@ -42,23 +42,28 @@ class MainController:
             "role": admin_credentials["role"]
         }
 
-    def init_db(self):
-        Base.metadata.create_all(bind=engine)
+    def init_db(self, db_engine, session_local):
+        Base.metadata.create_all(bind=db_engine)
 
-        session = SessionLocal()
+        session = session_local()
+
         for role in roles:
             if not session.query(Role).filter_by(name=role).first():
                 session.add(Role(name=role))
 
         super_user = self.init_super_user()
-        role_id = session.query(Role).filter_by(name=super_user["role"]).first().id
-        if not session.query(Administrator).filter_by(name=super_user["name"],
-                                                     email=super_user["email"]).first():
+
+        role = session.query(Role).filter_by(name=super_user["role"]).first()
+
+        if role and not session.query(Administrator).filter_by(
+                name=super_user["name"],
+                email=super_user["email"]
+        ).first():
             session.add(Administrator(
                 name=super_user["name"],
                 email=super_user["email"],
                 password=super_user["password"],
-                role_id=role_id
+                role_id=role.id
             ))
 
         session.commit()
@@ -87,44 +92,51 @@ class MainController:
 
             email = self.view.prompt_for_email()
 
-            models = [Commercial, Technician, Administrator]
-
-            session = SessionLocal()
-            user = None
-            for model in models:
-                user = session.query(model).filter_by(email=email).first()
-                if user:
-                    break
-
-            if user is None:
-                self.view.display_collaborator_does_not_exist()
-                session.close()
-                continue
-
             password = self.view.prompt_for_password()
 
-            if not self.check_password(password, user):
-                self.view.display_wrong_password()
-                session.close()
-                continue
+            success = self.authenticate(SessionLocal, email, password)
 
-            self.authenticate_user(user.name, user.email, user.password)
+            if success:
+                self.user_controller.collaborator_menu()
+                break
 
+    def authenticate(self, session_local, email, password):
+        models = [Commercial, Technician, Administrator]
+        session = session_local()
+        user = None
+
+        for model in models:
+            user = session.query(model).filter_by(email=email).first()
+            if user:
+                break
+
+        if user is None:
+            self.view.display_collaborator_does_not_exist()
             session.close()
+            return False
 
-            self.user_controller.collaborator_menu()
+        if not self.check_password(password, user.password):
+            self.view.display_wrong_password()
+            session.close()
+            return False
+
+        self.init_permissions(user)
+        session.close()
+        return True
 
     @staticmethod
-    def check_password(password, user):
-        return bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8"))
+    def check_password(password, user_password):
+        if isinstance(user_password, str):
+            user_password = user_password.encode("utf-8")
+        return bcrypt.checkpw(password.encode("utf-8"), user_password)
 
     @staticmethod
     def hash_password(password):
         return  bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
-    def authenticate_user(self, name, email, password):
-        self.user_controller.init_user(email, password)
-        self.view.display_successfully_logged_in(name)
+    def init_permissions(self, user):
+        self.user_controller.permissions = self.role_permissions.get(user.role.name)
+        self.view.display_successfully_logged_in(user.name)
 
     def goodbye(self):
         self.view.display_goodbye()

@@ -133,6 +133,21 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 
 ---
 
+## TESTS COVERAGE WITH UNITTEST
+
+- Coverage report
+<p align="center">
+    <img src="docs/cov_report.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+    <img src="docs/cov_report_functions.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- **Type the lines below in the terminal to generate another coverage report with pytest**
+
+    `python -m coverage run -m unittest`
+    `python -m coverage html`
+
+---
+
 ![Python](https://img.shields.io/badge/python-3.14-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
