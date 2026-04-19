@@ -85,11 +85,11 @@ class CollaboratorController:
             self.main_controller.view.display_action(action, model_type)
 
             actions = {
-                "display": lambda: self.display_action(session=session, action="display", model_type=model_type),
-                "create": lambda: self.create_action(session=session, action="create", model_type=model_type),
-                "update": lambda: self.update_action(session=session, action="update", model_type=model_type),
-                "delete": lambda: self.delete_action(session=session, action="delete", model_type=model_type),
-                "filter": lambda: self.filter_action(session=session, action="filter", model_type=model_type),
+                "display": lambda: self.display_action(session=session, model_type=model_type),
+                "create": lambda: self.create_action(session=session, model_type=model_type),
+                "update": lambda: self.update_action(session=session, model_type=model_type),
+                "delete": lambda: self.delete_action(session=session, model_type=model_type),
+                "filter": lambda: self.filter_action(session=session, model_type=model_type),
             }
 
             action = actions.get(action)
@@ -98,14 +98,14 @@ class CollaboratorController:
         else:
             self.main_controller.view.display_permission_denied(action, model_type)
 
-    def display_action(self, session, action, model_type):
+    def display_action(self, session, model_type):
         models = self.get_models(session, model_type)
 
         self.main_controller.view.display_models(model_type=model_type, models=models)
 
         if models:
             model_id = self.main_controller.view.prompt_for_model(nb=len(models),
-                                                                  action=action,
+                                                                  action="display",
                                                                   model_type=model_type)
 
             model = self.get_model(session, model_type, model_id)

@@ -1,6 +1,7 @@
 import sys
 import unittest
 
+from datetime import datetime
 from unittest.mock import Mock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -8,9 +9,13 @@ from io import StringIO
 
 from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.main_controller import MainController
+from src.models.base import Base
+from src.models.client import Client
+from src.models.contract import Contract
+from src.models.user import Commercial, Technician
 
 
-class TestMainController(unittest.TestCase):
+class TestCollaboratorController(unittest.TestCase):
     main_controller = MainController()
     controller = CollaboratorController(main_controller)
 
@@ -34,10 +39,49 @@ class TestMainController(unittest.TestCase):
         cls.db_engine.dispose()
 
     def setUp(self):
+        Base.metadata.drop_all(bind=self.db_engine)
+        Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
+        self.data = self.seed_data()
 
     def tearDown(self):
         self.session.close()
+
+    def seed_data(self):
+        commercial = Commercial(name="Commercial name",
+                                email="commercial.test@epicevents.url.com",
+                                password="pwd_test",
+                                role_id=2)
+
+        self.session.add(commercial)
+        self.session.commit()
+
+        client = Client(name="Client Test",
+                        email="client@clienttest.com",
+                        phone=555123456,
+                        company="Company Test",
+                        creation_date=datetime.now(),
+                        last_update=datetime.now(),
+                        commercial_id=commercial.id)
+
+        self.session.add(client)
+        self.session.commit()
+
+        contract = Contract(client_id=client.id,
+                            commercial_id=commercial.id,
+                            total_amount=100,
+                            bill_to_pay=50,
+                            creation_date=datetime.now(),
+                            status=True)
+
+        self.session.add(contract)
+        self.session.commit()
+
+        return {
+            "commercial": commercial,
+            "client": client,
+            "contract": contract
+        }
 
     def test_collaborator_menu_ok(self):
         captured_output = StringIO()
@@ -133,3 +177,19 @@ class TestMainController(unittest.TestCase):
 
         self.assertIn("You are going to display a contract.", output)
         self.assertIn("No contract to display.", output)
+
+    def test_display_action(self):
+        captured_output = StringIO()
+        sys.stdout = captured_output
+
+        self.controller.get_models = Mock(return_value=[self.data["contract"]])
+        self.main_controller.view.prompt_for_model = Mock(return_value=1)
+
+        self.controller.display_action(self.session, "contract")
+
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        self.assertIn("Here are all the contracts : ", output)
+        self.assertIn("Contract n° ", output)
+        self.assertIn("Here is the contract : ", output)
