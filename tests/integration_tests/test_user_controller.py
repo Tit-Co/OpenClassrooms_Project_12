@@ -124,7 +124,7 @@ class TestMainController(unittest.TestCase):
         sys.stdout = captured_output
 
         self.controller.get_models = Mock(return_value=[])
-        self.controller.permissions = self.main_controller.role_permissions["ADMINISTRATOR"]
+        self.controller.permissions = self.main_controller.role_permissions["MANAGER"]
 
         self.controller.action(self.session, "display", "contract")
 
