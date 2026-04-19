@@ -1,6 +1,5 @@
 import unittest
 import sys
-from platform import system
 
 from unittest.mock import Mock
 from sqlalchemy import create_engine
@@ -28,21 +27,25 @@ class TestMainController(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db_engine = create_engine("sqlite:///:memory:")
-        cls.session_local = sessionmaker(bind=cls.db_engine)
+        cls.session_test = sessionmaker(bind=cls.db_engine)
 
     @classmethod
     def tearDownClass(cls):
         cls.db_engine.dispose()
 
+    def setUp(self):
+        self.session = self.session_test()
+
+    def tearDown(self):
+        self.session.close()
+
     def test_init_db_ok(self):
-        self.controller.init_db(self.db_engine, self.session_local)
+        self.controller.init_db(self.db_engine, self.session)
 
-        session = self.session_local()
-
-        roles = session.query(Role).all()
+        roles = self.session.query(Role).all()
         self.assertEqual(len(roles), 3)
 
-        admin = session.query(Administrator).first()
+        admin = self.session.query(Administrator).first()
         self.assertNotEqual(admin, None)
 
     def test_run_quit_case_ok(self):
@@ -52,7 +55,7 @@ class TestMainController(unittest.TestCase):
         self.controller.view.prompt_for_menu = Mock(return_value=2)
 
         with self.assertRaises(SystemExit):
-            self.controller.run()
+            self.controller.run(self.session)
 
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
@@ -70,7 +73,7 @@ class TestMainController(unittest.TestCase):
         self.controller.view.prompt_for_menu = Mock(return_value=3)
 
         with self.assertRaises(TypeError):
-            self.controller.run()
+            self.controller.run(self.session)
 
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
@@ -84,18 +87,18 @@ class TestMainController(unittest.TestCase):
         captured_output = StringIO()
         sys.stdout = captured_output
 
-        self.controller.init_db(self.db_engine, self.session_local)
+        self.controller.init_db(self.db_engine, self.session)
 
         self.controller.view.prompt_for_continuing = Mock(return_value='anything_else')
         self.controller.view.prompt_for_email = Mock(return_value=self.credentials['email'])
         self.controller.view.prompt_for_password = Mock(return_value=self.credentials['password'])
         self.controller.check_password = Mock(return_value=True)
 
-        self.controller.authenticate(self.session_local, self.credentials['email'], self.credentials['password'])
+        self.controller.authenticate(self.session, self.credentials['email'], self.credentials['password'])
 
         self.controller.user_controller.collaborator_menu = Mock()
 
-        self.controller.login()
+        self.controller.login(self.session)
 
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
@@ -105,33 +108,32 @@ class TestMainController(unittest.TestCase):
         self.assertIn("Admin, you are successfully logged in", output)
 
     def test_authenticate_ok(self):
-        self.controller.init_db(self.db_engine, self.session_local)
+        self.controller.init_db(self.db_engine, self.session)
 
         email = self.credentials['email']
         password = self.credentials['password']
 
-        answer = self.controller.authenticate(self.session_local, email, password)
+        answer = self.controller.authenticate(self.session, email, password)
 
         self.assertTrue(answer)
 
     def test_authenticate_fails(self):
-        self.controller.init_db(self.db_engine, self.session_local)
+        self.controller.init_db(self.db_engine, self.session)
 
         email = self.wrong_credentials['email']
         password = self.wrong_credentials['password']
 
-        answer = self.controller.authenticate(self.session_local, email, password)
+        answer = self.controller.authenticate(self.session, email, password)
 
         self.assertFalse(answer)
 
     def test_init_permissions_ok(self):
         captured_output = StringIO()
         sys.stdout = captured_output
-        self.controller.init_db(self.db_engine, self.session_local)
 
-        session = self.session_local()
+        self.controller.init_db(self.db_engine, self.session)
 
-        user = session.query(Administrator).filter_by(email=self.credentials['email']).first()
+        user = self.session.query(Administrator).filter_by(email=self.credentials['email']).first()
 
         self.controller.init_permissions(user)
 
@@ -139,4 +141,3 @@ class TestMainController(unittest.TestCase):
         output = captured_output.getvalue()
 
         self.assertIn(f"{user.name.capitalize()}, you are successfully logged in.", output)
-        session.close()

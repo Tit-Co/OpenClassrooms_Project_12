@@ -23,8 +23,9 @@ class MainView:
         print("▷▷ 1. Display")
         print("▷▷ 2. Create")
         print("▷▷ 3. Update")
-        print("▷▷ 4. Filter")
-        print("▷▷ 5. Go back")
+        print("▷▷ 4. Delete")
+        print("▷▷ 5. Filter")
+        print("▷▷ 6. Go back")
 
     @staticmethod
     def display_permission_denied(action, model_type):
@@ -78,8 +79,11 @@ class MainView:
 
             actions = {
                 "contract": self.display_contracts,
-                "client": self.display_client_event,
-                "event": self.display_client_event,
+                "client": self.display_clients_events,
+                "event": self.display_clients_events,
+                "administrator": self.display_collaborators,
+                "commercial": self.display_collaborators,
+                "technician": self.display_collaborators
             }
 
             action = actions.get(model_type)
@@ -91,9 +95,14 @@ class MainView:
             print(f"Contract n° {model.id}")
 
     @staticmethod
-    def display_client_event(models):
+    def display_clients_events(models):
         for model in models:
             print(f"{model.id}. {model.name}")
+
+    @staticmethod
+    def display_collaborators(models):
+        for model in models:
+            print(f"{model.id}. {model.name.capitalize()}")
 
     @staticmethod
     def display_collaborator(collaborator):

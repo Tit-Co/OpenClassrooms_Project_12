@@ -8,11 +8,12 @@ from .base import Base
 
 class Contract(Base):
     __tablename__ = "contract"
+    __table_args__ = {'sqlite_autoincrement': True}
 
-    id = Column(Integer, primary_key=True, nullable=False)
-    client_id = Column(Integer, ForeignKey('client.id'), primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True)
+    client_id = Column(Integer, ForeignKey('client.id'), nullable=False)
     client = relationship('Client')
-    commercial_id = Column(Integer, ForeignKey('commercial.id'), primary_key=True, nullable=False)
+    commercial_id = Column(Integer, ForeignKey('commercial.id'), nullable=False)
     commercial = relationship('Commercial')
     total_amount = Column(Float, nullable=False)
     bill_to_pay = Column(Float, nullable=False)

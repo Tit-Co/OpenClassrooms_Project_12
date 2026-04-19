@@ -7,7 +7,7 @@ from .base import Base
 class Collaborator(Base):
     __abstract__ = True
 
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False, unique=True)
     name = Column(String(100), nullable=False)
     email = Column(String(200), nullable=False, unique=True)
     password = Column(String(100), nullable=False)

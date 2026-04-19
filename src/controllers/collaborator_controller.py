@@ -21,101 +21,123 @@ class CollaboratorController:
             "technician": Technician
         }
 
-    def collaborator_menu(self):
+    def collaborator_menu(self, session):
         while True:
             self.main_controller.view.display_collaborator_menu()
             menu = self.main_controller.view.prompt_for_menu(nb=5)
 
             if menu == 5:
-                self.logout()
+                self.logout(session)
                 break
 
             actions = {
-                1: self.collaborator_submenu,
-                2: lambda: self.action_submenu(model_type="Contract", nb=5),
-                3: lambda: self.action_submenu(model_type="Client", nb=5),
-                4: lambda: self.action_submenu(model_type="Event", nb=5)
+                1: lambda : self.collaborator_submenu(session=session),
+                2: lambda: self.action_submenu(session=session, model_type="Contract", nb=6),
+                3: lambda: self.action_submenu(session=session, model_type="Client", nb=6),
+                4: lambda: self.action_submenu(session=session, model_type="Event", nb=6)
             }
 
             action = actions.get(menu)
 
             action()
 
-    def collaborator_submenu(self):
+    def collaborator_submenu(self, session):
         while True:
             self.main_controller.view.display_collaborator_submenu()
             menu = self.main_controller.view.prompt_for_menu(nb=4)
 
             if menu == 4:
-                self.logout()
+                self.logout(session)
                 break
 
             actions = {
-                1: lambda: self.action_submenu(model_type="Administrator", nb=5),
-                2: lambda: self.action_submenu(model_type="Commercial", nb=5),
-                3: lambda: self.action_submenu(model_type="Technician", nb=5)
+                1: lambda: self.action_submenu(session=session, model_type="Administrator", nb=6),
+                2: lambda: self.action_submenu(session=session, model_type="Commercial", nb=6),
+                3: lambda: self.action_submenu(session=session, model_type="Technician", nb=6)
             }
 
             action = actions.get(menu)
 
             action()
 
-    def action_submenu(self, model_type, nb):
+    def action_submenu(self, session, model_type, nb):
         while True:
             self.main_controller.view.display_submenu(model_type=model_type)
             menu = self.main_controller.view.prompt_for_menu(nb=nb)
 
-            if menu == 5:
+            if menu == 6:
                 break
 
             actions = {
-                1: lambda: self.action(action="display", model_type=model_type.lower()),
-                2: lambda: self.action(action="create", model_type=model_type.lower()),
-                3: lambda: self.action(action="update", model_type=model_type.lower()),
-                4: lambda: self.action(action="filter", model_type=model_type.lower()),
+                1: lambda: self.action(session=session, action="display", model_type=model_type.lower()),
+                2: lambda: self.action(session=session, action="create", model_type=model_type.lower()),
+                3: lambda: self.action(session=session, action="update", model_type=model_type.lower()),
+                4: lambda: self.action(session=session, action="delete", model_type=model_type.lower()),
+                5: lambda: self.action(session=session, action="filter", model_type=model_type.lower()),
             }
 
             action = actions.get(menu)
 
             action()
 
-    def action(self, action, model_type):
+    def action(self, session, action, model_type):
         if f"{action}:{model_type}" in self.permissions:
             self.main_controller.view.display_action(action, model_type)
 
-            if action == "display":
-                models = self.get_models(model_type)
+            actions = {
+                "display": lambda: self.display_action(session=session, action="display", model_type=model_type),
+                "create": lambda: self.create_action(session=session, action="create", model_type=model_type),
+                "update": lambda: self.update_action(session=session, action="update", model_type=model_type),
+                "delete": lambda: self.delete_action(session=session, action="delete", model_type=model_type),
+                "filter": lambda: self.filter_action(session=session, action="filter", model_type=model_type),
+            }
 
-                self.main_controller.view.display_models(model_type=model_type, models=models)
-
-                if models:
-                    model_id = self.main_controller.view.prompt_for_model(nb=len(models),
-                                                                          action=action,
-                                                                          model_type=model_type)
-
-                    model = self.get_model(model_type, model_id)
-
-                    if model_type in self.collaborators.keys():
-                        self.main_controller.view.display_collaborator(model)
-                    else:
-                        self.main_controller.view.display_model(model_type, model)
+            action = actions.get(action)
+            action()
 
         else:
             self.main_controller.view.display_permission_denied(action, model_type)
 
-    def get_models(self, model_type):
-        session = SessionLocal()
+    def display_action(self, session, action, model_type):
+        models = self.get_models(session, model_type)
+
+        self.main_controller.view.display_models(model_type=model_type, models=models)
+
+        if models:
+            model_id = self.main_controller.view.prompt_for_model(nb=len(models),
+                                                                  action=action,
+                                                                  model_type=model_type)
+
+            model = self.get_model(session, model_type, model_id)
+
+            if model_type in self.collaborators.keys():
+                self.main_controller.view.display_collaborator(model)
+            else:
+                self.main_controller.view.display_model(model_type, model)
+
+    def create_action(self, session, action, model_type):
+        pass
+
+    def update_action(self, session, action, model_type):
+        pass
+
+    def delete_action(self, session, action, model_type):
+        pass
+
+    def filter_action(self, session, action, model_type):
+        pass
+
+    def get_models(self, session, model_type):
         if model_type in self.models.keys():
             model_class = self.models.get(model_type)
         else:
             model_class = self.collaborators.get(model_type)
 
         models = session.query(model_class).all()
-        session.close()
+
         return models
 
-    def get_model(self, model_type, model_id):
-        session = SessionLocal()
+    def get_model(self, session, model_type, model_id):
         if model_type in self.models.keys():
 
             actions = {
@@ -130,7 +152,7 @@ class CollaboratorController:
             model = session.query(self.collaborators.get(model_type)).filter_by(id=model_id).first()
             role = session.query(Role).filter_by(id=model.role_id).first()
             model.role_name = role.name
-        session.close()
+
         return model
 
     @staticmethod
@@ -167,6 +189,7 @@ class CollaboratorController:
 
         return event
 
-    def logout(self):
+    def logout(self, session):
+        session.close()
         self.permissions = None
         self.main_controller.view.display_logout()

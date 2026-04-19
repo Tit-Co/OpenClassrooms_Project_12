@@ -32,7 +32,6 @@ class MainController:
                            "display:contract", "display:client", "display:event", "update:event",
                            "filter:event"]
         }
-        self.init_db(engine, SessionLocal)
 
     def init_super_user(self):
         return {
@@ -42,10 +41,8 @@ class MainController:
             "role": admin_credentials["role"]
         }
 
-    def init_db(self, db_engine, session_local):
+    def init_db(self, db_engine, session):
         Base.metadata.create_all(bind=db_engine)
-
-        session = session_local()
 
         for role in roles:
             if not session.query(Role).filter_by(name=role).first():
@@ -67,22 +64,23 @@ class MainController:
             ))
 
         session.commit()
-        session.close()
 
-    def run(self):
+    def run(self, session):
+        self.init_db(engine, session)
+
         while True:
             self.view.display_main_menu()
             menu = self.view.prompt_for_menu(2)
 
             actions = {
-                1: self.login,
+                1: lambda : self.login(session=session),
                 2: self.goodbye
             }
 
             action = actions.get(menu)
             action()
 
-    def login(self):
+    def login(self, session):
         while True:
             self.view.display_login_submenu()
             menu = self.view.prompt_for_continuing()
@@ -94,15 +92,14 @@ class MainController:
 
             password = self.view.prompt_for_password()
 
-            success = self.authenticate(SessionLocal, email, password)
+            success = self.authenticate(session, email, password)
 
             if success:
-                self.user_controller.collaborator_menu()
+                self.user_controller.collaborator_menu(session=session)
                 break
 
-    def authenticate(self, session_local, email, password):
+    def authenticate(self, session, email, password):
         models = [Commercial, Technician, Administrator]
-        session = session_local()
         user = None
 
         for model in models:
@@ -112,16 +109,13 @@ class MainController:
 
         if user is None:
             self.view.display_collaborator_does_not_exist()
-            session.close()
             return False
 
         if not self.check_password(password, user.password):
             self.view.display_wrong_password()
-            session.close()
             return False
 
         self.init_permissions(user)
-        session.close()
         return True
 
     @staticmethod
