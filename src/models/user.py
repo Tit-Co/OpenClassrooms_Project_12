@@ -35,7 +35,7 @@ class Commercial(Collaborator):
         return f'Commercial {self.name}'
 
 
-class Administrator(Collaborator):
+class Manager(Collaborator):
     __tablename__ = "administrator"
     __table_args__ = {'sqlite_autoincrement': True}
 
@@ -43,4 +43,4 @@ class Administrator(Collaborator):
     role = relationship("Role")
 
     def __repr__(self):
-        return f'Administrator {self.name}'
+        return f'Manager {self.name}'

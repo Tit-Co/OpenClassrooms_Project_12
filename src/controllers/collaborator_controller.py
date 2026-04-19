@@ -3,7 +3,7 @@ from src.models.client import Client
 from src.models.event import Event
 from src.models.contract import Contract
 from src.models.role import Role
-from src.models.user import Administrator, Commercial, Technician
+from src.models.user import Manager, Commercial, Technician
 
 
 class CollaboratorController:
@@ -16,7 +16,7 @@ class CollaboratorController:
             "event": Event
         }
         self.collaborators = {
-            "administrator": Administrator,
+            "manager": Manager,
             "commercial": Commercial,
             "technician": Technician
         }
@@ -51,7 +51,7 @@ class CollaboratorController:
                 break
 
             actions = {
-                1: lambda: self.action_submenu(session=session, model_type="Administrator", nb=6),
+                1: lambda: self.action_submenu(session=session, model_type="Manager", nb=6),
                 2: lambda: self.action_submenu(session=session, model_type="Commercial", nb=6),
                 3: lambda: self.action_submenu(session=session, model_type="Technician", nb=6)
             }

@@ -11,9 +11,9 @@ class Contract(Base):
     __table_args__ = {'sqlite_autoincrement': True}
 
     id = Column(Integer, primary_key=True)
-    client_id = Column(Integer, ForeignKey('client.id'), nullable=False)
+    client_id = Column(Integer, ForeignKey('client.id'), nullable=True)
     client = relationship('Client')
-    commercial_id = Column(Integer, ForeignKey('commercial.id'), nullable=False)
+    commercial_id = Column(Integer, ForeignKey('commercial.id'), nullable=True)
     commercial = relationship('Commercial')
     total_amount = Column(Float, nullable=False)
     bill_to_pay = Column(Float, nullable=False)

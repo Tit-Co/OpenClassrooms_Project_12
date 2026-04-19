@@ -66,7 +66,7 @@ class MainView:
     @staticmethod
     def display_collaborator_submenu():
         print(f"\n▶ EPIC EVENTS - COLLABORATOR SUBMENU ◀\n")
-        print("▷▷ 1. Administrator")
+        print("▷▷ 1. Manager")
         print("▷▷ 2. Commercial")
         print("▷▷ 3. Technician")
         print("▷▷ 4. Go back\n")
@@ -81,7 +81,7 @@ class MainView:
                 "contract": self.display_contracts,
                 "client": self.display_clients_events,
                 "event": self.display_clients_events,
-                "administrator": self.display_collaborators,
+                "manager": self.display_collaborators,
                 "commercial": self.display_collaborators,
                 "technician": self.display_collaborators
             }

@@ -4,7 +4,7 @@ from src.seed import roles
 from src.database import engine, SessionLocal
 from src.models.base import Base
 from src.models.role import Role
-from src.models.user import Administrator, Commercial, Technician
+from src.models.user import Manager, Commercial, Technician
 from src.views.main_view import MainView
 from .collaborator_controller import CollaboratorController
 from src.seed import admin_credentials
@@ -15,20 +15,20 @@ class MainController:
         self.view = MainView()
         self.user_controller = CollaboratorController(self)
         self.role_permissions = {
-            "ADMINISTRATOR": ["display:administrator", "display:commercial", "display:technician",
-                              "create:administrator", "create:commercial", "create:technician",
-                              "update:administrator", "update:commercial", "update:technician",
-                              "delete:administrator", "delete:commercial", "delete:technician",
+            "MANAGER": ["display:manager", "display:commercial", "display:technician",
+                              "create:manager", "create:commercial", "create:technician",
+                              "update:manager", "update:commercial", "update:technician",
+                              "delete:manager", "delete:commercial", "delete:technician",
                               "display:contract", "display:client", "display:event",
                               "create:contract", "update:contract", "delete:contract",
                               "update:event", "filter:event"],
 
-            "COMMERCIAL": ["display:administrator", "display:commercial", "display:technician",
+            "COMMERCIAL": ["display:manager", "display:commercial", "display:technician",
                            "display:contract", "display:client", "display:event",
                            "create:client", "update:client", "delete:client", "update:contract",
                            "filter:contract", "create:event"],
 
-            "TECHNICIAN": ["display:administrator", "display:commercial", "display:technician",
+            "TECHNICIAN": ["display:manager", "display:commercial", "display:technician",
                            "display:contract", "display:client", "display:event", "update:event",
                            "filter:event"]
         }
@@ -52,11 +52,11 @@ class MainController:
 
         role = session.query(Role).filter_by(name=super_user["role"]).first()
 
-        if role and not session.query(Administrator).filter_by(
+        if role and not session.query(Manager).filter_by(
                 name=super_user["name"],
                 email=super_user["email"]
         ).first():
-            session.add(Administrator(
+            session.add(Manager(
                 name=super_user["name"],
                 email=super_user["email"],
                 password=super_user["password"],
@@ -99,7 +99,7 @@ class MainController:
                 break
 
     def authenticate(self, session, email, password):
-        models = [Commercial, Technician, Administrator]
+        models = [Commercial, Technician, Manager]
         user = None
 
         for model in models:

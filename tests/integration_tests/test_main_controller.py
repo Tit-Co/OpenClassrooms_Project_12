@@ -8,7 +8,7 @@ from io import StringIO
 
 from src.controllers.main_controller import MainController
 from src.models.role import Role
-from src.models.user import Administrator
+from src.models.user import Manager
 
 
 class TestMainController(unittest.TestCase):
@@ -45,7 +45,7 @@ class TestMainController(unittest.TestCase):
         roles = self.session.query(Role).all()
         self.assertEqual(len(roles), 3)
 
-        admin = self.session.query(Administrator).first()
+        admin = self.session.query(Manager).first()
         self.assertNotEqual(admin, None)
 
     def test_run_quit_case_ok(self):
@@ -133,7 +133,7 @@ class TestMainController(unittest.TestCase):
 
         self.controller.init_db(self.db_engine, self.session)
 
-        user = self.session.query(Administrator).filter_by(email=self.credentials['email']).first()
+        user = self.session.query(Manager).filter_by(email=self.credentials['email']).first()
 
         self.controller.init_permissions(user)
 
