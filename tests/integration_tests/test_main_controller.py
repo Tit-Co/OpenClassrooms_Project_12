@@ -135,7 +135,7 @@ class TestMainController(unittest.TestCase):
 
         user = self.session.query(Manager).filter_by(email=self.credentials['email']).first()
 
-        self.controller.init_permissions(user)
+        self.controller.init_permissions(self.session, user)
 
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()

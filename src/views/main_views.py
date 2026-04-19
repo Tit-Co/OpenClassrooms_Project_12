@@ -1,7 +1,11 @@
 import re
+from src.views.contract_views import ContractView
 
 
 class MainView:
+    def __init__(self):
+        self.contract_view = ContractView(self)
+
     @staticmethod
     def display_main_menu():
         print("\nWELCOME TO EPIC EVENTS !\n")
@@ -47,6 +51,10 @@ class MainView:
         print(f"\n{name.capitalize()}, you are successfully logged in.\n")
 
     @staticmethod
+    def display_action_successfully_done(action, model_type):
+        print(f"\nThe {model_type} has been successfully {action}.\n")
+
+    @staticmethod
     def display_wrong_password():
         print("Invalid password.")
 
@@ -72,13 +80,13 @@ class MainView:
         print("▷▷ 4. Go back\n")
 
     def display_models(self, model_type, models):
-        if not models:
-            print(f"\nNo {model_type} to display.\n")
+        if (None,) in models or not models:
+            print(f"\n • {model_type}s - No {model_type} to display.\n")
         else:
-            print(f"\nHere are all the {model_type}s : \n")
+            print(f"\n • {model_type}s - Here is the list : \n")
 
             actions = {
-                "contract": self.display_contracts,
+                "contract": self.contract_view.display_contracts,
                 "client": self.display_clients_events,
                 "event": self.display_clients_events,
                 "manager": self.display_collaborators,
@@ -90,19 +98,14 @@ class MainView:
             action(models)
 
     @staticmethod
-    def display_contracts(models):
-        for model in models:
-            print(f"Contract n° {model.id}")
-
-    @staticmethod
     def display_clients_events(models):
         for model in models:
-            print(f"{model.id}. {model.name}")
+            print(f"  - {model.id}. {model.name}")
 
     @staticmethod
     def display_collaborators(models):
         for model in models:
-            print(f"{model.id}. {model.name.capitalize()}")
+            print(f"  - {model.id}. {model.name.capitalize()}")
 
     @staticmethod
     def display_collaborator(collaborator):
@@ -112,27 +115,20 @@ class MainView:
         print(f"Email : {collaborator.email}")
         print(f"Role: {collaborator.role_name}")
 
-    def display_model(self, model_type, model):
+    @staticmethod
+    def display_title(model_type):
         print(f"\nHere is the {model_type} : \n")
+
+    def display_model(self, model_type, model):
+        self.display_title(model_type)
         actions = {
-            "contract": self.display_contract,
+            "contract": self.contract_view.display_contract,
             "client": self.display_client,
             "event": self.display_event,
         }
 
         action = actions.get(model_type)
         action(model)
-
-    @staticmethod
-    def display_contract(model):
-        print(f"Id : {model.id}")
-        print(f"Client name : {model.client_name}")
-        print(f"Client email : {model.client_email}")
-        print(f"Client phone : {model.client_phone}")
-        print(f"Total amount : {model.total_amount} $")
-        print(f"Bill to pay : {model.bill_to_pay} $")
-        print(f"Creation date : {model.creation_date}")
-        print(f"Contract signed : {'✅' if model.status else '❌'}")
 
     @staticmethod
     def display_client(model):
@@ -159,6 +155,9 @@ class MainView:
         print(f"Attendees : {model.attendees}")
         print(f"Notes : {model.notes}")
 
+    @staticmethod
+    def display_new_data_request(model_type, model_id):
+        print(f"\n▶ Please enter the new data for the {model_type} n°{model_id}.")
 
     @staticmethod
     def prompt_for_menu(nb):
@@ -177,17 +176,34 @@ class MainView:
             return int(answer)
 
     @staticmethod
-    def prompt_for_model(nb, action, model_type):
+    def prompt_for_model_id_with_action(action, model_type, models):
         while True:
+            coll = [model.id for model in models]
             answer = input(f"\n▶ Which {model_type} do you want to {action} ? \n▶▶ ")
 
             if not answer.isdigit():
                 print("Please enter a number.")
                 continue
 
-            coll = (str(i + 1) for i in range(nb))
-            if answer not in coll:
-                print(f"Please choose between 1 and {nb}.")
+            if int(answer) not in coll:
+                print(f"Please choose a number from id {models[0].id} to id {models[-1].id}.")
+                continue
+
+            return int(answer)
+
+    @staticmethod
+    def prompt_for_model_id(model_type, models):
+        while True:
+            coll = [model.id for model in models]
+
+            answer = input(f"\n▶ Please choose a {model_type} :\n▶▶ ").strip()
+
+            if not answer.isdigit():
+                print("Please enter a number.")
+                continue
+
+            if int(answer) not in coll:
+                print(f"Please choose a number from id {models[0].id} to id {models[-1].id}.")
                 continue
 
             return int(answer)
@@ -212,3 +228,13 @@ class MainView:
     @staticmethod
     def prompt_for_password():
         return input("\n▶ Enter the password : \n▶▶ ")
+
+    @staticmethod
+    def prompt_for_confirmation(action, model_type):
+        while True:
+            answer = input(f"\n▷▷ Are you sure you want to {action} this {model_type} (y/n) ?\n▶▶ ")
+
+            if answer.lower() in ["y", "n"]:
+                return True if answer.lower() == "y" else False
+
+            print(f"Please enter either 'y' or 'n'.")

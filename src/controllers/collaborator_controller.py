@@ -1,4 +1,3 @@
-from src.database import SessionLocal
 from src.models.client import Client
 from src.models.event import Event
 from src.models.contract import Contract
@@ -104,9 +103,8 @@ class CollaboratorController:
         self.main_controller.view.display_models(model_type=model_type, models=models)
 
         if models:
-            model_id = self.main_controller.view.prompt_for_model(nb=len(models),
-                                                                  action="display",
-                                                                  model_type=model_type)
+            model_id = self.main_controller.view.prompt_for_model_id_with_action(
+                action="display", model_type=model_type, models=models)
 
             model = self.get_model(session, model_type, model_id)
 
@@ -115,16 +113,165 @@ class CollaboratorController:
             else:
                 self.main_controller.view.display_model(model_type, model)
 
-    def create_action(self, session, action, model_type):
+    def create_action(self, session, model_type):
+        actions = {
+            "contract": lambda: self.create_contract_with_view(session=session),
+            "client": lambda: self.create_client(session=session),
+            "event": lambda: self.create_event(session=session),
+            "manager": lambda: self.create_collaborator(session=session, role=model_type),
+            "commercial": lambda: self.create_collaborator(session=session, role=model_type),
+            "technician": lambda: self.create_collaborator(session=session, role=model_type)
+        }
+        action = actions.get(model_type)
+        action()
+
+    def create_contract_with_view(self, session):
+        clients = self.get_models(session=session, model_type="client")
+        commercials = self.get_models(session=session, model_type="commercial")
+
+        (client_id,
+         commercial_id,
+         total_amount,
+         bill,
+         status
+         ) = self.main_controller.view.contract_view.prompt_for_contract(clients, commercials)
+
+        data ={
+            "client_id": client_id,
+            "commercial_id": commercial_id,
+            "total_amount": total_amount,
+            "bill": bill,
+            "status": status
+        }
+        contract = self.create_contract(session, data)
+
+        self.main_controller.view.display_action_successfully_done(action="created",
+                                                                   model_type="contract")
+        self.main_controller.view.contract_view.display_contract(
+            contract=self.get_model(session=session, model_type="contract", model_id=contract.id))
+
+    @staticmethod
+    def create_contract(session, data):
+        contract = Contract(client_id=data["client_id"],
+                            commercial_id=data["commercial_id"],
+                            total_amount=data["total_amount"],
+                            bill_to_pay=data["bill"],
+                            status=data["status"])
+
+        session.add(contract)
+        session.commit()
+        return contract
+
+    def create_client(self, session):
         pass
 
-    def update_action(self, session, action, model_type):
+    def create_event(self, session):
         pass
 
-    def delete_action(self, session, action, model_type):
+    def create_collaborator(self, session, role):
         pass
 
-    def filter_action(self, session, action, model_type):
+    def update_action(self, session, model_type):
+        actions = {
+            "contract": lambda: self.update_contract_with_view(session=session),
+            "client": lambda: self.update_client(session=session),
+            "event": lambda: self.update_event(session=session),
+            "manager": lambda: self.update_collaborator(session=session, role=model_type),
+            "commercial": lambda: self.update_collaborator(session=session, role=model_type),
+            "technician": lambda: self.update_collaborator(session=session, role=model_type)
+        }
+        action = actions.get(model_type)
+        action()
+
+    def update_contract_with_view(self, session):
+        clients = self.get_models(session=session, model_type="client")
+        commercials = self.get_models(session=session, model_type="commercial")
+        contracts = self.get_models(session=session, model_type="contract")
+
+        self.main_controller.view.display_models(model_type="contract", models=contracts)
+
+        if contracts:
+            contract_id = self.main_controller.view.prompt_for_model_id(model_type="contract",
+                                                                        models=contracts)
+
+            contract = self.get_contract(session=session, model_id=contract_id)
+
+            self.main_controller.view.display_title(model_type="contract")
+            self.main_controller.view.contract_view.display_contract(contract=contract)
+
+            self.main_controller.view.display_new_data_request(model_type="contract",
+                                                               model_id=contract_id)
+
+            (client_id,
+             commercial_id,
+             total_amount,
+             bill_to_pay,
+             status
+             ) = self.main_controller.view.contract_view.prompt_for_contract(clients, commercials)
+
+            new_contract_data = {
+                    "client_id": client_id,
+                    "commercial_id": commercial_id,
+                    "total_amount": total_amount,
+                    "bill_to_pay": bill_to_pay,
+                    "status": status
+            }
+            self.update_contract(session=session, contract_id=contract_id, data=new_contract_data)
+
+            contract = self.get_contract(session=session, model_id=contract_id)
+            self.main_controller.view.display_title(model_type="new contract")
+            self.main_controller.view.display_action_successfully_done(action="updated",
+                                                                       model_type="contract")
+            self.main_controller.view.contract_view.display_contract(contract=contract)
+
+    @staticmethod
+    def update_contract(session, contract_id, data):
+        session.query(Contract).filter_by(id=contract_id).update(data)
+        session.commit()
+
+    def update_client(self, session):
+        pass
+
+    def update_event(self, session):
+        pass
+
+    def update_collaborator(self, session):
+        pass
+
+    def delete_action(self, session, model_type):
+        actions = {
+            "contract": lambda: self.delete_contract_with_view(session=session),
+            "client": lambda: self.delete_client(session=session),
+            "event": lambda: self.delete_event(session=session),
+            "manager": lambda: self.delete_collaborator(session=session, role=model_type),
+            "commercial": lambda: self.delete_collaborator(session=session, role=model_type),
+            "technician": lambda: self.delete_collaborator(session=session, role=model_type)
+        }
+        action = actions.get(model_type)
+        action()
+
+    def delete_contract_with_view(self, session):
+        contracts = self.get_models(session=session, model_type="contract")
+
+        self.main_controller.view.display_models(model_type="contract", models=contracts)
+
+        if contracts:
+            contract_id = self.main_controller.view.prompt_for_model_id(model_type="contract",
+                                                                        models=contracts)
+
+            if self.main_controller.view.prompt_for_confirmation(action="delete",
+                                                                 model_type="contract"):
+                self.delete_contract(session=session, contract_id=contract_id)
+
+                self.main_controller.view.display_action_successfully_done(action="deleted",
+                                                                           model_type="contract")
+
+    @staticmethod
+    def delete_contract(session, contract_id):
+        session.query(Contract).filter_by(id=contract_id).delete()
+        session.commit()
+
+    def filter_action(self, session, model_type):
         pass
 
     def get_models(self, session, model_type):
@@ -160,10 +307,10 @@ class CollaboratorController:
         contract = session.query(Contract).filter_by(id=model_id).first()
         client = session.query(Client).filter_by(id=contract.client_id).first()
         commercial = session.query(Commercial).filter_by(id=contract.commercial_id).first()
-        contract.commercial_name = commercial.name
-        contract.client_name = client.name
-        contract.client_email = client.email
-        contract.client_phone = client.phone
+        contract.commercial_name = commercial.name if commercial else ""
+        contract.client_name = client.name if client else ""
+        contract.client_email = client.email if client else ""
+        contract.client_phone = client.phone if client else ""
 
         return contract
 
@@ -171,7 +318,7 @@ class CollaboratorController:
     def get_client(session, model_id):
         client = session.query(Client).filter_by(id=model_id).first()
         commercial = session.query(Commercial).filter_by(id=client.commercial_id).first()
-        client.commercial_name = commercial.name
+        client.commercial_name = commercial.name if commercial else ""
 
         return client
 
@@ -181,11 +328,11 @@ class CollaboratorController:
         contract = session.query(Contract).filter_by(id=event.contract_id).first()
         technician = session.query(Technician).filter_by(id=event.technician_id).first()
         client = session.query(Client).filter_by(id=contract.client_id).first()
-        event.client_name = client.name
-        event.client_email = client.email
-        event.client_phone = client.phone
-        event.contract_id = contract.id
-        event.technician_name = technician.name
+        event.client_name = client.name if client else ""
+        event.client_email = client.email if client else ""
+        event.client_phone = client.phone if client else ""
+        event.contract_id = contract.id if contract else ""
+        event.technician_name = technician.name if technician else ""
 
         return event
 

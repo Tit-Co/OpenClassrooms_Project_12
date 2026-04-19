@@ -5,7 +5,7 @@ from src.database import engine, SessionLocal
 from src.models.base import Base
 from src.models.role import Role
 from src.models.user import Manager, Commercial, Technician
-from src.views.main_view import MainView
+from src.views.main_views import MainView
 from .collaborator_controller import CollaboratorController
 from src.seed import admin_credentials
 
@@ -115,7 +115,7 @@ class MainController:
             self.view.display_wrong_password()
             return False
 
-        self.init_permissions(user)
+        self.init_permissions(session, user)
         return True
 
     @staticmethod
@@ -128,8 +128,9 @@ class MainController:
     def hash_password(password):
         return  bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
-    def init_permissions(self, user):
-        self.user_controller.permissions = self.role_permissions.get(user.role.name)
+    def init_permissions(self, session, user):
+        role = session.query(Role).filter_by(id=user.role_id).first()
+        self.user_controller.permissions = self.role_permissions.get(role.name)
         self.view.display_successfully_logged_in(user.name)
 
     def goodbye(self):

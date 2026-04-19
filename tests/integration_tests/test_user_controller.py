@@ -178,18 +178,18 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertIn("You are going to display a contract.", output)
         self.assertIn("No contract to display.", output)
 
-    def test_display_action(self):
+    def test_display_action_ok(self):
         captured_output = StringIO()
         sys.stdout = captured_output
 
         self.controller.get_models = Mock(return_value=[self.data["contract"]])
-        self.main_controller.view.prompt_for_model = Mock(return_value=1)
+        self.main_controller.view.prompt_for_model_id_with_action = Mock(return_value=1)
 
-        self.controller.display_action(self.session, "contract")
+        self.controller.display_action(session=self.session, model_type="contract")
 
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
 
-        self.assertIn("Here are all the contracts : ", output)
+        self.assertIn(" • contracts - Here is the list : ", output)
         self.assertIn("Contract n° ", output)
         self.assertIn("Here is the contract : ", output)

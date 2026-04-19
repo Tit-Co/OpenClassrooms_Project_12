@@ -36,7 +36,7 @@ class Commercial(Collaborator):
 
 
 class Manager(Collaborator):
-    __tablename__ = "administrator"
+    __tablename__ = "manager"
     __table_args__ = {'sqlite_autoincrement': True}
 
     role_id = Column(Integer, ForeignKey('role.id'), nullable=False)
