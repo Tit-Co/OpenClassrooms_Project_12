@@ -53,7 +53,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         client = Client(name="Client Test",
                         email="client@clienttest.com",
-                        phone=555123456,
+                        phone="555123456",
                         company="Company Test",
                         creation_date=datetime.now(),
                         last_update=datetime.now(),
@@ -78,29 +78,32 @@ class TestCollaboratorController(unittest.TestCase):
             "contract": contract
         }
 
-    def test_get_models(self):
+    def test_get_models_contracts(self):
         models = self.controller.get_models(self.session, "contract")
 
-        self.assertEqual(len(models),1)
-        self.assertEqual(models[0].id, self.data["contract"].id)
-        self.assertEqual(models[0].client_id, self.data["client"].id)
-        self.assertEqual(models[0].commercial_id, self.data["commercial"].id)
-        self.assertEqual(models[0].total_amount, 100)
-        self.assertEqual(models[0].bill_to_pay, 50)
-        self.assertEqual(models[0].status, True)
+        self.assertEqual(len(models),3)
+        self.assertEqual(models.get("contracts")[0].id, self.data["contract"].id)
+        self.assertEqual(models.get("contracts")[0].client_id, self.data["client"].id)
+        self.assertEqual(models.get("contracts")[0].commercial_id, self.data["commercial"].id)
+        self.assertEqual(models.get("contracts")[0].total_amount, 100)
+        self.assertEqual(models.get("contracts")[0].bill_to_pay, 50)
+        self.assertEqual(models.get("contracts")[0].status, True)
+
+    def test_get_models_clients(self):
+        clients = self.controller.get_models(self.session, "client")
+
+        self.assertEqual(len(clients),1)
+        self.assertEqual(clients[0].id, self.data["client"].id)
+        self.assertEqual(clients[0].name, self.data["client"].name)
+        self.assertEqual(clients[0].email, self.data["client"].email)
+        self.assertEqual(clients[0].phone, self.data["client"].phone)
+        self.assertEqual(clients[0].company, self.data["client"].company)
+        self.assertEqual(clients[0].creation_date, self.data["client"].creation_date)
+        self.assertEqual(clients[0].last_update, self.data["client"].last_update)
+        self.assertEqual(clients[0].commercial_id, self.data["client"].commercial_id)
 
     def test_get_model(self):
         model = self.controller.get_model(self.session, "contract", self.data["contract"].id)
-
-        self.assertEqual(model.id, self.data["contract"].id)
-        self.assertEqual(model.client_id, self.data["client"].id)
-        self.assertEqual(model.commercial_id, self.data["commercial"].id)
-        self.assertEqual(model.total_amount, 100)
-        self.assertEqual(model.bill_to_pay, 50)
-        self.assertEqual(model.status, True)
-
-    def test_get_contract(self):
-        model = self.controller.get_contract(self.session, self.data["contract"].id)
 
         self.assertEqual(model.id, self.data["contract"].id)
         self.assertEqual(model.client_id, self.data["client"].id)
@@ -115,7 +118,7 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(model.id, self.data["client"].id)
         self.assertEqual(model.name, "Client Test")
         self.assertEqual(model.email, "client@clienttest.com")
-        self.assertEqual(model.phone, 555123456)
+        self.assertEqual(model.phone, "555123456")
         self.assertEqual(model.company, "Company Test")
         self.assertEqual(model.commercial_id, 1)
 

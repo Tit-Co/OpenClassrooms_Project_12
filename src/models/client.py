@@ -11,7 +11,7 @@ class Client(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     email = Column(String(200), nullable=False)
-    phone = Column(Integer, nullable=False)
+    phone = Column(String(20), nullable=False)
     company = Column(String(200), nullable=False)
     creation_date = Column(DateTime, nullable=False)
     last_update = Column(DateTime, nullable=False)

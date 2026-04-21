@@ -1,19 +1,27 @@
 import bcrypt
 
 from src.seed import roles
-from src.database import engine, SessionLocal
+from src.database import engine
 from src.models.base import Base
 from src.models.role import Role
 from src.models.user import Manager, Commercial, Technician
-from src.views.main_views import MainView
+from src.views.main_view import MainView
+from .client_controller import ClientController
 from .collaborator_controller import CollaboratorController
+from .contract_controller import ContractController
 from src.seed import admin_credentials
+from .event_controller import EventController
 
 
 class MainController:
     def __init__(self):
         self.view = MainView()
+
         self.user_controller = CollaboratorController(self)
+        self.contract_controller = ContractController(self)
+        self.client_controller = ClientController(self)
+        self.event_controller = EventController(self)
+
         self.role_permissions = {
             "MANAGER": ["display:manager", "display:commercial", "display:technician",
                               "create:manager", "create:commercial", "create:technician",
@@ -21,7 +29,7 @@ class MainController:
                               "delete:manager", "delete:commercial", "delete:technician",
                               "display:contract", "display:client", "display:event",
                               "create:contract", "update:contract", "delete:contract",
-                              "update:event", "filter:event"],
+                              "update:event", "delete:event", "filter:event"],
 
             "COMMERCIAL": ["display:manager", "display:commercial", "display:technician",
                            "display:contract", "display:client", "display:event",
@@ -88,11 +96,11 @@ class MainController:
             if menu == 'q':
                 break
 
-            email = self.view.prompt_for_email()
+            email = self.view.prompt_for_email("")
 
             password = self.view.prompt_for_password()
 
-            success = self.authenticate(session, email, password)
+            success = self.authenticate(session=session, email=email, password=password)
 
             if success:
                 self.user_controller.collaborator_menu(session=session)
@@ -111,27 +119,27 @@ class MainController:
             self.view.display_collaborator_does_not_exist()
             return False
 
-        if not self.check_password(password, user.password):
+        if not self.check_password(password=password, user_password=user.password):
             self.view.display_wrong_password()
             return False
 
-        self.init_permissions(session, user)
+        self.init_permissions(session=session, user=user)
         return True
 
     @staticmethod
     def check_password(password, user_password):
         if isinstance(user_password, str):
             user_password = user_password.encode("utf-8")
-        return bcrypt.checkpw(password.encode("utf-8"), user_password)
+        return bcrypt.checkpw(password=password.encode("utf-8"), hashed_password=user_password)
 
     @staticmethod
     def hash_password(password):
-        return  bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+        return  bcrypt.hashpw(password=password.encode("utf-8"), salt=bcrypt.gensalt())
 
     def init_permissions(self, session, user):
         role = session.query(Role).filter_by(id=user.role_id).first()
         self.user_controller.permissions = self.role_permissions.get(role.name)
-        self.view.display_successfully_logged_in(user.name)
+        self.view.display_successfully_logged_in(name=user.name)
 
     def goodbye(self):
         self.view.display_goodbye()

@@ -2,22 +2,25 @@ import sys
 import unittest
 
 from datetime import datetime
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from io import StringIO
 
 from src.controllers.collaborator_controller import CollaboratorController
+from src.controllers.contract_controller import ContractController
 from src.controllers.main_controller import MainController
 from src.models.base import Base
 from src.models.client import Client
 from src.models.contract import Contract
-from src.models.user import Commercial, Technician
+from src.models.role import Role
+from src.models.user import Commercial, Technician, Manager, Collaborator
 
 
 class TestCollaboratorController(unittest.TestCase):
     main_controller = MainController()
     controller = CollaboratorController(main_controller)
+    contract_controller = ContractController(main_controller)
 
     credentials = {
         'email': 'admin@epicevents.url',
@@ -58,7 +61,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         client = Client(name="Client Test",
                         email="client@clienttest.com",
-                        phone=555123456,
+                        phone="555123456",
                         company="Company Test",
                         creation_date=datetime.now(),
                         last_update=datetime.now(),
@@ -77,10 +80,24 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.add(contract)
         self.session.commit()
 
+        role_manager = Role(
+            name="MANAGER",
+        )
+        role_commercial = Role(
+            name="COMMERCIAL",
+        )
+        role_technician = Role(
+            name="TECHNICAN",
+        )
+        self.session.add(role_manager)
+        self.session.add(role_commercial)
+        self.session.add(role_technician)
+        self.session.commit()
+
         return {
-            "commercial": commercial,
-            "client": client,
-            "contract": contract
+            "commercials": [commercial],
+            "clients": [client],
+            "contracts": [contract]
         }
 
     def test_collaborator_menu_ok(self):
@@ -182,7 +199,8 @@ class TestCollaboratorController(unittest.TestCase):
         captured_output = StringIO()
         sys.stdout = captured_output
 
-        self.controller.get_models = Mock(return_value=[self.data["contract"]])
+        self.controller.get_models = Mock(return_value=self.data)
+
         self.main_controller.view.prompt_for_model_id_with_action = Mock(return_value=1)
 
         self.controller.display_action(session=self.session, model_type="contract")
@@ -191,5 +209,56 @@ class TestCollaboratorController(unittest.TestCase):
         output = captured_output.getvalue()
 
         self.assertIn(" • contracts - Here is the list : ", output)
-        self.assertIn("Contract n° ", output)
+        self.assertIn("Contract between the client", output)
         self.assertIn("Here is the contract : ", output)
+
+    def test_create_action_ok(self):
+        with patch.object(
+                self.main_controller.contract_controller,
+                "create_contract_with_view"
+        ) as mock_create:
+
+            self.controller.create_action(session=self.session, model_type="contract")
+
+            mock_create.assert_called_once_with(session=self.session)
+
+    def test_create_collaborator_with_view_ok(self):
+        with patch.object(
+                self.main_controller.view,
+                "prompt_for_collaborator"
+        ) as mock_create:
+
+            captured_output = StringIO()
+            sys.stdout = captured_output
+
+            mock_create.return_value = {"email": "test@test.com", "password": "password_test", "name": "name_test"}
+
+            self.controller.create_collaborator_with_view(session=self.session, role="manager")
+
+            sys.stdout = sys.__stdout__
+            output = captured_output.getvalue()
+
+            self.assertIn("The manager has been successfully created.", output)
+
+    def create_collaborator_ok(self):
+        data = {
+            "email": "test@test.com",
+            "password": "password",
+            "name": "name",
+            "role": "manager",
+        }
+
+        manager = Manager(
+                name=data["name"],
+                email=data["email"],
+                password=data["password"],
+                role_id=self.session.query(Role).filter_by(name=data["role"].upper()).first().id)
+
+        with patch.object(
+            self.controller,
+            "create_collaborator",
+        ) as mock_create:
+
+            collaborator = mock_create()
+            self.assertEqual(collaborator, manager)
+
