@@ -13,6 +13,7 @@ from src.controllers.main_controller import MainController
 from src.models.base import Base
 from src.models.client import Client
 from src.models.contract import Contract
+from src.models.event import Event
 from src.models.role import Role
 from src.models.user import Commercial, Technician, Manager, Collaborator
 
@@ -51,6 +52,20 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.close()
 
     def seed_data(self):
+        role_manager = Role(
+            name="MANAGER",
+        )
+        role_commercial = Role(
+            name="COMMERCIAL",
+        )
+        role_technician = Role(
+            name="TECHNICIAN",
+        )
+        self.session.add(role_manager)
+        self.session.add(role_commercial)
+        self.session.add(role_technician)
+        self.session.commit()
+
         commercial = Commercial(name="Commercial name",
                                 email="commercial.test@epicevents.url.com",
                                 password="pwd_test",
@@ -77,27 +92,45 @@ class TestCollaboratorController(unittest.TestCase):
                             creation_date=datetime.now(),
                             status=True)
 
+        contract2 = Contract(client_id=client.id,
+                            commercial_id=commercial.id,
+                            total_amount=1000,
+                            bill_to_pay=500,
+                            creation_date=datetime.now(),
+                            status=True)
+
         self.session.add(contract)
+        self.session.add(contract2)
         self.session.commit()
 
-        role_manager = Role(
-            name="MANAGER",
+        technician = Technician(
+            name="Technician name",
+            email="test@test.com",
+            password="pwd_test",
+            role_id=3
         )
-        role_commercial = Role(
-            name="COMMERCIAL",
-        )
-        role_technician = Role(
-            name="TECHNICAN",
-        )
-        self.session.add(role_manager)
-        self.session.add(role_commercial)
-        self.session.add(role_technician)
+        self.session.add(technician)
         self.session.commit()
+
+        event = Event(name="Event Name",
+                      start_date=datetime.now(),
+                      end_date=datetime.now(),
+                      location="Paris",
+                      attendees=100,
+                      notes="Notes",
+                      contract_id=contract.id,
+                      technician_id=technician.id,)
+
+        self.session.add(event)
+        self.session.commit()
+
 
         return {
             "commercials": [commercial],
+            "technicians": [technician],
             "clients": [client],
-            "contracts": [contract]
+            "contracts": [contract],
+            "events": [event]
         }
 
     def test_collaborator_menu_ok(self):
@@ -262,3 +295,191 @@ class TestCollaboratorController(unittest.TestCase):
             collaborator = mock_create()
             self.assertEqual(collaborator, manager)
 
+    def test_update_action_ok(self):
+        with patch.object(
+                self.main_controller.contract_controller,
+                "update_contract_with_view"
+        ) as mock_create:
+
+            self.controller.update_action(session=self.session, model_type="contract")
+
+            mock_create.assert_called_once_with(session=self.session)
+
+    def test_update_action_technician_ok(self):
+        self.controller.get_models = Mock(return_value=self.data["technicians"])
+        self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
+        self.main_controller.view.prompt_for_collaborator = Mock(return_value=(
+            "test@test.com",
+            "pwd_test",
+            "Technician name"))
+        self.main_controller.view.prompt_for_collaborator_role = Mock(return_value=(2, "commercial"))
+
+        captured_output = StringIO()
+        sys.stdout = captured_output
+
+        self.controller.update_action(session=self.session, model_type="technician")
+
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        self.assertIn("The collaborator (technician to commercial) "
+                      "has been successfully updated.", output)
+
+    def test_update_collaborator_ok(self):
+        new_data = {"name": "Commercial name",
+                    "email": "commercial.test@epicevents.yahoo.com",
+                    "password": "pwd_test_updated",
+                    "role_id": 2}
+
+        self.controller.update_collaborator(session=self.session, collaborator_id=1, data=new_data)
+
+        updated_collaborator = self.session.query(Commercial).filter_by(id=1).first()
+
+        self.assertEqual(updated_collaborator.name, new_data["name"])
+        self.assertEqual(updated_collaborator.email, new_data["email"])
+        self.assertEqual(updated_collaborator.password, new_data["password"])
+
+    def test_change_role_for_collaborator_ok(self):
+        new_data = {"name": "Commercial name",
+                    "email": "commercial.test@epicevents.url",
+                    "password": "pwd_test",
+                    "role": "technician"}
+
+        new_id = self.controller.change_role_for_collaborator(session=self.session,
+                                                              collaborator_id=1,
+                                                              current_role="commercial",
+                                                              data=new_data)
+
+        nb = len(self.session.query(Technician).all())
+
+        self.assertEqual(new_id, nb)
+
+    def test_delete_action_for_contract_fails(self):
+        self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
+        self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        self.controller.delete_action(session=self.session, model_type="contract")
+
+        result = self.session.query(Contract).filter_by(id=1).first()
+
+        self.assertIsNotNone(result)
+
+    def test_delete_action_for_contract_ok(self):
+        self.main_controller.view.prompt_for_model_id = Mock(side_effect=[2])
+        self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        self.controller.delete_action(session=self.session, model_type="contract")
+
+        result = self.session.query(Contract).filter_by(id=2).first()
+
+        self.assertIsNone(result)
+
+    def test_delete_action_for_technician_ok(self):
+        self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
+        self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        self.controller.delete_action(session=self.session, model_type="technician")
+
+        result = self.session.query(Technician).filter_by(id=1).first()
+
+        self.assertIsNone(result)
+
+    def test_delete_action_for_client_fails(self):
+        self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
+        self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        self.controller.delete_action(session=self.session, model_type="client")
+
+        result = self.session.query(Client).filter_by(id=1).first()
+
+        self.assertIsNotNone(result)
+
+    def test_delete_action_for_event_ok(self):
+        self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
+        self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        self.controller.delete_action(session=self.session, model_type="event")
+
+        result = self.session.query(Event).filter_by(id=1).first()
+
+        self.assertIsNone(result)
+
+    def test_delete_action_for_commercial_ok(self):
+        self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
+        self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        self.controller.delete_action(session=self.session, model_type="commercial")
+
+        result = self.session.query(Commercial).filter_by(id=1).first()
+
+        self.assertIsNone(result)
+
+    def test_update_collaborator_with_view_ok(self):
+        with patch.object(
+                self.controller,
+                "get_models"
+        ) as mock_create:
+            mock_create.return_value = self.data["technicians"]
+            mock_create()
+
+            self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
+            self.main_controller.view.prompt_for_collaborator = Mock(return_value=(
+                "test@test.com",
+                "pwd_test",
+                "Technician name"))
+
+            self.main_controller.view.prompt_for_collaborator_role = Mock(return_value=(2,"commercial"))
+
+            captured_output = StringIO()
+            sys.stdout = captured_output
+
+            self.controller.update_collaborator_with_view(session=self.session, role="technician")
+
+            sys.stdout = sys.__stdout__
+            output = captured_output.getvalue()
+
+            self.assertIn("The collaborator (technician to commercial) "
+                             "has been successfully updated.", output)
+
+    def test_delete_model_with_view_ok(self):
+        self.controller.get_models = Mock(return_value=self.data["technicians"])
+        self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
+        self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        captured_output = StringIO()
+        sys.stdout = captured_output
+
+        self.controller.delete_model_with_view(session=self.session, model_type="technician")
+
+        sys.stdout = sys.__stdout__
+        output = captured_output.getvalue()
+
+        self.assertIn("The technician has been successfully deleted.", output)
+
+    # def test_delete_model_with_view_fails(self):
+    #     with patch.object(
+    #             self.controller,
+    #             "get_models"
+    #     ) as mock_create:
+    #
+    #         mock_create.return_value = self.data["commercials"]
+    #         mock_create()
+    #
+    #         self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
+    #         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+    #
+    #         captured_output = StringIO()
+    #         sys.stdout = captured_output
+    #
+    #         self.controller.delete_model_with_view(session=self.session, model_type="commercial")
+    #
+    #         sys.stdout = sys.__stdout__
+    #         output = captured_output.getvalue()
+    #
+    #         self.assertIn("cannot delete commercial : client(s) linked.", output)
+
+    def test_delete_collaborator_ok(self):
+        self.controller.delete_collaborator(session=self.session, collaborator_id=1, role="technician")
+        result = self.session.query(Technician).filter_by(id=1).first()
+
+        self.assertIsNone(result)

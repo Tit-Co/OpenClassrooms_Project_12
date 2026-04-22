@@ -15,7 +15,7 @@ class Client(Base):
     company = Column(String(200), nullable=False)
     creation_date = Column(DateTime, nullable=False)
     last_update = Column(DateTime, nullable=False)
-    commercial_id = Column(Integer, ForeignKey('commercial.id'), nullable=True)
+    commercial_id = Column(Integer, ForeignKey('commercial.id', ondelete="SET NULL"), nullable=True)
     commercial = relationship("Commercial")
 
     def __repr__(self):

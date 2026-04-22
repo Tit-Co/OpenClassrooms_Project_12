@@ -10,6 +10,16 @@ class ClientController:
     def __init__(self, main_controller):
         self.main_controller = main_controller
 
+    @staticmethod
+    def get_client_add_on(session, client):
+        commercial = session.query(Commercial).filter(Commercial.id == client.commercial_id).first()
+
+        add_on = {
+            "commercial_name": commercial.name
+        }
+
+        return add_on
+
     def create_client_with_view(self, session):
         commercials = self.main_controller.user_controller.get_models(session=session, model_type="commercial")
 
@@ -20,9 +30,9 @@ class ClientController:
          company
          ) = self.main_controller.view.client_view.prompt_for_client(commercials=commercials)
 
-        if not self.main_controller.model_exists(session=session,
-                                                 model_type="client",
-                                                 value=email):
+        if not self.main_controller.user_controller.model_exists(session=session,
+                                                                 model_type="client",
+                                                                 value=email):
             data = {
                 "commercial_id": commercial_id,
                 "name": name,
@@ -37,9 +47,10 @@ class ClientController:
             self.main_controller.view.display_action_successfully_done(action="created",
                                                                        model_type="client")
 
+            client = self.get_client(session=session, model_id=client.id)
             self.main_controller.view.client_view.display_client(client=client)
-
-        self.main_controller.view.display_model_already_exist(model_type="client")
+        else:
+            self.main_controller.view.display_model_already_exist(model_type="client")
 
     @staticmethod
     def create_client(session, data):
@@ -97,6 +108,8 @@ class ClientController:
             if client:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type="client")
+
+
                 self.main_controller.view.client_view.display_client(client=client)
             else:
                 self.main_controller.view.display_something_wrong_while_updating()
@@ -108,13 +121,14 @@ class ClientController:
 
     def delete_client(self, session, client_id):
         client = session.query(Contract).filter_by(client_id=client_id).first()
-        if client and (None,) not in client:
+        if client:
             self.main_controller.view.display_cannot_delete(model_type="client",
                                                             model_linked="contract")
-            return
+            return False
 
         session.query(Client).filter_by(id=client_id).delete()
         session.commit()
+        return True
 
     @staticmethod
     def get_client(session, model_id):

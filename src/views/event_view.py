@@ -2,16 +2,16 @@ class EventView:
     def __init__(self, main_view):
         self.main_view = main_view
 
-    def display_event(self, event, add_on):
+    def display_event(self, event):
         self.main_view.display_title(model_type="event")
         print(f"Id : {event.id}")
         print(f"Contract id : {event.contract_id}")
-        print(f"Client name : {add_on.get("client_name") or ""}")
-        print(f"Client phone : {add_on.get("client_phone") or ""}")
-        print(f"Client e-mail : {add_on.get("client_email") or ""}")
+        print(f"Client name : {event.client_name or ""}")
+        print(f"Client phone : {event.client_phone or ""}")
+        print(f"Client e-mail : {event.client_email or ""}")
         print(f"Start date : {event.start_date if event.start_date else ""}")
         print(f"End date : {event.end_date if event.end_date else ""}")
-        print(f"Technician name : {add_on.get("technician_name") or ""}")
+        print(f"Technician name : {event.technician_name or ""}")
         print(f"Location : {event.location if event.location else ""}")
         print(f"Attendees : {event.attendees if event.attendees else ""}")
         print(f"Notes : {event.notes if event.notes else ""}")

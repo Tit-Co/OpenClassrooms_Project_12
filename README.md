@@ -144,7 +144,7 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 - **Type the lines below in the terminal to generate another coverage report with pytest**
 
     `python -m coverage run -m unittest`
-    `python -m coverage html`
+    `python -m coverage html --omit=tests/*`
 
 ---
 

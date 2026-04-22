@@ -2,6 +2,7 @@ env/
 .venv/
 
 .idea/
+.coverage
 
 # Temp files
 __pycache__

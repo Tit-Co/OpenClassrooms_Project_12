@@ -40,12 +40,14 @@ class EventController:
             }
 
             event = self.create_event(session=session, data=data)
-            add_on = self.get_event_add_on(session=session, event=event)
+            event = self.get_event(session=session, model_id=event.id)
 
             self.main_controller.view.display_action_successfully_done(action="created",
                                                                        model_type="event")
 
-            self.main_controller.view.event_view.display_event(event=event, add_on=add_on)
+            self.main_controller.view.event_view.display_event(event=event)
+        else:
+            self.main_controller.view.display_model_already_exist(model_type="event")
 
     @staticmethod
     def create_event(session, data):
@@ -77,9 +79,7 @@ class EventController:
                                                                      models=events)
 
             event = self.get_event(session=session, model_id=event_id)
-            add_on = self.get_event_add_on(session=session, event=event)
-
-            self.main_controller.view.event_view.display_event(event=event, add_on=add_on)
+            self.main_controller.view.event_view.display_event(event=event)
 
             self.main_controller.view.display_new_data_request(model_type="event",
                                                                model_id=event_id)
@@ -113,9 +113,7 @@ class EventController:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type="event")
 
-                add_on = self.get_event_add_on(session=session, event=event)
-
-                self.main_controller.view.event_view.display_event(event=event, add_on=add_on)
+                self.main_controller.view.event_view.display_event(event=event)
 
             else:
                 self.main_controller.view.display_something_wrong_while_updating()
@@ -129,6 +127,7 @@ class EventController:
     def delete_event(session, event_id):
         session.query(Event).filter_by(id=event_id).delete()
         session.commit()
+        return True
 
     @staticmethod
     def get_event(session, model_id):
@@ -142,17 +141,3 @@ class EventController:
         event.client_email = client.email if client else ""
 
         return event
-
-    @staticmethod
-    def get_event_add_on(session, event):
-        contract = session.query(Contract).filter(Contract.id == event.contract_id).first()
-        client = session.query(Client).filter(Client.id == contract.client_id).first()
-        technician = session.query(Technician).filter_by(id=event.technician_id).first()
-        add_on = {
-            "client_name": client.name,
-            "client_phone": client.phone,
-            "client_email": client.email,
-            "technician_name": technician.name
-        }
-
-        return add_on

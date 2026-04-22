@@ -19,6 +19,11 @@ class CollaboratorController:
             "commercial": Commercial,
             "technician": Technician
         }
+        self.ROLES_ID = {
+            1: Manager,
+            2: Commercial,
+            3: Technician,
+        }
 
     def collaborator_menu(self, session):
         while True:
@@ -113,13 +118,8 @@ class CollaboratorController:
             if model_type in self.COLLABORATORS.keys():
                 self.main_controller.view.display_collaborator(collaborator=model, role=model_type)
             else:
-                if model_type == "event":
-                    add_on = self.main_controller.event_controller.get_event_add_on(session=session,
-                                                                                    event=model)
-                    self.main_controller.view.event_view.display_event(event=model, add_on=add_on)
-                else:
-                    self.main_controller.view.display_other_model(model_type=model_type,
-                                                                  model=model)
+                self.main_controller.view.display_model(model_type=model_type,
+                                                        model=model)
 
     def create_action(self, session, model_type):
         actions = {
@@ -141,7 +141,7 @@ class CollaboratorController:
         data = {
             "name": name,
             "email": email,
-            "password": self.main_controller.hash_password(password=password),
+            "password": password,
             "role": role
         }
 
@@ -152,28 +152,27 @@ class CollaboratorController:
 
         self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
-    @staticmethod
-    def create_collaborator(session, data):
+    def create_collaborator(self, session, data):
         collaborator = None
         if data["role"] == "manager":
             collaborator = Manager(
                 name=data["name"],
                 email=data["email"],
-                password=data["password"],
+                password=self.main_controller.hash_password(password=data["password"]),
                 role_id=session.query(Role).filter_by(name=data["role"].upper()).first().id
             )
         elif data["role"] == "commercial":
             collaborator = Commercial(
                 name=data["name"],
                 email=data["email"],
-                password=data["password"],
+                password=self.main_controller.hash_password(password=data["password"]),
                 role_id=session.query(Role).filter_by(name=data["role"].upper()).first().id
             )
         elif data["role"] == "technician":
             collaborator = Technician(
                 name=data["name"],
                 email=data["email"],
-                password=data["password"],
+                password=self.main_controller.hash_password(password=data["password"]),
                 role_id=session.query(Role).filter_by(name=data["role"].upper()).first().id
             )
 
@@ -224,13 +223,13 @@ class CollaboratorController:
             }
             new_role_id, new_role_name = self.main_controller.view.prompt_for_collaborator_role(roles=roles)
 
-            current_role_id = session.query(Role).filter_by(name=role).first().id
+            current_role_id = session.query(Role).filter_by(name=role.upper()).first().id
 
             if new_role_id != current_role_id:
                 new_collaborator_data = {
                     "name": name,
                     "email": email,
-                    "password": self.main_controller.hash_password(password=password),
+                    "password": password,
                     "role": new_role_name,
                 }
                 new_id = self.change_role_for_collaborator(session=session,
@@ -242,11 +241,13 @@ class CollaboratorController:
                                                      collaborator_id=new_id,
                                                      role=new_role_name)
 
+                label = f"collaborator ({role} to {new_role_name})"
+
             else:
                 new_collaborator_data = {
                     "name": name,
                     "email": email,
-                    "password": self.main_controller.hash_password(password=password),
+                    "password": password,
                     "role_id": current_role_id,
                 }
                 new_role_name = roles[current_role_id]
@@ -258,10 +259,11 @@ class CollaboratorController:
                 collaborator = self.get_collaborator(session=session,
                                                      collaborator_id=collaborator_id,
                                                      role=new_role_name)
+                label = "collaborator"
 
             if collaborator:
                 self.main_controller.view.display_action_successfully_done(action="updated",
-                                                                           model_type="collaborator")
+                                                                           model_type=label)
 
                 self.main_controller.view.display_collaborator(collaborator=collaborator,
                                                                role=new_role_name)
@@ -270,8 +272,16 @@ class CollaboratorController:
                 self.main_controller.view.display_something_wrong_while_updating()
 
     def update_collaborator(self, session, collaborator_id, data):
-        session.query(self.MODELS.get(data["role"])).filter_by(id=collaborator_id).update(data=data)
+        role_id = data["role_id"]
+        name = data["name"]
+        email = data["email"]
+        password = data["password"]
+        role = self.ROLES_ID.get(role_id)
 
+        session.query(role).filter_by(id=collaborator_id).update({"name": name,
+                                                                  "email": email,
+                                                                  "password": password,
+                                                                  "role_id": role_id})
         session.commit()
 
     def change_role_for_collaborator(self, session, collaborator_id, current_role, data):
@@ -318,7 +328,6 @@ class CollaboratorController:
         else:
             model_class = self.COLLABORATORS.get(model_type)
         models = session.query(model_class).all()
-
         return models
 
     def get_model(self, session, model_type, model_id):
@@ -370,34 +379,57 @@ class CollaboratorController:
         return collaborator
 
     def delete_model_with_view(self, session, model_type):
-        models = self.main_controller.main_controller.get_models(session=session, model_type=model_type)
+        models = self.main_controller.user_controller.get_models(session=session,
+                                                                 model_type=model_type)
 
         self.main_controller.view.display_models(model_type=model_type, models=models)
 
         if models:
             model_id = self.main_controller.view.prompt_for_model_id(model_type=model_type,
-                                                                      models=models)
+                                                                     models=models)
 
-            if self.main_controller.view.prompt_for_confirmation(action="delete",
-                                                                 model_type=model_type):
+            if not self.main_controller.view.prompt_for_confirmation(action="delete",
+                                                                     model_type=model_type):
+                return
 
-                delete_actions = {
-                    "contract": self.main_controller.contract_controller.delete_contract,
-                    "client": self.main_controller.client_controller.delete_client,
-                    "event": self.main_controller.event_controller.delete_event,
-                    "manager": lambda : self.main_controller.delete_collaborator(role=model_type),
-                    "commercial": lambda : self.main_controller.delete_collaborator(role=model_type),
-                    "technician": lambda : self.main_controller.delete_collaborator(role=model_type)
-                }
-                action = delete_actions.get(model_type)
-                action(session=session, event_id=model_id)
+            delete_actions = {
+                "contract": lambda : self.main_controller.contract_controller\
+                    .delete_contract(session=session, contract_id=model_id),
 
+                "client": lambda : self.main_controller.client_controller\
+                    .delete_client(session=session, client_id=model_id),
+
+                "event": lambda : self.main_controller.event_controller\
+                    .delete_event(session=session,event_id=model_id),
+
+                "manager": lambda : self.main_controller\
+                    .delete_collaborator(session=session, collaborator_id=model_id, role=model_type),
+
+                "commercial": lambda : self.main_controller.user_controller\
+                    .delete_collaborator(session=session, collaborator_id=model_id, role=model_type),
+
+                "technician": lambda : self.main_controller.user_controller\
+                    .delete_collaborator(session=session, collaborator_id=model_id, role=model_type)
+            }
+            action = delete_actions.get(model_type)
+            success = action()
+
+            if success:
                 self.main_controller.view.display_action_successfully_done(action="deleted",
                                                                            model_type=model_type)
 
     def delete_collaborator(self, session, collaborator_id, role):
+        # if role == "commercial":
+        #     clients = session.query(Client).filter_by(commercial_id=collaborator_id).all()
+        #
+        #     if clients:
+        #         self.main_controller.view.display_cannot_delete(model_type=role,
+        #                                                         model_linked="client")
+        #         return False
+
         session.query(self.COLLABORATORS.get(role)).filter_by(id=collaborator_id).delete()
         session.commit()
+        return True
 
     def model_exists(self, session, model_type, value):
         query = None

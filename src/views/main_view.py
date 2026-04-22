@@ -124,11 +124,12 @@ class MainView:
     def display_title(model_type):
         print(f"\nHere is the {model_type} : \n")
 
-    def display_other_model(self, model_type, model):
+    def display_model(self, model_type, model):
         self.display_title(model_type)
         actions = {
             "contract": self.contract_view.display_contract,
             "client": self.client_view.display_client,
+            "event": self.event_view.display_event
         }
 
         action = actions.get(model_type)
@@ -148,7 +149,7 @@ class MainView:
 
     @staticmethod
     def display_cannot_delete(model_type, model_linked):
-        print(f"\n❌ Cannot delete {model_type} : {model_linked}(s) is(are) linked.\n")
+        print(f"\n❌ Cannot delete {model_type} : {model_linked}(s) linked.\n")
 
     @staticmethod
     def display_roles(roles):

@@ -11,7 +11,7 @@ class ClientView:
         print(f"Company : {client.company}")
         print(f"Creation date : {client.creation_date}")
         print(f"Last update : {client.last_update}")
-        print(f"Commercial name : {client.commercial_name if client.commercial_name else ''}")
+        print(f"Commercial name : {client.commercial_name or ''}")
 
     def prompt_for_client(self, commercials):
         self.main_view.display_models("commercial", commercials)

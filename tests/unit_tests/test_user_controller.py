@@ -1,6 +1,7 @@
 import sys
 import unittest
 from datetime import datetime
+from unittest.mock import Mock
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -161,3 +162,34 @@ class TestCollaboratorController(unittest.TestCase):
         output = captured_output.getvalue()
 
         self.assertIn("You are successfully logged out.", output)
+
+    def test_get_collaborator(self):
+        collaborator = self.controller.get_collaborator(session=self.session,
+                                                        collaborator_id=self.data["commercial"].id,
+                                                        role="commercial")
+        self.assertEqual(collaborator.id, self.data["commercial"].id)
+
+    def test_exists_returns_true(self):
+        result = self.controller.model_exists(session=self.session,
+                                              model_type="client",
+                                              value="client@clienttest.com")
+        self.assertTrue(result)
+
+    def test_exists_returns_false(self):
+        result = self.controller.model_exists(session=self.session,
+                                              model_type="client",
+                                              value="unautreemail@clienttest.com")
+        self.assertFalse(result)
+
+    def test_goodbye(self):
+        with self.assertRaises(SystemExit) as mock:
+            captured_output = StringIO()
+            sys.stdout = captured_output
+
+            self.main_controller.goodbye()
+
+            sys.stdout = sys.__stdout__
+            output = captured_output.getvalue()
+
+            self.assertIn("Goodbye !", output)
+            self.assertEqual(mock.exception.code, 1)
