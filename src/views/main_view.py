@@ -109,14 +109,14 @@ class MainView:
         """
         Method to display the wrong password message.
         """
-        print("Invalid password.")
+        print("❗ Invalid password.")
 
     @staticmethod
     def display_collaborator_does_not_exist() -> None:
         """
         Method to display the message when a collaborator does not exist.
         """
-        print("This collaborator does not exist.")
+        print("❗ This collaborator does not exist.")
 
     @staticmethod
     def display_collaborator_menu() -> None:
@@ -180,7 +180,7 @@ class MainView:
         """
         Method to display the collaborators list.
         Args:
-            models ():
+            models (list): The models list.
         """
         for model in models:
             print(f"  - {model.id}. {model.name.capitalize()}")
@@ -205,7 +205,7 @@ class MainView:
         """
         Method to display a title for a given model.
         Args:
-            model_type ():
+            model_type (str): The model type.
         """
         print(f"\nHere is the {model_type} : \n")
 
@@ -232,8 +232,8 @@ class MainView:
         """
         Method to display a title for the new data request action for a given model type and model id.
         Args:
-            model_type ():
-            model_id ():
+            model_type (str): The model type.
+            model_id (int): The model id.
         """
         print(f"\n▶ Please enter the new data for the {model_type} n°{model_id}.")
 
@@ -242,7 +242,7 @@ class MainView:
         """
         Method to display a message when a model already exists.
         Args:
-            model_type ():
+            model_type (str): The model type.
         """
         print(f"\n❌ This {model_type} already exists.\n")
 
@@ -263,7 +263,7 @@ class MainView:
         Args:
             collaborator (type[Commercial] | type[Manager] | type[Technician]): The collaborator
         """
-        print(f"\nA collaborator inactive with this email [{collaborator.email}] already exists.\n")
+        print(f"\n❗ A collaborator inactive with this email [{collaborator.email}] already exists.\n")
 
 
     @staticmethod
@@ -302,7 +302,7 @@ class MainView:
         """
         Method to display the roles list.
         Args:
-            roles ():
+            roles (dict): The roles dictionary
         """
         print("\nAll roles:")
         for role_id, role_name in roles.items():
@@ -322,12 +322,12 @@ class MainView:
             answer = input("\n▶ What do you want to do ? \n▶▶ ")
 
             if not answer.isdigit():
-                print("Please enter a number.")
+                print("❗ Please enter a number.")
                 continue
 
             coll = (str(i+1) for i in range(nb))
             if answer not in coll:
-                print(f"Please choose between 1 and {nb}.")
+                print(f"❗ Please choose between 1 and {nb}.")
                 continue
 
             return int(answer)
@@ -354,11 +354,11 @@ class MainView:
             answer = input(f"\n▶ Which {model_type} do you want to {action} ? \n▶▶ ")
 
             if not answer.isdigit():
-                print("Please enter a number.")
+                print("❗ Please enter a number.")
                 continue
 
             if int(answer) not in coll:
-                print(f"Please choose a number from id {the_models[0].id} to id {the_models[-1].id}.")
+                print(f"❗ Please choose a number from id {the_models[0].id} to id {the_models[-1].id}.")
                 continue
 
             return int(answer)
@@ -380,11 +380,11 @@ class MainView:
             answer = input(f"\n▷▷ Please choose a {model_type} :\n▶▶ ").strip()
 
             if not answer.isdigit():
-                print("Please enter a number.")
+                print("❗ Please enter a number.")
                 continue
 
             if int(answer) not in coll:
-                print(f"Please choose a number from id {models[0].id} to id {models[-1].id}.")
+                print(f"❗ Please choose a number from id {models[0].id} to id {models[-1].id}.")
                 continue
 
             return int(answer)
@@ -414,7 +414,7 @@ class MainView:
             email = input(f"\n▷▷ Enter the {model_type} e-mail address : \n▶▶ ")
 
             if not re.fullmatch(r'[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', email):
-                print("Invalid e-mail address.")
+                print("❗ Invalid e-mail address.")
                 continue
 
             return email
@@ -445,7 +445,7 @@ class MainView:
             if answer.lower() in ["y", "n"]:
                 return True if answer.lower() == "y" else False
 
-            print(f"Please enter either 'y' or 'n'.")
+            print(f"❗ Please enter either 'y' or 'n'.")
 
     @staticmethod
     def prompt_for_string(model_type: str, field: str) -> str:
@@ -497,7 +497,7 @@ class MainView:
                     return datetime.strptime(answer, '%d/%m/%y %H:%M:%S')
 
                 except ValueError:
-                    print("Please enter a valid date.")
+                    print("❗ Please enter a valid date.")
             else:
                 return None
 
@@ -535,4 +535,4 @@ class MainView:
             if role.isdigit() and int(role) in [1,2,3]:
                 return int(role), roles[int(role)]
 
-            print("Please enter an integer between 1 and 3.")
+            print("❗ Please enter an integer between 1 and 3.")
