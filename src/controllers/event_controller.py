@@ -156,7 +156,7 @@ class EventController:
             event_id (int): event id
             data (dict): data
         """
-        session.query(Event).filter_by(id=event_id).update(data)
+        session.query(Event).filter_by(is_active=True, id=event_id).update(data)
         session.commit()
 
     @staticmethod
@@ -171,7 +171,7 @@ class EventController:
         A boolean indicating if the event was deleted successfully
         """
         try:
-            session.query(Event).filter_by(id=event_id).delete()
+            session.query(Event).filter_by(is_active=True, id=event_id).update({"is_active": False})
             session.commit()
             return True
         except Exception:
@@ -188,10 +188,10 @@ class EventController:
         Returns:
         The event object
         """
-        event = session.query(Event).filter_by(id=model_id).first()
-        technician = session.query(Technician).filter_by(id=event.technician_id).first()
-        contract = session.query(Contract).filter_by(id=event.contract_id).first()
-        client = session.query(Client).filter_by(id=contract.client_id).first()
+        event = session.query(Event).filter_by(is_active=True, id=model_id).first()
+        technician = session.query(Technician).filter_by(is_active=True, id=event.technician_id).first()
+        contract = session.query(Contract).filter_by(is_active=True, id=event.contract_id).first()
+        client = session.query(Client).filter_by(is_active=True, id=contract.client_id).first()
         event.technician_name = technician.name if technician else ""
         event.client_name = client.name if client else ""
         event.client_phone = client.phone if client else ""

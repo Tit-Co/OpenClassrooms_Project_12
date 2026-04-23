@@ -235,7 +235,7 @@ class TestCollaboratorController(unittest.TestCase):
         }
 
         self.event_controller.create_event(self.session, data)
-        event = self.session.query(Event).filter_by(name="Event Name Test").first()
+        event = self.session.query(Event).filter_by(is_active=True, name="Event Name Test").first()
 
         self.assertEqual(event.id, 3)
 
@@ -280,7 +280,7 @@ class TestCollaboratorController(unittest.TestCase):
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
 
-        event = self.session.query(Event).filter_by(id=1).first()
+        event = self.session.query(Event).filter_by(is_active=True, id=1).first()
 
         self.assertIn("The event has been successfully updated.", output)
         self.assertEqual(event.name, "Event Updated")
@@ -304,7 +304,7 @@ class TestCollaboratorController(unittest.TestCase):
         }
 
         self.event_controller.update_event(session=self.session, event_id=1, data=new_data)
-        client = self.session.query(Event).filter_by(id=1).first()
+        client = self.session.query(Event).filter_by(is_active=True, id=1).first()
 
         self.assertEqual(client.location, "London")
 
@@ -314,6 +314,6 @@ class TestCollaboratorController(unittest.TestCase):
         """
         self.event_controller.delete_event(session=self.session, event_id=2)
 
-        event = self.session.query(Event).filter_by(id=2).first()
+        event = self.session.query(Event).filter_by(is_active=True, id=2).first()
 
         self.assertIsNone(event)

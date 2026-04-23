@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, ForeignKey, Integer, String, LargeBinary
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -18,6 +18,8 @@ class Collaborator(Base):
                              unique=True,
                              nullable=False,
                              default=lambda: f"EMP-{str(uuid.uuid4().int)[:8]}")
+
+    is_active = Column(Boolean, nullable=False, default=True)
 
 class Technician(Collaborator):
     __tablename__ = "technician"

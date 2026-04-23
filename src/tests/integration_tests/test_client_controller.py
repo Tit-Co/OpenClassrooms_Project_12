@@ -161,7 +161,7 @@ class TestCollaboratorController(unittest.TestCase):
         }
 
         self.client_controller.create_client(self.session, data)
-        client = self.session.query(Client).filter_by(email="client@client.com").first()
+        client = self.session.query(Client).filter_by(is_active=True, email="client@client.com").first()
 
         self.assertEqual(client.id, 3)
 
@@ -194,7 +194,7 @@ class TestCollaboratorController(unittest.TestCase):
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
 
-        client = self.session.query(Client).filter_by(id=1).first()
+        client = self.session.query(Client).filter_by(is_active=True, id=1).first()
 
         self.assertIn("The client has been successfully updated.", output)
         self.assertEqual(client.name, "Client Updated")
@@ -217,7 +217,7 @@ class TestCollaboratorController(unittest.TestCase):
         }
 
         self.client_controller.update_client(session=self.session, client_id=1, data=new_data)
-        client = self.session.query(Client).filter_by(id=1).first()
+        client = self.session.query(Client).filter_by(is_active=True, id=1).first()
 
         self.assertEqual(client.email, "client@client.com")
 
@@ -227,7 +227,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         self.client_controller.delete_client(session=self.session, client_id=2)
 
-        client = self.session.query(Client).filter_by(id=2).first()
+        client = self.session.query(Client).filter_by(is_active=True, id=2).first()
 
         self.assertIsNone(client)
 
@@ -237,6 +237,6 @@ class TestCollaboratorController(unittest.TestCase):
         """
         self.client_controller.delete_client(session=self.session, client_id=1)
 
-        client = self.session.query(Client).filter_by(id=1).first()
+        client = self.session.query(Client).filter_by(is_active=True, id=1).first()
 
         self.assertIsNotNone(client)

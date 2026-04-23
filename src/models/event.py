@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import  Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -19,6 +19,8 @@ class Event(Base):
     contract = relationship('Contract')
     technician_id = Column(Integer, ForeignKey('technician.id', ondelete="SET NULL"), nullable=True)
     technician = relationship('Technician', passive_deletes=True)
+
+    is_active = Column(Boolean, nullable=False, default=True)
 
     def __repr__(self):
         return f'Event {self.name}'

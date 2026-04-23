@@ -139,7 +139,7 @@ class ClientController:
             client_id (int): Client id
             data (dict): data
         """
-        session.query(Client).filter_by(id=client_id).update(data)
+        session.query(Client).filter_by(is_active=True, id=client_id).update(data)
         session.commit()
 
     def delete_client(self, session: Session, client_id: int) -> bool:
@@ -152,13 +152,13 @@ class ClientController:
         Returns:
         A boolean indicating if the client was deleted successfully or not
         """
-        client = session.query(Contract).filter_by(client_id=client_id).first()
+        client = session.query(Contract).filter_by(is_active=True, client_id=client_id).first()
         if client:
             self.main_controller.view.display_cannot_delete(model_type="client",
                                                             model_linked="contract")
             return False
 
-        session.query(Client).filter_by(id=client_id).delete()
+        session.query(Client).filter_by(is_active=True, id=client_id).delete()
         session.commit()
         return True
 
@@ -173,8 +173,8 @@ class ClientController:
         Returns:
         The client object
         """
-        client = session.query(Client).filter_by(id=model_id).first()
-        commercial = session.query(Commercial).filter_by(id=client.commercial_id).first()
+        client = session.query(Client).filter_by(is_active=True, id=model_id).first()
+        commercial = session.query(Commercial).filter_by(is_active=True, id=client.commercial_id).first()
         client.commercial_name = commercial.name if commercial else ""
 
         return client

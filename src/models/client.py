@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -17,6 +17,8 @@ class Client(Base):
     last_update = Column(DateTime, nullable=False)
     commercial_id = Column(Integer, ForeignKey('commercial.id', ondelete="SET NULL"), nullable=True)
     commercial = relationship("Commercial")
+
+    is_active = Column(Boolean, nullable=False, default=True)
 
     def __repr__(self):
         return f'Client {self.name}'

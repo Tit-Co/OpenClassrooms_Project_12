@@ -21,5 +21,7 @@ class Contract(Base):
     status = Column(Boolean, nullable=False, default=False)
     events = relationship(argument='Event', back_populates='contract')
 
+    is_active = Column(Boolean, nullable=False, default=True)
+
     def __repr__(self):
         return f'Contract n° {self.id}'

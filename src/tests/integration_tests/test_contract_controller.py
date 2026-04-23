@@ -194,7 +194,8 @@ class TestCollaboratorController(unittest.TestCase):
         }
 
         self.contract_controller.create_contract(self.session, data)
-        contract = self.session.query(Contract).filter_by(client_id=1,
+        contract = self.session.query(Contract).filter_by(is_active=True,
+                                                          client_id=1,
                                                           commercial_id=1,
                                                           total_amount=10000,
                                                           bill_to_pay=5000).first()
@@ -234,7 +235,7 @@ class TestCollaboratorController(unittest.TestCase):
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()
 
-        contract = self.session.query(Contract).filter_by(id=1).first()
+        contract = self.session.query(Contract).filter_by(is_active=True, id=1).first()
 
         self.assertIn("The contract has been successfully updated.", output)
         self.assertEqual(contract.commercial_id, 2)
@@ -254,7 +255,7 @@ class TestCollaboratorController(unittest.TestCase):
         }
 
         self.contract_controller.update_contract(session=self.session, contract_id=1, data=new_data)
-        contract = self.session.query(Contract).filter_by(id=1).first()
+        contract = self.session.query(Contract).filter_by(is_active=True, id=1).first()
 
         self.assertEqual(contract.total_amount, 10000)
 
@@ -264,7 +265,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         self.contract_controller.delete_contract(session=self.session, contract_id=2)
 
-        contract = self.session.query(Contract).filter_by(id=2).first()
+        contract = self.session.query(Contract).filter_by(is_active=True, id=2).first()
 
         self.assertIsNone(contract)
 
@@ -274,6 +275,6 @@ class TestCollaboratorController(unittest.TestCase):
         """
         self.contract_controller.delete_contract(session=self.session, contract_id=1)
 
-        contract = self.session.query(Contract).filter_by(id=1).first()
+        contract = self.session.query(Contract).filter_by(is_active=True, id=1).first()
 
         self.assertIsNotNone(contract)

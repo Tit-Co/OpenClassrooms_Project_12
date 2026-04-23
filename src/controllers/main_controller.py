@@ -157,6 +157,8 @@ class MainController:
             return False
 
         self.init_permissions(session=session, user=user)
+        self.user_controller.current_collaborator = user
+
         return True
 
     @staticmethod

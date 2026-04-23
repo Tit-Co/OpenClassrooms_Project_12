@@ -18,6 +18,7 @@ class CollaboratorController:
     def __init__(self, main_controller: MainController):
         self.main_controller = main_controller
         self.permissions = None
+        self.current_collaborator = None
         self.MODELS = {
             "contract": Contract,
             "client": Client,
@@ -195,11 +196,27 @@ class CollaboratorController:
             "password": password,
             "role": role
         }
+        collaborator_class = self.COLLABORATORS.get(role)
+        requested = session.query(collaborator_class).filter_by(is_active=True, email=email).first()
+        inactive = session.query(collaborator_class).filter_by(is_active=False, email=email).first()
 
-        collaborator = self.create_collaborator(session=session, data=data)
+        if requested:
+            self.main_controller.view.display_collaborator_already_exists(collaborator=requested)
+            return
 
-        self.main_controller.view.display_action_successfully_done(action="created",
-                                                                   model_type=role)
+        if inactive:
+            session.query(collaborator_class).filter_by(is_active=False, email=email).update({"is_active": True})
+            self.main_controller.view.display_collaborator_already_exists_but_inactive(collaborator=inactive)
+            self.main_controller.view.display_action_successfully_done(action="reactivated",
+                                                                       model_type=role)
+            collaborator = session.query(collaborator_class).filter_by(is_active=True, email=email).first()
+            session.commit()
+
+        else:
+            collaborator = self.create_collaborator(session=session, data=data)
+
+            self.main_controller.view.display_action_successfully_done(action="created",
+                                                                       model_type=role)
 
         self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
@@ -379,14 +396,14 @@ class CollaboratorController:
         The collaborator id
         """
         if current_role == "technician":
-            session.query(Event).filter(Event.technician_id == collaborator_id)\
+            session.query(Event).filter(Event.is_active == True, Event.technician_id == collaborator_id)\
                 .update({"technician_id": None}, synchronize_session=False)
 
         elif current_role == "commercial":
-            session.query(Contract).filter(Contract.commercial_id == collaborator_id)\
+            session.query(Contract).filter(Contract.is_active == True, Contract.commercial_id == collaborator_id)\
                 .update({"commercial_id": None}, synchronize_session=False)
 
-            session.query(Client).filter(Client.commercial_id == collaborator_id) \
+            session.query(Client).filter(Client.is_active == True, Client.commercial_id == collaborator_id) \
                 .update({"commercial_id": None}, synchronize_session=False)
 
         self.delete_collaborator(session=session,
@@ -397,7 +414,7 @@ class CollaboratorController:
 
         role = data.get("role")
         new_collaborator_id = session.query(self.COLLABORATORS.get(role))\
-            .filter_by(id=collaborator.id).first().id
+            .filter_by(is_active=True, id=collaborator.id).first().id
 
         return new_collaborator_id
 
@@ -433,16 +450,16 @@ class CollaboratorController:
         if model_type in self.MODELS.keys():
             if model_type == "contract":
                 models={
-                    "contracts": session.query(self.MODELS.get("contract")).all(),
-                    "clients": session.query(self.MODELS.get("client")).all(),
-                    "commercials": session.query(self.COLLABORATORS.get("commercial")).all()
+                    "contracts": session.query(self.MODELS.get("contract")).filter_by(is_active=True).all(),
+                    "clients": session.query(self.MODELS.get("client")).filter_by(is_active=True).all(),
+                    "commercials": session.query(self.COLLABORATORS.get("commercial")).filter_by(is_active=True).all()
                 }
                 return models
             else:
                 model_class = self.MODELS.get(model_type)
         else:
             model_class = self.COLLABORATORS.get(model_type)
-        models = session.query(model_class).all()
+        models = session.query(model_class).filter_by(is_active=True).all()
         return models
 
     def get_model(self, session: Session,
@@ -488,8 +505,8 @@ class CollaboratorController:
         Returns:
         The client object.
         """
-        client = session.query(Client).filter_by(id=model_id).first()
-        commercial = session.query(Commercial).filter_by(id=client.commercial_id).first()
+        client = session.query(Client).filter_by(is_active=True, id=model_id).first()
+        commercial = session.query(Commercial).filter_by(is_active=True, id=client.commercial_id).first()
         client.commercial_name = commercial.name if commercial else ""
 
         return client
@@ -505,10 +522,10 @@ class CollaboratorController:
         Returns:
         The event object.
         """
-        event = session.query(Event).filter_by(id=model_id).first()
-        contract = session.query(Contract).filter_by(id=event.contract_id).first()
-        technician = session.query(Technician).filter_by(id=event.technician_id).first()
-        client = session.query(Client).filter_by(id=contract.client_id).first()
+        event = session.query(Event).filter_by(is_active=True, id=model_id).first()
+        contract = session.query(Contract).filter_by(is_active=True, id=event.contract_id).first()
+        technician = session.query(Technician).filter_by(is_active=True, id=event.technician_id).first()
+        client = session.query(Client).filter_by(is_active=True, id=contract.client_id).first()
         event.client_name = client.name if client else ""
         event.client_email = client.email if client else ""
         event.client_phone = client.phone if client else ""
@@ -529,7 +546,7 @@ class CollaboratorController:
         The collaborator object as Commercial or Manager or Technician.
         """
         collaborator_class = self.COLLABORATORS.get(role)
-        collaborator = session.query(collaborator_class).filter_by(id=collaborator_id).first()
+        collaborator = session.query(collaborator_class).filter_by(is_active=True, id=collaborator_id).first()
 
         return collaborator
 
@@ -551,6 +568,12 @@ class CollaboratorController:
         if models:
             model_id = self.main_controller.view.prompt_for_model_id(model_type=model_type,
                                                                      models=models)
+
+            admin = session.query(Manager).filter_by(is_active=True, name="admin").first()
+            requested = self.get_collaborator(session=session, collaborator_id=model_id, role=model_type)
+            if admin.id == model_id or requested == self.current_collaborator:
+                self.main_controller.view.display_cannot_delete_admin_manager_or_yourself()
+                return
 
             if not self.main_controller.view.prompt_for_confirmation(action="delete",
                                                                      model_type=model_type):
@@ -602,11 +625,13 @@ class CollaboratorController:
         #         return False
 
         try:
-            session.query(self.COLLABORATORS.get(role)).filter_by(id=collaborator_id).delete()
+            session.query(self.COLLABORATORS.get(role)).filter_by(is_active=True, id=collaborator_id)\
+                .update({"is_active": False})
             session.commit()
             return True
 
         except Exception:
+            self.main_controller.view.display_something_wrong_while_deleting()
             return False
 
     def model_exists(self, session: Session, model_type: str, value: str) -> bool:
@@ -622,10 +647,10 @@ class CollaboratorController:
         """
         query = None
         if model_type == "client":
-            query = session.query(self.MODELS[model_type]).filter_by(email=value).first()
+            query = session.query(self.MODELS[model_type]).filter_by(is_active=True, email=value).first()
 
         elif model_type == "event":
-            query = session.query(self.MODELS[model_type]).filter_by(name=value).first()
+            query = session.query(self.MODELS[model_type]).filter_by(is_active=True, name=value).first()
 
         return query is not None or (isinstance(query, list) and (None,) not in query)
 

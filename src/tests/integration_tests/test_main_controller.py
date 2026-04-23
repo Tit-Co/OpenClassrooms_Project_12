@@ -166,7 +166,7 @@ class TestMainController(unittest.TestCase):
 
         self.controller.init_db(self.db_engine, self.session)
 
-        user = self.session.query(Manager).filter_by(email=self.credentials['email']).first()
+        user = self.session.query(Manager).filter_by(is_active=True, email=self.credentials['email']).first()
 
         self.controller.init_permissions(self.session, user)
 

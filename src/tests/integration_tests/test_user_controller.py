@@ -389,7 +389,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.update_collaborator(session=self.session, collaborator_id=1, data=new_data)
 
-        updated_collaborator = self.session.query(Commercial).filter_by(id=1).first()
+        updated_collaborator = self.session.query(Commercial).filter_by(is_active=True, id=1).first()
 
         self.assertEqual(updated_collaborator.name, new_data["name"])
         self.assertEqual(updated_collaborator.email, new_data["email"])
@@ -409,7 +409,7 @@ class TestCollaboratorController(unittest.TestCase):
                                                               current_role="commercial",
                                                               data=new_data)
 
-        nb = len(self.session.query(Technician).all())
+        nb = len(self.session.query(Technician).filter_by(is_active=True).all())
 
         self.assertEqual(new_id, nb)
 
@@ -422,7 +422,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.delete_action(session=self.session, model_type="contract")
 
-        result = self.session.query(Contract).filter_by(id=1).first()
+        result = self.session.query(Contract).filter_by(is_active=True, id=1).first()
 
         self.assertIsNotNone(result)
 
@@ -435,7 +435,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.delete_action(session=self.session, model_type="contract")
 
-        result = self.session.query(Contract).filter_by(id=2).first()
+        result = self.session.query(Contract).filter_by(is_active=True, id=2).first()
 
         self.assertIsNone(result)
 
@@ -448,7 +448,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.delete_action(session=self.session, model_type="technician")
 
-        result = self.session.query(Technician).filter_by(id=1).first()
+        result = self.session.query(Technician).filter_by(is_active=True, id=1).first()
 
         self.assertIsNone(result)
 
@@ -461,7 +461,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.delete_action(session=self.session, model_type="client")
 
-        result = self.session.query(Client).filter_by(id=1).first()
+        result = self.session.query(Client).filter_by(is_active=True, id=1).first()
 
         self.assertIsNotNone(result)
 
@@ -474,7 +474,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.delete_action(session=self.session, model_type="event")
 
-        result = self.session.query(Event).filter_by(id=1).first()
+        result = self.session.query(Event).filter_by(is_active=True, id=1).first()
 
         self.assertIsNone(result)
 
@@ -487,7 +487,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.delete_action(session=self.session, model_type="commercial")
 
-        result = self.session.query(Commercial).filter_by(id=1).first()
+        result = self.session.query(Commercial).filter_by(is_active=True, id=1).first()
 
         self.assertIsNone(result)
 
@@ -545,6 +545,6 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the method that deletes a collaborator in success case
         """
         self.controller.delete_collaborator(session=self.session, collaborator_id=1, role="technician")
-        result = self.session.query(Technician).filter_by(id=1).first()
+        result = self.session.query(Technician).filter_by(is_active=True, id=1).first()
 
         self.assertIsNone(result)

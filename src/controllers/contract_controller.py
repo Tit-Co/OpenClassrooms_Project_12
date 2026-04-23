@@ -129,7 +129,7 @@ class ContractController:
             contract_id (int): contract id
             data (dict): data
         """
-        session.query(Contract).filter_by(id=contract_id).update(data)
+        session.query(Contract).filter_by(is_active=True, id=contract_id).update(data)
         session.commit()
 
     def delete_contract(self, session: Session, contract_id: int) -> bool:
@@ -142,14 +142,14 @@ class ContractController:
         Returns:
         A boolean indicating if the contract was deleted successfully or not
         """
-        events = session.query(Event).filter_by(contract_id=contract_id).first()
+        events = session.query(Event).filter_by(is_active=True, contract_id=contract_id).first()
 
         if events or (isinstance(events, list) and (None,) not in events):
             self.main_controller.view.display_cannot_delete(model_type="contract",
                                                             model_linked="event")
             return False
 
-        session.query(Contract).filter_by(id=contract_id).delete()
+        session.query(Contract).filter_by(is_active=True, id=contract_id).update({"is_active": False})
         session.commit()
         return True
 
@@ -164,9 +164,9 @@ class ContractController:
         Returns:
         A contract object
         """
-        contract = session.query(Contract).filter_by(id=model_id).first()
-        client = session.query(Client).filter_by(id=contract.client_id).first()
-        commercial = session.query(Commercial).filter_by(id=contract.commercial_id).first()
+        contract = session.query(Contract).filter_by(is_active=True, id=model_id).first()
+        client = session.query(Client).filter_by(is_active=True, id=contract.client_id).first()
+        commercial = session.query(Commercial).filter_by(is_active=True, id=contract.commercial_id).first()
         contract.commercial_name = commercial.name if commercial else ""
         contract.client_name = client.name if client else ""
         contract.client_email = client.email if client else ""

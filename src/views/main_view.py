@@ -38,7 +38,7 @@ class MainView:
         """
         Method to display the logout message.
         """
-        print("\nYou are successfully logged out.\n")
+        print("\n✅ You are successfully logged out.\n")
 
     @staticmethod
     def display_submenu(model_type) -> None:
@@ -63,7 +63,7 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        print(f"You don't have permission to {action} a {model_type}.")
+        print(f"❌ You don't have permission to {action} a {model_type}.")
 
     @staticmethod
     def display_action_introduction(action: str, model_type: str) -> None:
@@ -92,7 +92,7 @@ class MainView:
         Args:
             name (str): The name of the user.
         """
-        print(f"\n{name.capitalize()}, you are successfully logged in.\n")
+        print(f"\n✅ {name.capitalize()}, you are successfully logged in.\n")
 
     @staticmethod
     def display_action_successfully_done(action: str, model_type: str) -> None:
@@ -102,7 +102,7 @@ class MainView:
             action ():
             model_type ():
         """
-        print(f"\nThe {model_type} has been successfully {action}.\n")
+        print(f"\n✅ The {model_type} has been successfully {action}.\n")
 
     @staticmethod
     def display_wrong_password() -> None:
@@ -247,11 +247,45 @@ class MainView:
         print(f"\n❌ This {model_type} already exists.\n")
 
     @staticmethod
+    def display_collaborator_already_exists(collaborator: type[Commercial] | type[Manager] | type[Technician]) -> None:
+        """
+        Method to display a message when a model already exists.
+        Args:
+            user (type[Commercial] | type[Manager] | type[Technician]): The collaborator
+        """
+        print(f"\n❌ The collaborator {collaborator.email} already exists.\n")
+
+    @staticmethod
+    def display_collaborator_already_exists_but_inactive(collaborator: \
+            type[Commercial] | type[Manager] | type[Technician]) -> None:
+        """
+        Method to display a message when a model already exists.
+        Args:
+            collaborator (type[Commercial] | type[Manager] | type[Technician]): The collaborator
+        """
+        print(f"\nA collaborator inactive with this email [{collaborator.email}] already exists.\n")
+
+
+    @staticmethod
     def display_something_wrong_while_updating() -> None:
         """
         Method to display a message when something goes wrong while updating
         """
         print("\n❌ Something went wrong while updating.\n")
+
+    @staticmethod
+    def display_something_wrong_while_deleting() -> None:
+        """
+        Method to display a message when something goes wrong while deleting
+        """
+        print("\n❌ Something went wrong while deleting.\n")
+
+    @staticmethod
+    def display_cannot_delete_admin_manager_or_yourself() -> None:
+        """
+        Method to display a message when a user wants to delete the admin manager or its own profile
+        """
+        print("\n❌ You can not delete the admin manager or your own account.\n")
 
     @staticmethod
     def display_cannot_delete(model_type, model_linked) -> None:
