@@ -1,4 +1,6 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+import uuid
+
+from sqlalchemy import Column, ForeignKey, Integer, String, LargeBinary
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -12,6 +14,10 @@ class Collaborator(Base):
     email = Column(String(200), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
 
+    employee_number = Column(String(36),
+                             unique=True,
+                             nullable=False,
+                             default=lambda: f"EMP-{str(uuid.uuid4().int)[:8]}")
 
 class Technician(Collaborator):
     __tablename__ = "technician"

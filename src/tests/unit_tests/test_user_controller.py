@@ -58,7 +58,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Method to seed data
         Returns:
-
+        A dictionary with seed data
         """
         commercial = Commercial(name="Commercial name",
                                 email="commercial.test@epicevents.url.com",

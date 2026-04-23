@@ -194,7 +194,8 @@ class MainView:
             role (str): The role of the collaborator.
         """
         self.display_title("Collaborator")
-        print(f"Id : {collaborator.id}")
+        print(f"{role.capitalize()} id : {collaborator.id}")
+        print(f"Employee number : {collaborator.employee_number}")
         print(f"Name : {collaborator.name}")
         print(f"Email : {collaborator.email}")
         print(f"Role: {role}")

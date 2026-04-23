@@ -45,9 +45,9 @@ class MainController:
 
     def init_super_user(self) -> dict:
         """
-        Method to initialize super user as (the first) Manager
+        Method to initialize superuser as (the first) Manager
         Returns:
-        A dictionary with super user data
+        A dictionary with superuser data
         """
         return {
             "name": admin_credentials["name"],
@@ -172,19 +172,23 @@ class MainController:
         """
         if isinstance(user_password, str):
             user_password = user_password.encode("utf-8")
+
         return bcrypt.checkpw(password=password.encode("utf-8"), hashed_password=user_password)
 
     @staticmethod
-    def hash_password(password: str) -> bytes:
+    def hash_password(password: str | bytes) -> bytes:
         """
         Method to hash and salt password
         Args:
-            password (str): password
+            password (str | bytes): password
 
         Returns:
         The hashed password
         """
-        return  bcrypt.hashpw(password=password.encode("utf-8"), salt=bcrypt.gensalt())
+        if isinstance(password, str):
+            password = password.encode("utf-8")
+
+        return  bcrypt.hashpw(password=password, salt=bcrypt.gensalt())
 
     def init_permissions(self, session: Session,
                          user: type[Commercial] | type[Manager] | type[Technician]) -> None:
