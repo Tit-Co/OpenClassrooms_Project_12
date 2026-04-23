@@ -178,3 +178,48 @@ class ClientController:
         client.commercial_name = commercial.name if commercial else ""
 
         return client
+
+    def filter_client(self, session: Session,
+                      my_filter: str,
+                      filter_value: str | int | float | datetime,
+                      class_name: Client) -> list:
+        results = []
+        if my_filter == "name":
+            results = (session.query(class_name)
+                       .filter(class_name.is_active == True,
+                               class_name.name.contains(filter_value)).all())
+
+        elif my_filter == "no_commercial":
+            results = session.query(class_name).filter_by(is_active=True, commercial_id=None).all()
+
+        elif my_filter == "commercial_id":
+            results = session.query(class_name).filter_by(is_active=True, commercial_id=filter_value).all()
+
+        elif my_filter == "commercial_name":
+            results = (session.query(class_name)
+                       .join(Commercial, class_name.commercial_id == Commercial.id)
+                       .filter(
+                class_name.is_active == True, Commercial.name.contains(filter_value)
+            ).all())
+
+        elif my_filter == "prior_date":
+            results = (
+                session.query(class_name)
+                .filter(
+                    class_name.is_active == True,
+                    class_name.last_update < filter_value
+                )
+                .all()
+            )
+
+        elif my_filter == "afterward_date":
+            results = (
+                session.query(class_name)
+                .filter(
+                    class_name.is_active == True,
+                    class_name.last_update > filter_value
+                )
+                .all()
+            )
+        results = [self.get_client(session=session, model_id=result.id) for result in results]
+        return results

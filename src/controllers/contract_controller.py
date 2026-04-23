@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
@@ -154,7 +155,7 @@ class ContractController:
         return True
 
     @staticmethod
-    def get_contract(session: Session, model_id: int) -> type[Contract]:
+    def get_contract(session: Session, model_id: int) -> Contract:
         """
         Method to get contract by its id
         Args:
@@ -173,3 +174,28 @@ class ContractController:
         contract.client_phone = client.phone if client else ""
 
         return contract
+
+    def filter_contract(self, session: Session,
+                        my_filter: str,
+                        filter_value: str | int | float | bool,
+                        class_name: Contract):
+        results = []
+        if my_filter == "client_name":
+            results = (session.query(class_name)
+                       .join(Client, class_name.client_id == Client.id)
+                       .filter(
+                class_name.is_active == True, Client.name.contains(filter_value)
+            ).all())
+
+        elif my_filter == "status":
+            results = session.query(class_name).filter_by(is_active=True, status=filter_value).all()
+
+        elif my_filter == "client_id":
+            results = session.query(class_name).filter_by(is_active=True, client_id=filter_value).all()
+
+        elif my_filter == "bill_to_pay" and str(filter_value).isdigit():
+            results = session.query(class_name).filter(Contract.is_active == True,
+                                                     Contract.bill_to_pay > filter_value).all()
+
+        results = [self.get_contract(session=session, model_id=result.id) for result in results]
+        return results

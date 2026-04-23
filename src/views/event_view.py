@@ -13,7 +13,7 @@ class EventView:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
 
-    def display_event(self, event: type[Event]) -> None:
+    def display_event(self, event: Event) -> None:
         """
         Method to display an event
         Args:
@@ -21,13 +21,14 @@ class EventView:
         """
         self.main_view.display_title(model_type="event")
         print(f"Id : {event.id}")
+        print(f"Name : {event.name}")
         print(f"Contract id : {event.contract_id}")
-        print(f"Client name : {event.client_name or ""}")
-        print(f"Client phone : {event.client_phone or ""}")
-        print(f"Client e-mail : {event.client_email or ""}")
+        print(f"Client name : {event.client_name if event.client_name else "[unknown]"}")
+        print(f"Client phone : {event.client_phone if event.client_phone else "[unknown]"}")
+        print(f"Client e-mail : {event.client_email if event.client_email else "[unknown]"}")
         print(f"Start date : {event.start_date if event.start_date else ""}")
         print(f"End date : {event.end_date if event.end_date else ""}")
-        print(f"Technician name : {event.technician_name or ""}")
+        print(f"Technician name : {event.technician_name if event.technician_name else "[unknown]"}")
         print(f"Location : {event.location if event.location else ""}")
         print(f"Attendees : {event.attendees if event.attendees else ""}")
         print(f"Notes : {event.notes if event.notes else ""}")

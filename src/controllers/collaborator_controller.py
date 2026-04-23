@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
@@ -33,6 +34,15 @@ class CollaboratorController:
             1: Manager,
             2: Commercial,
             3: Technician,
+        }
+
+        self.FILTERS = {
+            "manager": ["name", "email"],
+            "commercial": ["name", "email"],
+            "technician": ["name", "email"],
+            "contract": ["client_name", "client_id", "creation_date", "status", "bill_to_pay"],
+            "client": ["name", "no_commercial", "commercial_id", "commercial_name", "prior_date", "afterward_date"],
+            "event": ["name", "location", "attendees_max", "no_technician", "technician_id", "technician_name"]
         }
 
     def collaborator_menu(self, session: Session) -> None:
@@ -77,7 +87,7 @@ class CollaboratorController:
             actions = {
                 1: lambda: self.action_submenu(session=session, model_type="Manager", nb=6),
                 2: lambda: self.action_submenu(session=session, model_type="Commercial", nb=6),
-                3: lambda: self.action_submenu(session=session, model_type="Technician", nb=6)
+                3: lambda: self.action_submenu(session=session, model_type="Technician", nb=6),
             }
 
             action = actions.get(menu)
@@ -128,7 +138,7 @@ class CollaboratorController:
                 "create": self.create_action,
                 "update": self.update_action,
                 "delete": self.delete_action,
-                "filter": self.filter_action,
+                "filter": self.filter_action_with_view,
             }
 
             action = actions.get(action)
@@ -427,14 +437,151 @@ class CollaboratorController:
         """
         self.delete_model_with_view(session=session, model_type=model_type)
 
-    def filter_action(self, session: Session, model_type: str) -> None:
+    def filter_action_with_view(self, session: Session, model_type: str) -> None:
         """
         Method to launch filter action
         Args:
             session (Session): Session object.
             model_type (str): Model type.
         """
-        pass
+        permissions = self.permissions
+        permission = f"filter:{model_type}"
+        if permission in permissions:
+            filters = self.FILTERS.get(model_type.lower())
+
+            my_filter_id = self.main_controller.view.prompt_for_filter(filters=filters)
+
+            my_filter = self.FILTERS.get(model_type.lower())[my_filter_id - 1]
+            filter_value = self.main_controller.view.prompt_for_filter_value(model_type=model_type,
+                                                                             my_filter=my_filter)
+
+            results = self.filter_action(session=session,
+                                         model_type=model_type,
+                                         my_filter=my_filter,
+                                         filter_value=filter_value)
+
+            if results:
+                self.main_controller.view.display_filter_results(model_type=model_type,
+                                                                 my_filter=my_filter,
+                                                                 filter_value=filter_value,
+                                                                 results=results)
+            else:
+                self.main_controller.view.display_filter_no_results(model_type=model_type,
+                                                                    my_filter=my_filter,
+                                                                    filter_value=filter_value)
+
+    @staticmethod
+    def is_float(s: str) -> bool:
+        """
+        Method that checks if the input is a float
+        Args:
+            s (str): The input string
+
+        Returns:
+        A boolean that indicates if the input is a float or not
+        """
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def is_date(s: str) -> bool:
+        try:
+            s += ':00'
+            datetime.strptime(s, "%d/%m/%y %H:%M:%S")
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def is_bool(s: str) -> bool | None:
+        if s.lower() == "true" or (s.isdigit() and int(s) == 1):
+            return True
+        elif s.lower() == "false" or (s.isdigit() and int(s) == 0):
+            return False
+        else:
+            return None
+
+    def filter_action(self, session: Session,
+                      model_type: str,
+                      my_filter: str,
+                      filter_value: str | int | float | datetime) -> list | None:
+        """
+        Method to filter data in database by a given filter value
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+            my_filter (str): Filter
+            filter_value (str | int | float | datetime): Filter value
+
+        Returns:
+        The filtered data
+        """
+        print(f"MODEL_TYPE : {model_type}")
+
+        class_name = self.MODELS.get(model_type) if self.MODELS.get(model_type) \
+            else self.COLLABORATORS.get(model_type)
+
+        print(f"CLASS_NAME : {class_name}")
+        print(f"FILTER : {my_filter}")
+        print(f"FILTER VALUE : {filter_value}")
+
+        if filter_value.isdigit():
+            filter_value = int(filter_value)
+        elif self.is_float(filter_value):
+            filter_value = float(filter_value)
+        elif self.is_date(filter_value):
+            filter_value = datetime.strptime(filter_value + ':00', '%d/%m/%y %H:%M:%S')
+        elif self.is_bool(filter_value):
+            filter_value = self.is_bool(filter_value)
+        else:
+            pass
+
+        results = []
+
+        if model_type in self.COLLABORATORS.keys():
+            print("COLLABORATOR")
+            results = self.filter_collaborator(session=session,
+                                               model_type=model_type,
+                                               my_filter=my_filter,
+                                               filter_value=filter_value,
+                                               class_name=class_name)
+
+        elif model_type in self.MODELS.keys():
+            print("MODEL")
+            actions = {
+                "contract": self.main_controller.contract_controller.filter_contract,
+
+                "client": self.main_controller.client_controller.filter_client,
+
+                "event": self.main_controller.event_controller.filter_event
+            }
+            action = actions.get(model_type)
+            results = action(session=session, my_filter=my_filter, filter_value=filter_value, class_name=class_name)
+
+        return results
+
+    def filter_collaborator(self, session: Session,
+                            model_type: str,
+                            my_filter: str,
+                            filter_value: str | int |float | datetime,
+                            class_name: Commercial | Manager | Technician) -> list | None:
+        results = []
+        if my_filter == "name":
+            results = session.query(class_name).filter(class_name.is_active == True,
+                                                       class_name.name.contains(filter_value)).all()
+
+        elif my_filter == "email":
+            results = session.query(class_name).filter(class_name.is_active == True,
+                                                       class_name.email.contains(filter_value)).all()
+
+        results = [self.get_collaborator(session=session, role=model_type, collaborator_id=result.id)
+                   for result in results]
+
+        return results
+
 
     def get_models(self, session: Session, model_type: str) -> dict | list:
         """

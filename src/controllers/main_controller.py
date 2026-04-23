@@ -26,21 +26,24 @@ class MainController:
 
         self.role_permissions = {
             "MANAGER": ["display:manager", "display:commercial", "display:technician",
-                              "create:manager", "create:commercial", "create:technician",
-                              "update:manager", "update:commercial", "update:technician",
-                              "delete:manager", "delete:commercial", "delete:technician",
-                              "display:contract", "display:client", "display:event",
-                              "create:contract", "update:contract", "delete:contract",
-                              "update:event", "delete:event", "filter:event"],
+                        "create:manager", "create:commercial", "create:technician",
+                        "update:manager", "update:commercial", "update:technician",
+                        "delete:manager", "delete:commercial", "delete:technician",
+                        "display:contract", "display:client", "display:event",
+                        "create:contract", "update:contract", "delete:contract",
+                        "update:event", "delete:event", "filter:event", "filter:client",
+                        "filter:manager", "filter:commercial", "filter:technician"],
 
             "COMMERCIAL": ["display:manager", "display:commercial", "display:technician",
                            "display:contract", "display:client", "display:event",
                            "create:client", "update:client", "delete:client", "update:contract",
-                           "filter:contract", "create:event"],
+                           "filter:contract", "create:event", "filter:client",
+                           "filter:manager", "filter:commercial", "filter:technician"],
 
             "TECHNICIAN": ["display:manager", "display:commercial", "display:technician",
                            "display:contract", "display:client", "display:event", "update:event",
-                           "filter:event"]
+                           "filter:event", "filter:client",
+                           "filter:manager", "filter:commercial", "filter:technician"]
         }
 
     def init_super_user(self) -> dict:
@@ -124,6 +127,7 @@ class MainController:
             password = self.view.prompt_for_password()
 
             success = self.authenticate(session=session, email=email, password=password)
+            print(f"Perm : {self.user_controller.permissions}")
 
             if success:
                 self.user_controller.collaborator_menu(session=session)

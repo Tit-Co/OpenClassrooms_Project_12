@@ -24,3 +24,6 @@ class Event(Base):
 
     def __repr__(self):
         return f'Event {self.name}'
+
+    def __str__(self):
+        return self.name

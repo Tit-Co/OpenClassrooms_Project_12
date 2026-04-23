@@ -309,6 +309,61 @@ class MainView:
             print(f"  - {role_id}. {role_name.upper()}")
 
     @staticmethod
+    def display_filters(filters: list) -> None:
+        """
+        Method to display the filters list.
+        Args:
+            filters (list): The filters list
+        """
+        print("\nAll filters available :")
+        for the_filter in filters:
+            print(f"  - {filters.index(the_filter) + 1}. {the_filter}")
+
+    def display_filter_results(self, model_type: str,
+                               my_filter: str,
+                               filter_value: str | int | float,
+                               results: list) -> None:
+        """
+        Method to display the filter results.
+        Args:
+            model_type (str): The model type.
+            my_filter (str): The filter.
+            filter_value (str | int | float): The filter value.
+            results (list): The results.
+        """
+        print("─" * 60)
+        print(f"All results for {model_type}s filtered by {my_filter} with '{filter_value}' value: ")
+        print("─"*60)
+
+        for the_result in results:
+            print(f"  - {model_type.capitalize()} ❱ '{the_result}' : ")
+            print("╌" * 30)
+            actions = {
+                "commercial": lambda : self.display_collaborator(collaborator=the_result, role="Commercial"),
+                "manager": lambda : self.display_collaborator(collaborator=the_result, role="manager"),
+                "technician": lambda : self.display_collaborator(collaborator=the_result, role="technician"),
+                "contract": lambda : self.contract_view.display_contract(contract=the_result),
+                "client": lambda : self.client_view.display_client(client=the_result),
+                "event": lambda : self.event_view.display_event(event=the_result),
+            }
+
+            action = actions.get(model_type)
+            action()
+            print("╌"*30)
+        print("─" * 60)
+
+    @staticmethod
+    def display_filter_no_results(model_type: str, my_filter: str, filter_value: str | int | float) -> None:
+        """
+        Method to display when filtering results are empty.
+        Args:
+            model_type (str): The model type.
+            my_filter (str): The filter.
+            filter_value (str | int | float): The filter value.
+        """
+        print(f"\n❗ No results found for '{my_filter}' filtering in {model_type} with value '{filter_value}'.\n")
+
+    @staticmethod
     def prompt_for_menu(nb) -> int | None:
         """
         Method to prompt the user to choose the action in the menu
@@ -326,11 +381,51 @@ class MainView:
                 continue
 
             coll = (str(i+1) for i in range(nb))
+
             if answer not in coll:
                 print(f"❗ Please choose between 1 and {nb}.")
                 continue
 
             return int(answer)
+
+    def prompt_for_filter(self, filters: list) -> int | None:
+        """
+        Method to prompt the user to choose a filter
+        Args:
+            filters (list): The filters list
+
+        Returns:
+        The choice
+        """
+        while True:
+            self.display_filters(filters)
+
+            answer = input("\n▶ Which filter do you want ? \n▶▶ ")
+
+            if not answer.isdigit():
+                print("❗ Please enter a number.")
+                continue
+
+            coll = (str(i+1) for i in range(len(filters)))
+            if answer not in coll:
+                print(f"❗ Please choose a number between 1 and {len(filters)}.")
+                continue
+
+            return int(answer)
+
+    @staticmethod
+    def prompt_for_filter_value(model_type: str, my_filter: str) -> str:
+        """
+        Method to prompt the user to choose a filter
+        Args:
+            model_type (str): The model type.
+            my_filter (str): The filter.
+
+        Returns:
+        The string value
+        """
+        return input(f"▷▷ Type the value of '{my_filter}' filter for {model_type} "
+                     f"or leave it blank if necessary ? \n▶▶ ")
 
     @staticmethod
     def prompt_for_model_id_with_action(action: str, model_type: str, models: dict) -> int | None:

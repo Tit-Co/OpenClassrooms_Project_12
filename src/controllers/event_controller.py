@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import and_, exists
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -178,7 +180,7 @@ class EventController:
             return False
 
     @staticmethod
-    def get_event(session: Session, model_id: int) -> type[Event]:
+    def get_event(session: Session, model_id: int) -> Event:
         """
         Method to get event by its id
         Args:
@@ -198,3 +200,50 @@ class EventController:
         event.client_email = client.email if client else ""
 
         return event
+
+    def filter_event(self, session: Session,
+                     my_filter: str,
+                     filter_value: str | int | float,
+                     class_name: Event) -> list:
+        """
+        Method to filter event
+        Args:
+            session (Session): Session object
+            my_filter (str): The filter.
+            filter_value (str | int | float): The filter value.
+            class_name (Event): The Event class name.
+
+        Returns:
+
+        """
+        results = []
+
+        if my_filter == "name":
+            results = (session.query(class_name)
+                       .filter(class_name.is_active == True, class_name.name.contains(filter_value)).all())
+
+        elif my_filter == "location":
+            results = (session.query(class_name)
+                       .filter(class_name.is_active == True, class_name.location.contains(filter_value)).all())
+
+        elif my_filter == "attendees_max":
+            results = (session.query(class_name).
+                       filter(class_name.is_active == True, class_name.attendees < filter_value).all())
+
+        elif my_filter == "no_technician":
+            results = session.query(class_name).filter_by(is_active=True, technician_id=None).all()
+
+        elif my_filter == "technician_id":
+            results = session.query(class_name).filter_by(is_active=True, technician_id=filter_value).all()
+
+        elif my_filter == "technician_name":
+            results = (
+                session.query(class_name)
+                .join(class_name.technician)
+                .filter(
+                    class_name.is_active == True,
+                    Technician.name.contains(filter_value)
+                ).all())
+
+        results = [self.get_event(session=session, model_id=result.id) for result in results]
+        return results
