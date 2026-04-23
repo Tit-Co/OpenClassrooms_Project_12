@@ -1,7 +1,12 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from src.models.event import Event
-from src.views.main_view import MainView
+
+if TYPE_CHECKING:
+    from src.views.main_view import MainView
 
 
 class EventView:

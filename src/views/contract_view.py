@@ -1,5 +1,11 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from src.models.contract import Contract
-from src.views.main_view import MainView
+
+if TYPE_CHECKING:
+    from src.views.main_view import MainView
 
 
 class ContractView:

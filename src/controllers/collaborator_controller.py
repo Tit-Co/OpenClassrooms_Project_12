@@ -1,6 +1,12 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sqlalchemy.orm import Session
 
-from src.controllers.main_controller import MainController
+if TYPE_CHECKING:
+    from src.controllers.main_controller import MainController
+
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event

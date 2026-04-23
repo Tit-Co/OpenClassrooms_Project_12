@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
+
+if TYPE_CHECKING:
+    from src.controllers.main_controller import MainController
 
 from src.models.client import Client
 from src.models.contract import Contract
@@ -8,7 +14,7 @@ from src.models.user import Commercial
 
 
 class ClientController:
-    def __init__(self, main_controller):
+    def __init__(self, main_controller: MainController):
         self.main_controller = main_controller
 
     def create_client_with_view(self, session: Session) -> None:

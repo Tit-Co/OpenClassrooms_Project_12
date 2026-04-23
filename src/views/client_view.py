@@ -1,10 +1,15 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 from src.models.client import Client
 
+if TYPE_CHECKING:
+    from src.views.main_view import MainView
+
 
 class ClientView:
-    def __init__(self, main_view):
+    def __init__(self, main_view: MainView):
         self.main_view = main_view
 
     def display_client(self, client: type[Client]) -> None:
@@ -23,7 +28,7 @@ class ClientView:
         print(f"Last update : {client.last_update}")
         print(f"Commercial name : {client.commercial_name or ''}")
 
-    def prompt_for_client(self, commercials: list) -> tuple[None, Any, None, Any, Any]:
+    def prompt_for_client(self, commercials: list) -> tuple[int | None, Any, str, Any, Any]:
         """
         Method that prompts the user to enter the client data and choose a commercial
         Args:

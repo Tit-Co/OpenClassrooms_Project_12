@@ -1,7 +1,6 @@
 import bcrypt
 from sqlalchemy import Engine
 from sqlalchemy.orm import InstrumentedAttribute, Session
-from sqlalchemy.sql.roles import SelectStatementRole
 
 from src.database import engine
 from src.models.base import Base

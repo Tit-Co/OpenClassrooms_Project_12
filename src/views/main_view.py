@@ -141,12 +141,12 @@ class MainView:
         print("▷▷ 3. Technician")
         print("▷▷ 4. Go back\n")
 
-    def display_models(self, model_type: str, models: str) -> None:
+    def display_models(self, model_type: str, models: list) -> None:
         """
         Method to display the models list
         Args:
-            model_type ():
-            models ():
+            model_type (str): The model type.
+            models (list): The models list.
         """
         if (None,) in models or not models:
             print(f"\n • {model_type}s - No {model_type} to display.\n")
