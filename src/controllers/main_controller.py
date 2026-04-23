@@ -1,15 +1,18 @@
 import bcrypt
+from sqlalchemy import Engine
+from sqlalchemy.orm import InstrumentedAttribute, Session
+from sqlalchemy.sql.roles import SelectStatementRole
 
-from src.seed import roles
 from src.database import engine
 from src.models.base import Base
 from src.models.role import Role
-from src.models.user import Manager, Commercial, Technician
+from src.models.user import Commercial, Manager, Technician
+from src.seed import admin_credentials, roles
 from src.views.main_view import MainView
+
 from .client_controller import ClientController
 from .collaborator_controller import CollaboratorController
 from .contract_controller import ContractController
-from src.seed import admin_credentials
 from .event_controller import EventController
 
 
@@ -41,7 +44,12 @@ class MainController:
                            "filter:event"]
         }
 
-    def init_super_user(self):
+    def init_super_user(self) -> dict:
+        """
+        Method to initialize super user as (the first) Manager
+        Returns:
+        A dictionary with super user data
+        """
         return {
             "name": admin_credentials["name"],
             "email": admin_credentials["email"],
@@ -49,7 +57,13 @@ class MainController:
             "role": admin_credentials["role"]
         }
 
-    def init_db(self, db_engine, session):
+    def init_db(self, db_engine: Engine, session: Session) -> None:
+        """
+        Method to initialize database
+        Args:
+            db_engine (Engine): database engine
+            session (Session): session
+        """
         Base.metadata.create_all(bind=db_engine)
 
         for role in roles:
@@ -73,7 +87,12 @@ class MainController:
 
         session.commit()
 
-    def run(self, session):
+    def run(self, session: Session) -> None:
+        """
+        Method to run the application
+        Args:
+            session (Session): session
+        """
         self.init_db(engine, session)
 
         while True:
@@ -88,7 +107,12 @@ class MainController:
             action = actions.get(menu)
             action()
 
-    def login(self, session):
+    def login(self, session: Session) -> None:
+        """
+        Method to launch login
+        Args:
+            session (Session): session
+        """
         while True:
             self.view.display_login_submenu()
             menu = self.view.prompt_for_continuing()
@@ -106,7 +130,17 @@ class MainController:
                 self.user_controller.collaborator_menu(session=session)
                 break
 
-    def authenticate(self, session, email, password):
+    def authenticate(self, session: Session, email: str, password: str) -> bool:
+        """
+        Method to authenticate user and initialize user permissions
+        Args:
+            session (Session): session
+            email (str): email
+            password (str): password
+
+        Returns:
+        A boolean indicating success or failure in authentication
+        """
         models = [Commercial, Technician, Manager]
         user = None
 
@@ -127,20 +161,47 @@ class MainController:
         return True
 
     @staticmethod
-    def check_password(password, user_password):
+    def check_password(password: str, user_password: InstrumentedAttribute) -> bool:
+        """
+        Method to check if password matches hashed password
+        Args:
+            password (str): password
+            user_password (bytes): hashed password
+
+        Returns:
+        A boolean indicating success or failure in checking password
+        """
         if isinstance(user_password, str):
             user_password = user_password.encode("utf-8")
         return bcrypt.checkpw(password=password.encode("utf-8"), hashed_password=user_password)
 
     @staticmethod
-    def hash_password(password):
+    def hash_password(password: str) -> bytes:
+        """
+        Method to hash and salt password
+        Args:
+            password (str): password
+
+        Returns:
+        The hashed password
+        """
         return  bcrypt.hashpw(password=password.encode("utf-8"), salt=bcrypt.gensalt())
 
-    def init_permissions(self, session, user):
+    def init_permissions(self, session: Session,
+                         user: type[Commercial] | type[Manager] | type[Technician]) -> None:
+        """
+        Method to initialize permissions
+        Args:
+            session (Session): session
+            user (Commercial | Manager | Technician): The user
+        """
         role = session.query(Role).filter_by(id=user.role_id).first()
         self.user_controller.permissions = self.role_permissions.get(role.name)
         self.view.display_successfully_logged_in(name=user.name)
 
-    def goodbye(self):
+    def goodbye(self) -> None:
+        """
+        Method to quit application
+        """
         self.view.display_goodbye()
         exit(1)

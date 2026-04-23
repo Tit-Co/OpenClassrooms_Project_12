@@ -1,4 +1,5 @@
 import unittest
+
 import bcrypt
 
 from src.controllers.main_controller import MainController
@@ -11,7 +12,10 @@ class TestMainController(unittest.TestCase):
         'password': 'tgl_Prn_C1'
     }
 
-    def test_init_super_user_ok(self):
+    def test_init_super_user_ok(self) -> None:
+        """
+        Test for checking the initialization of the super user
+        """
         super_user_dict = self.controller.init_super_user()
 
         self.assertIn('name', super_user_dict)
@@ -19,7 +23,10 @@ class TestMainController(unittest.TestCase):
         self.assertIn('password', super_user_dict)
         self.assertIn('role', super_user_dict)
 
-    def test_hash_password_ok(self):
+    def test_hash_password_ok(self) -> None:
+        """
+        Test for checking the method that hashes the password
+        """
         password = self.credentials.get('password')
 
         hashed = self.controller.hash_password(password)
@@ -27,7 +34,10 @@ class TestMainController(unittest.TestCase):
 
         self.assertTrue(checked)
 
-    def test_check_password_ok(self):
+    def test_check_password_ok(self) -> None:
+        """
+        Test for checking the method that checks the password
+        """
         password = self.credentials.get('password')
 
         hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())

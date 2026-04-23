@@ -1,14 +1,14 @@
 import sys
 import unittest
-
 from datetime import datetime
+from io import StringIO
 from unittest.mock import Mock
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from io import StringIO
 
-from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.client_controller import ClientController
+from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.main_controller import MainController
 from src.models.base import Base
 from src.models.client import Client
@@ -24,24 +24,41 @@ class TestCollaboratorController(unittest.TestCase):
 
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
+        """
+        Class method called once before test cases.
+        """
         cls.db_engine = create_engine("sqlite:///:memory:")
         cls.session_test = sessionmaker(bind=cls.db_engine)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
+        """
+        Method called after every test case.
+        """
         cls.db_engine.dispose()
 
-    def setUp(self):
+    def setUp(self) -> None:
+        """
+        Method called before every test case.
+        """
         Base.metadata.drop_all(bind=self.db_engine)
         Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
         self.data = self.seed_data()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """
+        Method called once after all test cases.
+        """
         self.session.close()
 
-    def seed_data(self):
+    def seed_data(self) -> dict:
+        """
+        Method to seed data for testing.
+        Returns:
+        A dictionary with seed data.
+        """
         role_manager = Role(
             name="MANAGER",
         )
@@ -102,7 +119,10 @@ class TestCollaboratorController(unittest.TestCase):
             "contracts": [contract]
         }
 
-    def test_create_client_with_view_ok(self):
+    def test_create_client_with_view_ok(self) -> None:
+        """
+        Test for checking the method that creates a new client with view.
+        """
         def mock_get_models(session):
             return self.data["commercials"]
 
@@ -126,8 +146,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("The client has been successfully created.", output)
 
-    def test_create_client_ok(self):
-
+    def test_create_client_ok(self) -> None:
+        """
+        Method to check the method that creates a new client.
+        """
         data = {
             "name": "Client Test",
             "email": "client@client.com",
@@ -143,7 +165,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertEqual(client.id, 3)
 
-    def test_update_client_with_view_ok(self):
+    def test_update_client_with_view_ok(self) -> None:
+        """
+        Test for checking the method that updates a client with view.
+        """
         def mock_get_models(session, model_type):
             if model_type == "commercial":
                 return self.data["commercials"]
@@ -177,7 +202,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(client.phone, "3355679845")
         self.assertEqual(client.company, "Company test update")
 
-    def test_update_client_ok(self):
+    def test_update_client_ok(self) -> None:
+        """
+        Test for checking the method that updates a client.
+        """
         new_data = {
             "name": "Client Test",
             "email": "client@client.com",
@@ -193,14 +221,20 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertEqual(client.email, "client@client.com")
 
-    def test_delete_client_ok(self):
+    def test_delete_client_ok(self) -> None:
+        """
+        Test for checking the method that deletes a client.
+        """
         self.client_controller.delete_client(session=self.session, client_id=2)
 
         client = self.session.query(Client).filter_by(id=2).first()
 
         self.assertIsNone(client)
 
-    def test_delete_client_impossible_ok(self):
+    def test_delete_client_impossible_ok(self) -> None:
+        """
+        Test for checking the method that deletes a client when it's not possible.
+        """
         self.client_controller.delete_client(session=self.session, client_id=1)
 
         client = self.session.query(Client).filter_by(id=1).first()

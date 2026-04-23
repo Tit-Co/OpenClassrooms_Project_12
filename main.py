@@ -1,6 +1,7 @@
 from src.controllers.main_controller import MainController
 from src.database import SessionLocal
 
+
 def main():
     session = SessionLocal()
     controller = MainController()

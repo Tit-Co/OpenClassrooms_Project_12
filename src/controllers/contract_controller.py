@@ -1,29 +1,27 @@
-from src.models.contract import Contract
+from sqlalchemy.orm import Session
+
+from src.controllers.main_controller import MainController
 from src.models.client import Client
+from src.models.contract import Contract
 from src.models.event import Event
 from src.models.user import Commercial
 
 
 class ContractController:
-    def __init__(self, main_controller):
+    def __init__(self, main_controller: MainController):
         self.main_controller = main_controller
 
-    @staticmethod
-    def get_contract_add_on(session, contract):
-        client = session.query(Client).filter(Client.id==contract.client_id).first()
-        commercial = session.query(Commercial).filter(Commercial.id==contract.commercial_id).first()
+    def create_contract_with_view(self, session: Session) -> None:
+        """
+        Method to create contract with view
+        Args:
+            session (Session): session
+        """
+        clients = self.main_controller.user_controller.get_models(session=session,
+                                                                  model_type="client")
 
-        add_on = {
-        "client_name": client.name,
-        "client_phone": client.phone,
-        "client_email": client.email,
-        "commercial_name": commercial.name
-        }
-        return add_on
-
-    def create_contract_with_view(self, session):
-        clients = self.main_controller.user_controller.get_models(session=session, model_type="client")
-        commercials = self.main_controller.user_controller.get_models(session=session, model_type="commercial")
+        commercials = self.main_controller.user_controller.get_models(session=session,
+                                                                      model_type="commercial")
 
         (client_id,
          commercial_id,
@@ -47,7 +45,16 @@ class ContractController:
         self.main_controller.view.contract_view.display_contract(contract=contract)
 
     @staticmethod
-    def create_contract(session, data):
+    def create_contract(session: Session, data: dict) -> Contract:
+        """
+        Method to create contract
+        Args:
+            session (Session): session
+            data (dict): data
+
+        Returns:
+        The contract object
+        """
         contract = Contract(client_id=data["client_id"],
                             commercial_id=data["commercial_id"],
                             total_amount=data["total_amount"],
@@ -58,7 +65,12 @@ class ContractController:
         session.commit()
         return contract
 
-    def update_contract_with_view(self, session):
+    def update_contract_with_view(self, session: Session) -> None:
+        """
+        Method to update contract with view
+        Args:
+            session (Session): session
+        """
         models = self.main_controller.user_controller.get_models(session=session,
                                                                  model_type="contract")
 
@@ -103,11 +115,27 @@ class ContractController:
                 self.main_controller.view.display_something_wrong_while_updating()
 
     @staticmethod
-    def update_contract(session, contract_id, data):
+    def update_contract(session: Session, contract_id: int, data: dict) -> None:
+        """
+        Method to update contract with view
+        Args:
+            session (Session): session
+            contract_id (int): contract id
+            data (dict): data
+        """
         session.query(Contract).filter_by(id=contract_id).update(data)
         session.commit()
 
-    def delete_contract(self, session, contract_id):
+    def delete_contract(self, session: Session, contract_id: int) -> bool:
+        """
+        Method to delete contract
+        Args:
+            session (Session): session
+            contract_id (int): contract id
+
+        Returns:
+        A boolean indicating if the contract was deleted successfully or not
+        """
         events = session.query(Event).filter_by(contract_id=contract_id).first()
 
         if events or (isinstance(events, list) and (None,) not in events):
@@ -120,7 +148,16 @@ class ContractController:
         return True
 
     @staticmethod
-    def get_contract(session, model_id):
+    def get_contract(session: Session, model_id: int) -> type[Contract]:
+        """
+        Method to get contract by its id
+        Args:
+            session (Session): session
+            model_id (int): model id
+
+        Returns:
+        A contract object
+        """
         contract = session.query(Contract).filter_by(id=model_id).first()
         client = session.query(Client).filter_by(id=contract.client_id).first()
         commercial = session.query(Commercial).filter_by(id=contract.commercial_id).first()

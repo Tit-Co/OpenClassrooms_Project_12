@@ -1,11 +1,11 @@
 import sys
 import unittest
-
 from datetime import datetime
+from io import StringIO
 from unittest.mock import Mock
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from io import StringIO
 
 from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.contract_controller import ContractController
@@ -25,24 +25,41 @@ class TestCollaboratorController(unittest.TestCase):
 
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
+        """
+        Method called once before all test cases.
+        """
         cls.db_engine = create_engine("sqlite:///:memory:")
         cls.session_test = sessionmaker(bind=cls.db_engine)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
+        """
+        Method called once after all test cases.
+        """
         cls.db_engine.dispose()
 
-    def setUp(self):
+    def setUp(self) -> None:
+        """
+        Method called before each test case.
+        """
         Base.metadata.drop_all(bind=self.db_engine)
         Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
         self.data = self.seed_data()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """
+        Method called after each test case.
+        """
         self.session.close()
 
-    def seed_data(self):
+    def seed_data(self) -> dict:
+        """
+        Method to seed data for testing.
+        Returns:
+        A dictionary with seed data.
+        """
         role_manager = Role(
             name="MANAGER",
         )
@@ -130,7 +147,12 @@ class TestCollaboratorController(unittest.TestCase):
             "events": [event]
         }
 
-    def test_create_contract_with_view_ok(self):
+    def test_create_contract_with_view_ok(self) -> None:
+        """
+        Test for checking the method that creates contract with view in success case
+        Returns:
+
+        """
         def mock_get_models(session, model_type):
             if model_type == "client":
                 return self.data["clients"]
@@ -141,11 +163,11 @@ class TestCollaboratorController(unittest.TestCase):
         self.controller.get_models = Mock(side_effect=mock_get_models)
 
         self.main_controller.view.contract_view.prompt_for_contract = Mock(return_value=[
-            1,
-            1,
-            1200,
-            500,
-            True
+            1, # client_id
+            1, # commercial_id
+            1200, # total_amount
+            500, # bill to pay
+            True # contract signed
         ])
 
         captured_output = StringIO()
@@ -158,8 +180,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("The contract has been successfully created.", output)
 
-    def test_create_contract_ok(self):
-
+    def test_create_contract_ok(self) -> None:
+        """
+        Test for checking the method that creates contract with view in success case
+        """
         data = {
             "client_id": 1,
             "commercial_id": 1,
@@ -177,7 +201,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertEqual(contract.id, 3)
 
-    def test_update_contract_with_view_ok(self):
+    def test_update_contract_with_view_ok(self) -> None:
+        """
+        Test for checking the method that updates contract with view in success case
+        """
         def mock_get_models(session, model_type):
             if model_type == "client":
                 return self.data["clients"]
@@ -192,11 +219,11 @@ class TestCollaboratorController(unittest.TestCase):
         self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
 
         self.main_controller.view.contract_view.prompt_for_contract = Mock(return_value=[
-            1,
-            2,
-            15000,
-            5000,
-            True
+            1, # client_id
+            2, # commercial_id
+            15000, # total_amount
+            5000, # bill to pay
+            True # contract signed
         ])
 
         captured_output = StringIO()
@@ -214,7 +241,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(contract.total_amount, 15000)
         self.assertEqual(contract.bill_to_pay, 5000)
 
-    def test_update_contract_ok(self):
+    def test_update_contract_ok(self) -> None:
+        """
+        Test for checking the method that updates contract in success case
+        """
         new_data = {
             "client_id": 1,
             "commercial_id": 1,
@@ -228,14 +258,20 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertEqual(contract.total_amount, 10000)
 
-    def test_delete_contract_ok(self):
+    def test_delete_contract_ok(self) -> None:
+        """
+        Test for checking the method that deletes contract in success case
+        """
         self.contract_controller.delete_contract(session=self.session, contract_id=2)
 
         contract = self.session.query(Contract).filter_by(id=2).first()
 
         self.assertIsNone(contract)
 
-    def test_delete_contract_impossible_ok(self):
+    def test_delete_contract_impossible_ok(self) -> None:
+        """
+        Test for checking the method that deletes contract in failure case
+        """
         self.contract_controller.delete_contract(session=self.session, contract_id=1)
 
         contract = self.session.query(Contract).filter_by(id=1).first()

@@ -1,12 +1,15 @@
+from sqlalchemy.orm import Session
+
+from src.controllers.main_controller import MainController
 from src.models.client import Client
-from src.models.event import Event
 from src.models.contract import Contract
+from src.models.event import Event
 from src.models.role import Role
-from src.models.user import Manager, Commercial, Technician
+from src.models.user import Collaborator, Commercial, Manager, Technician
 
 
 class CollaboratorController:
-    def __init__(self, main_controller):
+    def __init__(self, main_controller: MainController):
         self.main_controller = main_controller
         self.permissions = None
         self.MODELS = {
@@ -25,7 +28,12 @@ class CollaboratorController:
             3: Technician,
         }
 
-    def collaborator_menu(self, session):
+    def collaborator_menu(self, session: Session) -> None:
+        """
+        Method to launch the collaborator menu.
+        Args:
+            session (Session): Session object.
+        """
         while True:
             self.main_controller.view.display_collaborator_menu()
             menu = self.main_controller.view.prompt_for_menu(nb=5)
@@ -45,7 +53,12 @@ class CollaboratorController:
 
             action()
 
-    def collaborator_submenu(self, session):
+    def collaborator_submenu(self, session: Session) -> None:
+        """
+        Method to launch the collaborator submenu.
+        Args:
+            session (Session): Session object.
+        """
         while True:
             self.main_controller.view.display_collaborator_submenu()
             menu = self.main_controller.view.prompt_for_menu(nb=4)
@@ -64,7 +77,14 @@ class CollaboratorController:
 
             action()
 
-    def action_submenu(self, session, model_type, nb):
+    def action_submenu(self, session: Session, model_type: str, nb: int) -> None:
+        """
+        Method to launch the action submenu.
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+            nb (int): Number of actions.
+        """
         while True:
             self.main_controller.view.display_submenu(model_type=model_type)
             menu = self.main_controller.view.prompt_for_menu(nb=nb)
@@ -84,7 +104,14 @@ class CollaboratorController:
 
             action()
 
-    def action(self, session, action, model_type):
+    def action(self, session: Session, action: str, model_type: str) -> None:
+        """
+        Method to launch the action menu.
+        Args:
+            session (Session): Session object.
+            action (str): Action.
+            model_type (str): Model type.
+        """
         if f"{action}:{model_type}" in self.permissions:
             self.main_controller.view.display_action_introduction(action=action,
                                                                   model_type=model_type)
@@ -104,7 +131,13 @@ class CollaboratorController:
             self.main_controller.view.display_permission_denied(action=action,
                                                                 model_type=model_type)
 
-    def display_action(self, session, model_type):
+    def display_action(self, session: Session, model_type: str) -> None:
+        """
+        Method to launch display action
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+        """
         models = self.get_models(session, model_type)
 
         self.main_controller.view.display_models(model_type=model_type, models=models)
@@ -121,7 +154,13 @@ class CollaboratorController:
                 self.main_controller.view.display_model(model_type=model_type,
                                                         model=model)
 
-    def create_action(self, session, model_type):
+    def create_action(self, session: Session, model_type: str) -> None:
+        """
+        Method to launch create action
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+        """
         actions = {
             "contract": lambda: self.main_controller.contract_controller.create_contract_with_view(session=session),
             "client": lambda: self.main_controller.client_controller.create_client_with_view(session=session),
@@ -133,7 +172,13 @@ class CollaboratorController:
         action = actions.get(model_type)
         action()
 
-    def create_collaborator_with_view(self, session, role):
+    def create_collaborator_with_view(self, session: Session, role: str) -> None:
+        """
+        Method to create collaborator with view
+        Args:
+            session (Session): Session object.
+            role (str): Role.
+        """
         (email,
          password,
          name) = self.main_controller.view.prompt_for_collaborator(role=role)
@@ -152,7 +197,16 @@ class CollaboratorController:
 
         self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
-    def create_collaborator(self, session, data):
+    def create_collaborator(self, session: Session, data: dict) -> Manager | Commercial | Technician:
+        """
+        Method to create collaborator
+        Args:
+            session (Session): Session object
+            data (dict): Data object.
+
+        Returns:
+        The collaborator object.
+        """
         collaborator = None
         if data["role"] == "manager":
             collaborator = Manager(
@@ -181,7 +235,13 @@ class CollaboratorController:
 
         return collaborator
 
-    def update_action(self, session, model_type):
+    def update_action(self, session: Session, model_type: str) -> None:
+        """
+        Method to launch update action
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+        """
         actions = {
             "contract": lambda: self.main_controller.contract_controller.update_contract_with_view(session=session),
             "client": lambda: self.main_controller.client_controller.update_client_with_view(session=session),
@@ -194,7 +254,13 @@ class CollaboratorController:
         action()
 
 
-    def update_collaborator_with_view(self, session, role):
+    def update_collaborator_with_view(self, session: Session, role: str) -> None:
+        """
+        Method to update collaborator with view
+        Args:
+            session (Session): Session object.
+            role (str): Role.
+        """
         models = self.get_models(session=session, model_type=role)
 
         self.main_controller.view.display_models(model_type=role, models=models)
@@ -271,7 +337,14 @@ class CollaboratorController:
             else:
                 self.main_controller.view.display_something_wrong_while_updating()
 
-    def update_collaborator(self, session, collaborator_id, data):
+    def update_collaborator(self, session: Session, collaborator_id: int, data: dict):
+        """
+        Method to update collaborator
+        Args:
+            session (Session): Session object.
+            collaborator_id (int): Collaborator id.
+            data (dict): Collaborator data.
+        """
         role_id = data["role_id"]
         name = data["name"]
         email = data["email"]
@@ -284,7 +357,21 @@ class CollaboratorController:
                                                                   "role_id": role_id})
         session.commit()
 
-    def change_role_for_collaborator(self, session, collaborator_id, current_role, data):
+    def change_role_for_collaborator(self, session: Session,
+                                     collaborator_id: int,
+                                     current_role: str,
+                                     data: dict) -> int:
+        """
+        Method to change collaborator role
+        Args:
+            session (Session): Session object.
+            collaborator_id (int): Collaborator id.
+            current_role (str): Collaborator role.
+            data (dict): Collaborator data.
+
+        Returns:
+        The collaborator id
+        """
         if current_role == "technician":
             session.query(Event).filter(Event.technician_id == collaborator_id)\
                 .update({"technician_id": None}, synchronize_session=False)
@@ -308,13 +395,35 @@ class CollaboratorController:
 
         return new_collaborator_id
 
-    def delete_action(self, session, model_type):
+    def delete_action(self, session: Session, model_type: str) -> None:
+        """
+        Method to launch delete action
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+        """
         self.delete_model_with_view(session=session, model_type=model_type)
 
-    def filter_action(self, session, model_type):
+    def filter_action(self, session: Session, model_type: str) -> None:
+        """
+        Method to launch filter action
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+        """
         pass
 
-    def get_models(self, session, model_type):
+    def get_models(self, session: Session, model_type: str) -> dict | list:
+        """
+        Methods to get all models of a type and in case of contracts, some extra data are added
+        and a dict is returned
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+
+        Returns:
+        The list of models or a dictionary with contracts list and extra data.
+        """
         if model_type in self.MODELS.keys():
             if model_type == "contract":
                 models={
@@ -330,7 +439,19 @@ class CollaboratorController:
         models = session.query(model_class).all()
         return models
 
-    def get_model(self, session, model_type, model_id):
+    def get_model(self, session: Session,
+                  model_type: str,
+                  model_id: int) -> type[Client] | type[Event] | type[Collaborator]:
+        """
+        Method to get a model by its id and type
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type
+            model_id (int): Model id.
+
+        Returns:
+        The model as Event or Client or Contract.
+        """
         model = None
         if model_type in self.MODELS.keys():
 
@@ -351,7 +472,16 @@ class CollaboratorController:
         return model
 
     @staticmethod
-    def get_client(session, model_id):
+    def get_client(session: Session, model_id: int) -> type[Client]:
+        """
+        Method to get a client by its id
+        Args:
+            session (Session): Session object.
+            model_id (int): Model id.
+
+        Returns:
+        The client object.
+        """
         client = session.query(Client).filter_by(id=model_id).first()
         commercial = session.query(Commercial).filter_by(id=client.commercial_id).first()
         client.commercial_name = commercial.name if commercial else ""
@@ -359,7 +489,16 @@ class CollaboratorController:
         return client
 
     @staticmethod
-    def get_event(session, model_id):
+    def get_event(session: Session, model_id: int) -> type[Event]:
+        """
+        Method to get an event by its id
+        Args:
+            session (Session): Session object.
+            model_id (int): Model id.
+
+        Returns:
+        The event object.
+        """
         event = session.query(Event).filter_by(id=model_id).first()
         contract = session.query(Contract).filter_by(id=event.contract_id).first()
         technician = session.query(Technician).filter_by(id=event.technician_id).first()
@@ -372,13 +511,32 @@ class CollaboratorController:
 
         return event
 
-    def get_collaborator(self, session, collaborator_id, role):
+    def get_collaborator(self, session: Session, collaborator_id: int, role: str) -> type[Collaborator]:
+        """
+        Method to get a collaborator by its id
+        Args:
+            session (Session): Session object
+            collaborator_id (int): Collaborator id.
+            role (str): Collaborator role.
+
+        Returns:
+        The collaborator object as Commercial or Manager or Technician.
+        """
         collaborator_class = self.COLLABORATORS.get(role)
         collaborator = session.query(collaborator_class).filter_by(id=collaborator_id).first()
 
         return collaborator
 
-    def delete_model_with_view(self, session, model_type):
+    def delete_model_with_view(self, session: Session, model_type: str) -> None:
+        """
+        Method to launch delete action with view by type of model
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+
+        Returns:
+        None
+        """
         models = self.main_controller.user_controller.get_models(session=session,
                                                                  model_type=model_type)
 
@@ -400,9 +558,9 @@ class CollaboratorController:
                     .delete_client(session=session, client_id=model_id),
 
                 "event": lambda : self.main_controller.event_controller\
-                    .delete_event(session=session,event_id=model_id),
+                    .delete_event(session=session, event_id=model_id),
 
-                "manager": lambda : self.main_controller\
+                "manager": lambda : self.main_controller.user_controller\
                     .delete_collaborator(session=session, collaborator_id=model_id, role=model_type),
 
                 "commercial": lambda : self.main_controller.user_controller\
@@ -418,7 +576,17 @@ class CollaboratorController:
                 self.main_controller.view.display_action_successfully_done(action="deleted",
                                                                            model_type=model_type)
 
-    def delete_collaborator(self, session, collaborator_id, role):
+    def delete_collaborator(self, session: Session, collaborator_id: int, role: str) -> bool:
+        """
+        Method to delete collaborator by its id
+        Args:
+            session (Session): Session object.
+            collaborator_id (int): Collaborator id.
+            role (str): Collaborator role.
+
+        Returns:
+        A boolean indicating whether deletion was successful.
+        """
         # if role == "commercial":
         #     clients = session.query(Client).filter_by(commercial_id=collaborator_id).all()
         #
@@ -427,11 +595,25 @@ class CollaboratorController:
         #                                                         model_linked="client")
         #         return False
 
-        session.query(self.COLLABORATORS.get(role)).filter_by(id=collaborator_id).delete()
-        session.commit()
-        return True
+        try:
+            session.query(self.COLLABORATORS.get(role)).filter_by(id=collaborator_id).delete()
+            session.commit()
+            return True
 
-    def model_exists(self, session, model_type, value):
+        except Exception:
+            return False
+
+    def model_exists(self, session: Session, model_type: str, value: str) -> bool:
+        """
+        Method to check if a model exists by its type and its value
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+            value (str): Model value.
+
+        Returns:
+        A boolean indicating whether model exists.
+        """
         query = None
         if model_type == "client":
             query = session.query(self.MODELS[model_type]).filter_by(email=value).first()
@@ -441,7 +623,12 @@ class CollaboratorController:
 
         return query is not None or (isinstance(query, list) and (None,) not in query)
 
-    def logout(self, session):
+    def logout(self, session: Session) -> None:
+        """
+        Method to log out a user from a session
+        Args:
+            session (Session): Session object.
+        """
         session.close()
         self.permissions = None
         self.main_controller.view.display_logout()

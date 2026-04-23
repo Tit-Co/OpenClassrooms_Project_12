@@ -1,11 +1,11 @@
 import unittest
-
 from datetime import datetime
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.client_controller import ClientController
+from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.main_controller import MainController
 from src.models.base import Base
 from src.models.client import Client
@@ -20,24 +20,41 @@ class TestCollaboratorController(unittest.TestCase):
     client_controller = ClientController(main_controller)
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
+        """
+        Method called once before all test cases.
+        """
         cls.db_engine = create_engine("sqlite:///:memory:")
         cls.session_test = sessionmaker(bind=cls.db_engine)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
+        """
+        Method called once after all test cases.
+        """
         cls.db_engine.dispose()
 
-    def setUp(self):
+    def setUp(self) -> None:
+        """
+        Method called before every test case.
+        """
         Base.metadata.drop_all(bind=self.db_engine)
         Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
         self.data = self.seed_data()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """
+        Method called after every test case.
+        """
         self.session.close()
 
-    def seed_data(self):
+    def seed_data(self) -> dict:
+        """
+        Method to seed data for testing.
+        Returns:
+        A dictionary with seed data.
+        """
         role_manager = Role(
             name="MANAGER",
         )
@@ -88,7 +105,10 @@ class TestCollaboratorController(unittest.TestCase):
             "contracts": [contract]
         }
 
-    def test_get_client(self):
+    def test_get_client(self) -> None:
+        """
+        Test for checking the method that gets a client.
+        """
         client = self.client_controller.get_client(self.session, 1)
 
         self.assertEqual(client.id, self.data["clients"][0].id)

@@ -1,11 +1,11 @@
 import sys
 import unittest
-
 from datetime import datetime
+from io import StringIO
 from unittest.mock import Mock, patch
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from io import StringIO
 
 from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.contract_controller import ContractController
@@ -15,7 +15,7 @@ from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
 from src.models.role import Role
-from src.models.user import Commercial, Technician, Manager, Collaborator
+from src.models.user import Commercial, Manager, Technician
 
 
 class TestCollaboratorController(unittest.TestCase):
@@ -34,24 +34,41 @@ class TestCollaboratorController(unittest.TestCase):
     }
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
+        """
+        Method called once before all test cases
+        """
         cls.db_engine = create_engine("sqlite:///:memory:")
         cls.session_test = sessionmaker(bind=cls.db_engine)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
+        """
+        Method called once after all test cases
+        """
         cls.db_engine.dispose()
 
-    def setUp(self):
+    def setUp(self) -> None:
+        """
+        Method called before every test case
+        """
         Base.metadata.drop_all(bind=self.db_engine)
         Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
         self.data = self.seed_data()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """
+        Method called after every test case
+        """
         self.session.close()
 
-    def seed_data(self):
+    def seed_data(self) -> dict:
+        """
+        Method to seed data
+        Returns:
+        A dictionary with seed data
+        """
         role_manager = Role(
             name="MANAGER",
         )
@@ -133,7 +150,10 @@ class TestCollaboratorController(unittest.TestCase):
             "events": [event]
         }
 
-    def test_collaborator_menu_ok(self):
+    def test_collaborator_menu_ok(self) -> None:
+        """
+        Test for checking the method that launches the collaborator menu
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -148,7 +168,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("▶ EPIC EVENTS - COLLABORATOR MENU ◀", output)
 
-    def test_collaborator_menu_logout_ok(self):
+    def test_collaborator_menu_logout_ok(self) -> None:
+        """
+        Test for checking the method that logs out the collaborator
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -162,7 +185,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertIn("▶ EPIC EVENTS - COLLABORATOR MENU ◀", output)
         self.assertIn("You are successfully logged out.", output)
 
-    def test_collaborator_menu_contract_submenu_ok(self):
+    def test_collaborator_menu_contract_submenu_ok(self) -> None:
+        """
+        Test for checking the method that launches the contract submenu
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -185,7 +211,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertIn("▷▷ 5. Filter", output)
         self.assertIn("▷▷ 6. Go back", output)
 
-    def test_collaborator_submenu_ok(self):
+    def test_collaborator_submenu_ok(self) -> None:
+        """
+        Test for checking the method that launches the collaborator submenu
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -199,7 +228,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("▶ EPIC EVENTS - COLLABORATOR SUBMENU ◀", output)
 
-    def test_action_submenu_ok(self):
+    def test_action_submenu_ok(self) -> None:
+        """
+        Test for checking the method that launches the action submenu
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -213,7 +245,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("▶ CONTRACT MENU ◀", output)
 
-    def test_action_ok(self):
+    def test_action_ok(self) -> None:
+        """
+        Test for checking the method action
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -228,7 +263,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertIn("You are going to display a contract.", output)
         self.assertIn("No contract to display.", output)
 
-    def test_display_action_ok(self):
+    def test_display_action_ok(self) -> None:
+        """
+        Test for checking the display action method
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -245,7 +283,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertIn("Contract between the client", output)
         self.assertIn("Here is the contract : ", output)
 
-    def test_create_action_ok(self):
+    def test_create_action_ok(self) -> None:
+        """
+        Test for checking the create action method
+        """
         with patch.object(
                 self.main_controller.contract_controller,
                 "create_contract_with_view"
@@ -255,7 +296,10 @@ class TestCollaboratorController(unittest.TestCase):
 
             mock_create.assert_called_once_with(session=self.session)
 
-    def test_create_collaborator_with_view_ok(self):
+    def test_create_collaborator_with_view_ok(self) -> None:
+        """
+        Test for checking the method that creates collaborator with view
+        """
         with patch.object(
                 self.main_controller.view,
                 "prompt_for_collaborator"
@@ -273,7 +317,10 @@ class TestCollaboratorController(unittest.TestCase):
 
             self.assertIn("The manager has been successfully created.", output)
 
-    def create_collaborator_ok(self):
+    def create_collaborator_ok(self) -> None:
+        """
+        Test for checking the method that creates collaborator in success case
+        """
         data = {
             "email": "test@test.com",
             "password": "password",
@@ -295,7 +342,10 @@ class TestCollaboratorController(unittest.TestCase):
             collaborator = mock_create()
             self.assertEqual(collaborator, manager)
 
-    def test_update_action_ok(self):
+    def test_update_action_ok(self) -> None:
+        """
+        Test for checking the update action method in success case
+        """
         with patch.object(
                 self.main_controller.contract_controller,
                 "update_contract_with_view"
@@ -305,7 +355,10 @@ class TestCollaboratorController(unittest.TestCase):
 
             mock_create.assert_called_once_with(session=self.session)
 
-    def test_update_action_technician_ok(self):
+    def test_update_action_technician_ok(self) -> None:
+        """
+        Test for checking the method that updates technician in success case
+        """
         self.controller.get_models = Mock(return_value=self.data["technicians"])
         self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
         self.main_controller.view.prompt_for_collaborator = Mock(return_value=(
@@ -325,7 +378,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertIn("The collaborator (technician to commercial) "
                       "has been successfully updated.", output)
 
-    def test_update_collaborator_ok(self):
+    def test_update_collaborator_ok(self) -> None:
+        """
+        Test for checking the method that updates collaborator in success case
+        """
         new_data = {"name": "Commercial name",
                     "email": "commercial.test@epicevents.yahoo.com",
                     "password": "pwd_test_updated",
@@ -339,7 +395,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(updated_collaborator.email, new_data["email"])
         self.assertEqual(updated_collaborator.password, new_data["password"])
 
-    def test_change_role_for_collaborator_ok(self):
+    def test_change_role_for_collaborator_ok(self) -> None:
+        """
+        Test for checking the method that changes collaborator role in success case
+        """
         new_data = {"name": "Commercial name",
                     "email": "commercial.test@epicevents.url",
                     "password": "pwd_test",
@@ -354,7 +413,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertEqual(new_id, nb)
 
-    def test_delete_action_for_contract_fails(self):
+    def test_delete_action_for_contract_fails(self) -> None:
+        """
+        Test for checking the method that deletes a contract in failure case
+        """
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
@@ -364,7 +426,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIsNotNone(result)
 
-    def test_delete_action_for_contract_ok(self):
+    def test_delete_action_for_contract_ok(self) -> None:
+        """
+        Test for checking the method that deletes a contract in success case
+        """
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[2])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
@@ -374,7 +439,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    def test_delete_action_for_technician_ok(self):
+    def test_delete_action_for_technician_ok(self) -> None:
+        """
+        Test for checking the method that deletes a technician in success case
+        """
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
@@ -384,7 +452,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    def test_delete_action_for_client_fails(self):
+    def test_delete_action_for_client_fails(self) -> None:
+        """
+        Test for checking the method that deletes a client in failure case
+        """
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
@@ -394,7 +465,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIsNotNone(result)
 
-    def test_delete_action_for_event_ok(self):
+    def test_delete_action_for_event_ok(self) -> None:
+        """
+        Test for checking the method that deletes an event in success case
+        """
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
@@ -404,7 +478,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    def test_delete_action_for_commercial_ok(self):
+    def test_delete_action_for_commercial_ok(self) -> None:
+        """
+        Test for checking the method that deletes a commercial in success case
+        """
         self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
@@ -414,7 +491,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    def test_update_collaborator_with_view_ok(self):
+    def test_update_collaborator_with_view_ok(self) -> None:
+        """
+        Test for checking the method that updates collaborator in success case
+        """
         with patch.object(
                 self.controller,
                 "get_models"
@@ -441,7 +521,10 @@ class TestCollaboratorController(unittest.TestCase):
             self.assertIn("The collaborator (technician to commercial) "
                              "has been successfully updated.", output)
 
-    def test_delete_model_with_view_ok(self):
+    def test_delete_technician_with_view_ok(self) -> None:
+        """
+        Test for checking the method that deletes a technician in success case
+        """
         self.controller.get_models = Mock(return_value=self.data["technicians"])
         self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
@@ -456,29 +539,11 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("The technician has been successfully deleted.", output)
 
-    # def test_delete_model_with_view_fails(self):
-    #     with patch.object(
-    #             self.controller,
-    #             "get_models"
-    #     ) as mock_create:
-    #
-    #         mock_create.return_value = self.data["commercials"]
-    #         mock_create()
-    #
-    #         self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
-    #         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
-    #
-    #         captured_output = StringIO()
-    #         sys.stdout = captured_output
-    #
-    #         self.controller.delete_model_with_view(session=self.session, model_type="commercial")
-    #
-    #         sys.stdout = sys.__stdout__
-    #         output = captured_output.getvalue()
-    #
-    #         self.assertIn("cannot delete commercial : client(s) linked.", output)
 
-    def test_delete_collaborator_ok(self):
+    def test_delete_collaborator_ok(self) -> None:
+        """
+        Test for checking the method that deletes a collaborator in success case
+        """
         self.controller.delete_collaborator(session=self.session, collaborator_id=1, role="technician")
         result = self.session.query(Technician).filter_by(id=1).first()
 

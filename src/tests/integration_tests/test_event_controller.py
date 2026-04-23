@@ -1,11 +1,11 @@
 import sys
 import unittest
-
 from datetime import datetime
+from io import StringIO
 from unittest.mock import Mock
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from io import StringIO
 
 from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.event_controller import EventController
@@ -25,24 +25,41 @@ class TestCollaboratorController(unittest.TestCase):
 
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
+        """
+        Method called once before all test cases.
+        """
         cls.db_engine = create_engine("sqlite:///:memory:")
         cls.session_test = sessionmaker(bind=cls.db_engine)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
+        """
+        Method called once after all test cases.
+        """
         cls.db_engine.dispose()
 
-    def setUp(self):
+    def setUp(self) -> None:
+        """
+        Method called before each test case.
+        """
         Base.metadata.drop_all(bind=self.db_engine)
         Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
         self.data = self.seed_data()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """
+        Method called after each test case.
+        """
         self.session.close()
 
-    def seed_data(self):
+    def seed_data(self) -> dict:
+        """
+        Method to seed data for testing.
+        Returns:
+
+        """
         role_manager = Role(
             name="MANAGER",
         )
@@ -132,7 +149,10 @@ class TestCollaboratorController(unittest.TestCase):
             "events": [event, event_2]
         }
 
-    def test_create_event_with_view_ok(self):
+    def test_create_event_with_view_ok(self) -> None:
+        """
+        Test for checking the method that creates an event with view in success case
+        """
         def mock_get_models(session, model_type):
             if model_type == "technician":
                 return self.data["technicians"]
@@ -163,7 +183,12 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("The event has been successfully created.", output)
 
-    def test_create_event_with_view_returns_already_exists(self):
+    def test_create_event_with_view_returns_already_exists(self) -> None:
+        """
+        Test for checking the method that creates an event with view in success case
+        Returns:
+
+        """
         def mock_get_models(session, model_type):
             if model_type == "technician":
                 return self.data["technicians"]
@@ -194,8 +219,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("❌ This event already exists.", output)
 
-    def test_create_event_ok(self):
-
+    def test_create_event_ok(self) -> None:
+        """
+        Test for checking the method that creates an event in success case
+        """
         data = {
             "name": "Event Name Test",
             "contract_id": 1,
@@ -212,7 +239,12 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertEqual(event.id, 3)
 
-    def test_update_event_with_view_ok(self):
+    def test_update_event_with_view_ok(self) -> None:
+        """
+        Test for checking the method that updates an event with view in success case
+        Returns:
+
+        """
         def mock_get_models(session, model_type):
             if model_type == "technician":
                 return self.data["technicians"]
@@ -256,7 +288,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(event.attendees, 200)
         self.assertEqual(event.notes, "Notes Updated")
 
-    def test_update_event_ok(self):
+    def test_update_event_ok(self) -> None:
+        """
+        Test for checking the method that updates an event in success case
+        """
         new_data = {
             "name": "Event Name Test",
             "contract_id": 1,
@@ -273,7 +308,10 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertEqual(client.location, "London")
 
-    def test_delete_event_ok(self):
+    def test_delete_event_ok(self) -> None:
+        """
+        Test for checking the method that deletes an event in success case
+        """
         self.event_controller.delete_event(session=self.session, event_id=2)
 
         event = self.session.query(Event).filter_by(id=2).first()

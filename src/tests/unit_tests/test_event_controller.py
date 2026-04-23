@@ -1,43 +1,61 @@
 import unittest
-
 from datetime import datetime
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.controllers.collaborator_controller import CollaboratorController
-from src.controllers.contract_controller import ContractController
+from src.controllers.event_controller import EventController
 from src.controllers.main_controller import MainController
 from src.models.base import Base
 from src.models.client import Client
 from src.models.contract import Contract
+from src.models.event import Event
 from src.models.role import Role
-from src.models.user import Commercial
+from src.models.user import Commercial, Technician
 
 
 class TestCollaboratorController(unittest.TestCase):
     main_controller = MainController()
     controller = CollaboratorController(main_controller)
-    contract_controller = ContractController(main_controller)
+    event_controller = EventController(main_controller)
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
+        """
+        Method called once before all test cases
+        """
         cls.db_engine = create_engine("sqlite:///:memory:")
         cls.session_test = sessionmaker(bind=cls.db_engine)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
+        """
+        Method called once after all test cases
+        """
         cls.db_engine.dispose()
 
-    def setUp(self):
+    def setUp(self) -> None:
+        """
+        Method called before every test case
+        """
         Base.metadata.drop_all(bind=self.db_engine)
         Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
         self.data = self.seed_data()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """
+        Method called after every test case
+        """
         self.session.close()
 
-    def seed_data(self):
+    def seed_data(self) -> dict:
+        """
+        Method to seed data
+        Returns:
+
+        """
         role_manager = Role(
             name="MANAGER",
         )
@@ -81,14 +99,49 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.add(contract)
         self.session.commit()
 
+        technician = Technician(
+            name="Technician name",
+            email="test@test.com",
+            password="pwd_test",
+            role_id=3
+        )
+        self.session.add(technician)
+        self.session.commit()
+
+        event = Event(name="Event Test",
+                      start_date=datetime.now(),
+                      end_date=datetime.now(),
+                      location="Paris",
+                      attendees=100,
+                      notes="Notes",
+                      contract_id=contract.id,
+                      technician_id=technician.id)
+
+        event_2 = Event(name="Event Test 2",
+                        start_date=datetime.now(),
+                        end_date=datetime.now(),
+                        location="Madrid",
+                        attendees=1000,
+                        notes="Notes",
+                        technician_id=technician.id)
+
+        self.session.add(event)
+        self.session.add(event_2)
+        self.session.commit()
+
 
         return {
             "commercials": [commercial],
             "clients": [client],
-            "contracts": [contract]
+            "contracts": [contract],
+            "technicians": [technician],
+            "events": [event, event_2]
         }
 
-    def test_get_contract(self):
-        contract = self.contract_controller.get_contract(self.session, 1)
+    def test_get_event(self) -> None:
+        """
+        Test for checking the method that gets an event.
+        """
+        event = self.event_controller.get_event(self.session, 1)
 
-        self.assertEqual(contract.id, self.data["contracts"][0].id)
+        self.assertEqual(event.id, self.data["clients"][0].id)

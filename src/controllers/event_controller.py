@@ -1,16 +1,25 @@
-from src.models.contract import Contract
+from sqlalchemy.orm import Session
+
+from src.controllers.main_controller import MainController
 from src.models.client import Client
+from src.models.contract import Contract
 from src.models.event import Event
 from src.models.user import Technician
 
 
 class EventController:
-    def __init__(self, main_controller):
+    def __init__(self, main_controller: MainController) -> None:
         self.main_controller = main_controller
 
-    def create_event_with_view(self, session):
+    def create_event_with_view(self, session: Session) -> None:
+        """
+        Method to create event with view
+        Args:
+            session (Session): session
+        """
         contracts = self.main_controller.user_controller.get_models(session=session,
                                                                     model_type="contract")
+
         technicians = self.main_controller.user_controller.get_models(session=session,
                                                                       model_type="technician")
 
@@ -50,7 +59,16 @@ class EventController:
             self.main_controller.view.display_model_already_exist(model_type="event")
 
     @staticmethod
-    def create_event(session, data):
+    def create_event(session: Session, data: dict) -> Event:
+        """
+        Method to create event
+        Args:
+            session (Session): session
+            data (dict): data
+
+        Returns:
+        The event object
+        """
         event = Event(name=data["name"],
                       contract_id=data["contract_id"],
                       start_date=data["start_date"],
@@ -64,7 +82,12 @@ class EventController:
         session.commit()
         return event
 
-    def update_event_with_view(self, session):
+    def update_event_with_view(self, session: Session) -> None:
+        """
+        Method to update event with view
+        Args:
+            session (Session): session
+        """
         events = self.main_controller.user_controller.get_models(session=session,
                                                                  model_type="event")
         contracts = self.main_controller.user_controller.get_models(session=session,
@@ -119,18 +142,46 @@ class EventController:
                 self.main_controller.view.display_something_wrong_while_updating()
 
     @staticmethod
-    def update_event(session, event_id, data):
+    def update_event(session: Session, event_id: int, data: dict) -> None:
+        """
+        Method to update event with view
+        Args:
+            session (Session): session
+            event_id (int): event id
+            data (dict): data
+        """
         session.query(Event).filter_by(id=event_id).update(data)
         session.commit()
 
     @staticmethod
-    def delete_event(session, event_id):
-        session.query(Event).filter_by(id=event_id).delete()
-        session.commit()
-        return True
+    def delete_event(session: Session, event_id: int) -> bool:
+        """
+        Method to delete event
+        Args:
+            session (Session): session
+            event_id (int): event id
+
+        Returns:
+        A boolean indicating if the event was deleted successfully
+        """
+        try:
+            session.query(Event).filter_by(id=event_id).delete()
+            session.commit()
+            return True
+        except Exception:
+            return False
 
     @staticmethod
-    def get_event(session, model_id):
+    def get_event(session: Session, model_id: int) -> type[Event]:
+        """
+        Method to get event by its id
+        Args:
+            session (Session): session
+            model_id (int): model id
+
+        Returns:
+        The event object
+        """
         event = session.query(Event).filter_by(id=model_id).first()
         technician = session.query(Technician).filter_by(id=event.technician_id).first()
         contract = session.query(Contract).filter_by(id=event.contract_id).first()

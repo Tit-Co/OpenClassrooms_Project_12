@@ -1,10 +1,10 @@
-import unittest
 import sys
-
+import unittest
+from io import StringIO
 from unittest.mock import Mock
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from io import StringIO
 
 from src.controllers.main_controller import MainController
 from src.models.role import Role
@@ -25,21 +25,36 @@ class TestMainController(unittest.TestCase):
     }
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
+        """
+        Method called once before all test cases
+        """
         cls.db_engine = create_engine("sqlite:///:memory:")
         cls.session_test = sessionmaker(bind=cls.db_engine)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
+        """
+        Method called once after all test cases
+        """
         cls.db_engine.dispose()
 
-    def setUp(self):
+    def setUp(self) -> None:
+        """
+        Method called before every test case
+        """
         self.session = self.session_test()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """
+        Method called after every test case
+        """
         self.session.close()
 
-    def test_init_db_ok(self):
+    def test_init_db_ok(self) -> None:
+        """
+        Test for checking the method that initializes the database
+        """
         self.controller.init_db(self.db_engine, self.session)
 
         roles = self.session.query(Role).all()
@@ -48,7 +63,10 @@ class TestMainController(unittest.TestCase):
         admin = self.session.query(Manager).first()
         self.assertNotEqual(admin, None)
 
-    def test_run_quit_case_ok(self):
+    def test_run_quit_case_ok(self) -> None:
+        """
+        Test for checking the method that quits the application
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -66,7 +84,10 @@ class TestMainController(unittest.TestCase):
         self.assertIn("▷▷ 2. Quit the app", output)
         self.assertIn("👋  Goodbye ! 👋", output)
 
-    def test_run_with_wrong_input_raises_exception(self):
+    def test_run_with_wrong_input_raises_exception(self) -> None:
+        """
+        Test for checking if an exception is raises when a wrong input is given
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -83,7 +104,10 @@ class TestMainController(unittest.TestCase):
         self.assertIn("▷▷ 1. Log in", output)
         self.assertIn("▷▷ 2. Quit the app", output)
 
-    def test_login_ok(self):
+    def test_login_ok(self) -> None:
+        """
+        Test for checking the method that logs in a user in success case
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -107,7 +131,10 @@ class TestMainController(unittest.TestCase):
         self.assertIn("You are going to enter the followings details", output)
         self.assertIn("Admin, you are successfully logged in", output)
 
-    def test_authenticate_ok(self):
+    def test_authenticate_ok(self) -> None:
+        """
+        Test for checking the method that authenticates a user in success case
+        """
         self.controller.init_db(self.db_engine, self.session)
 
         email = self.credentials['email']
@@ -117,7 +144,10 @@ class TestMainController(unittest.TestCase):
 
         self.assertTrue(answer)
 
-    def test_authenticate_fails(self):
+    def test_authenticate_fails(self) -> None:
+        """
+        Test for checking the method that authenticates a user in failure case
+        """
         self.controller.init_db(self.db_engine, self.session)
 
         email = self.wrong_credentials['email']
@@ -127,7 +157,10 @@ class TestMainController(unittest.TestCase):
 
         self.assertFalse(answer)
 
-    def test_init_permissions_ok(self):
+    def test_init_permissions_ok(self) -> None:
+        """
+        Test for checking the method that initializes the user permissions
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 

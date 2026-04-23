@@ -1,26 +1,22 @@
 from datetime import datetime
 
+from sqlalchemy.orm import Session
+
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.user import Commercial
-
 
 
 class ClientController:
     def __init__(self, main_controller):
         self.main_controller = main_controller
 
-    @staticmethod
-    def get_client_add_on(session, client):
-        commercial = session.query(Commercial).filter(Commercial.id == client.commercial_id).first()
-
-        add_on = {
-            "commercial_name": commercial.name
-        }
-
-        return add_on
-
-    def create_client_with_view(self, session):
+    def create_client_with_view(self, session: Session) -> None:
+        """
+        Method to create client with view
+        Args:
+            session (SessionLocal): Session instance
+        """
         commercials = self.main_controller.user_controller.get_models(session=session, model_type="commercial")
 
         (commercial_id,
@@ -53,7 +49,16 @@ class ClientController:
             self.main_controller.view.display_model_already_exist(model_type="client")
 
     @staticmethod
-    def create_client(session, data):
+    def create_client(session: Session, data: dict) -> Client:
+        """
+        Method to create client
+        Args:
+            session (SessionLocal): Session instance
+            data (dict): data
+
+        Returns:
+        The created client object
+        """
         client = Client(commercial_id=data["commercial_id"],
                           name=data["name"],
                           email=data["email"],
@@ -66,7 +71,12 @@ class ClientController:
         session.commit()
         return client
 
-    def update_client_with_view(self, session):
+    def update_client_with_view(self, session: Session) -> None:
+        """
+        Method to update client with view
+        Args:
+            session (SessionLocal): Session instance
+        """
         clients = self.main_controller.user_controller.get_models(session=session, model_type="client")
         commercials = self.main_controller.user_controller.get_models(session=session, model_type="commercial")
 
@@ -115,11 +125,27 @@ class ClientController:
                 self.main_controller.view.display_something_wrong_while_updating()
 
     @staticmethod
-    def update_client(session, client_id, data):
+    def update_client(session: Session, client_id: int, data: dict) -> None:
+        """
+        Method to update client with view
+        Args:
+            session (SessionLocal): Session instance
+            client_id (int): Client id
+            data (dict): data
+        """
         session.query(Client).filter_by(id=client_id).update(data)
         session.commit()
 
-    def delete_client(self, session, client_id):
+    def delete_client(self, session: Session, client_id: int) -> bool:
+        """
+        Method to delete client with view
+        Args:
+            session (SessionLocal): Session instance
+            client_id (int): Client id
+
+        Returns:
+        A boolean indicating if the client was deleted successfully or not
+        """
         client = session.query(Contract).filter_by(client_id=client_id).first()
         if client:
             self.main_controller.view.display_cannot_delete(model_type="client",
@@ -131,7 +157,16 @@ class ClientController:
         return True
 
     @staticmethod
-    def get_client(session, model_id):
+    def get_client(session: Session, model_id: int) -> Client:
+        """
+        Method to get client and add fields for extra data
+        Args:
+            session (SessionLocal): Session instance
+            model_id (int): Client id
+
+        Returns:
+        The client object
+        """
         client = session.query(Client).filter_by(id=model_id).first()
         commercial = session.query(Commercial).filter_by(id=client.commercial_id).first()
         client.commercial_name = commercial.name if commercial else ""

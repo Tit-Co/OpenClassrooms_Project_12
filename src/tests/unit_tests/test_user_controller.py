@@ -1,11 +1,10 @@
 import sys
 import unittest
 from datetime import datetime
-from unittest.mock import Mock
+from io import StringIO
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from io import StringIO
 
 from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.main_controller import MainController
@@ -26,24 +25,41 @@ class TestCollaboratorController(unittest.TestCase):
     }
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
+        """
+        Method called once before all test cases
+        """
         cls.db_engine = create_engine("sqlite:///:memory:")
         cls.session_test = sessionmaker(bind=cls.db_engine)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
+        """
+        Method called once after all test cases
+        """
         cls.db_engine.dispose()
 
-    def setUp(self):
+    def setUp(self) -> None:
+        """
+        Method called before every test case
+        """
         Base.metadata.drop_all(bind=self.db_engine)
         Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
         self.data = self.seed_data()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """
+        Method called after every test case
+        """
         self.session.close()
 
-    def seed_data(self):
+    def seed_data(self) -> dict:
+        """
+        Method to seed data
+        Returns:
+
+        """
         commercial = Commercial(name="Commercial name",
                                 email="commercial.test@epicevents.url.com",
                                 password="pwd_test",
@@ -79,7 +95,10 @@ class TestCollaboratorController(unittest.TestCase):
             "contract": contract
         }
 
-    def test_get_models_contracts(self):
+    def test_get_models_contracts(self) -> None:
+        """
+        Test for checking the method that gets contracts
+        """
         models = self.controller.get_models(self.session, "contract")
 
         self.assertEqual(len(models),3)
@@ -90,7 +109,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(models.get("contracts")[0].bill_to_pay, 50)
         self.assertEqual(models.get("contracts")[0].status, True)
 
-    def test_get_models_clients(self):
+    def test_get_models_clients(self) -> None:
+        """
+        Test for checking the method that gets clients
+        """
         clients = self.controller.get_models(self.session, "client")
 
         self.assertEqual(len(clients),1)
@@ -103,7 +125,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(clients[0].last_update, self.data["client"].last_update)
         self.assertEqual(clients[0].commercial_id, self.data["client"].commercial_id)
 
-    def test_get_model(self):
+    def test_get_model(self) -> None:
+        """
+        Test for checking the method that gets model
+        """
         model = self.controller.get_model(self.session, "contract", self.data["contract"].id)
 
         self.assertEqual(model.id, self.data["contract"].id)
@@ -113,7 +138,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(model.bill_to_pay, 50)
         self.assertEqual(model.status, True)
 
-    def test_get_client(self):
+    def test_get_client(self) -> None:
+        """
+        Test for checking the method that gets client
+        """
         model = self.controller.get_client(self.session, self.data["client"].id)
 
         self.assertEqual(model.id, self.data["client"].id)
@@ -123,7 +151,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(model.company, "Company Test")
         self.assertEqual(model.commercial_id, 1)
 
-    def test_get_event(self):
+    def test_get_event(self) -> None:
+        """
+        Test for checking the method that gets event
+        """
         technician = Technician(name="Technician name",
                                email="technician.test@epicevents.url.com",
                                password="pwd_test_2",
@@ -151,7 +182,10 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(model.contract_id, self.data["contract"].id)
         self.assertEqual(model.technician_id, technician.id)
 
-    def test_logout(self):
+    def test_logout(self) -> None:
+        """
+        Test for checking the logout method
+        """
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -163,25 +197,37 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("You are successfully logged out.", output)
 
-    def test_get_collaborator(self):
+    def test_get_collaborator(self) -> None:
+        """
+        Test for checking the method that gets collaborator
+        """
         collaborator = self.controller.get_collaborator(session=self.session,
                                                         collaborator_id=self.data["commercial"].id,
                                                         role="commercial")
         self.assertEqual(collaborator.id, self.data["commercial"].id)
 
-    def test_exists_returns_true(self):
+    def test_exists_returns_true(self) -> None:
+        """
+        Test for checking the method that tests if a model already exists in true case
+        """
         result = self.controller.model_exists(session=self.session,
                                               model_type="client",
                                               value="client@clienttest.com")
         self.assertTrue(result)
 
-    def test_exists_returns_false(self):
+    def test_exists_returns_false(self) -> None:
+        """
+        Test for checking the method that tests if a model already exists in false case
+        """
         result = self.controller.model_exists(session=self.session,
                                               model_type="client",
                                               value="unautreemail@clienttest.com")
         self.assertFalse(result)
 
-    def test_goodbye(self):
+    def test_goodbye(self) -> None:
+        """
+        Test for checking the exit method
+        """
         with self.assertRaises(SystemExit) as mock:
             captured_output = StringIO()
             sys.stdout = captured_output
