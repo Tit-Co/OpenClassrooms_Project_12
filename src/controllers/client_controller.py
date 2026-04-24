@@ -183,6 +183,17 @@ class ClientController:
                       my_filter: str,
                       filter_value: str | int | float | datetime,
                       class_name: Client) -> list:
+        """
+        Method to filter clients
+        Args:
+            session (Session): Session object
+            my_filter (str): Filter
+            filter_value(str | int | float | datetime): Filter value.
+            class_name (Client): Client object
+
+        Returns:
+        The filtered data for clients as a list
+        """
         results = []
         if my_filter == "name":
             results = (session.query(class_name)

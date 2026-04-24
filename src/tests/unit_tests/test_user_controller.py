@@ -6,7 +6,9 @@ from io import StringIO
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.controllers.client_controller import ClientController
 from src.controllers.collaborator_controller import CollaboratorController
+from src.controllers.event_controller import EventController
 from src.controllers.main_controller import MainController
 from src.models.base import Base
 from src.models.client import Client
@@ -17,7 +19,9 @@ from src.models.user import Commercial, Technician
 
 class TestCollaboratorController(unittest.TestCase):
     main_controller = MainController()
+    client_controller = ClientController(main_controller)
     controller = CollaboratorController(main_controller)
+    event_controller = EventController(main_controller)
 
     credentials = {
         'email': 'admin@epicevents.url',
@@ -46,6 +50,7 @@ class TestCollaboratorController(unittest.TestCase):
         Base.metadata.drop_all(bind=self.db_engine)
         Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
+        self.main_controller.init_db(self.db_engine, self.session)
         self.data = self.seed_data()
 
     def tearDown(self) -> None:
@@ -142,7 +147,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that gets client
         """
-        model = self.controller.get_client(self.session, self.data["client"].id)
+        model = self.main_controller.client_controller.get_client(self.session, self.data["client"].id)
 
         self.assertEqual(model.id, self.data["client"].id)
         self.assertEqual(model.name, "Client Test")
@@ -173,7 +178,7 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.add(event)
         self.session.commit()
 
-        model = self.controller.get_event(self.session, event.id)
+        model = self.main_controller.event_controller.get_event(self.session, event.id)
 
         self.assertEqual(model.id, event.id)
         self.assertEqual(model.name, "Event Test")

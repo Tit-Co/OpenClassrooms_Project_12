@@ -446,6 +446,7 @@ class CollaboratorController:
         """
         permissions = self.permissions
         permission = f"filter:{model_type}"
+
         if permission in permissions:
             filters = self.FILTERS.get(model_type.lower())
 
@@ -519,14 +520,8 @@ class CollaboratorController:
         Returns:
         The filtered data
         """
-        print(f"MODEL_TYPE : {model_type}")
-
         class_name = self.MODELS.get(model_type) if self.MODELS.get(model_type) \
             else self.COLLABORATORS.get(model_type)
-
-        print(f"CLASS_NAME : {class_name}")
-        print(f"FILTER : {my_filter}")
-        print(f"FILTER VALUE : {filter_value}")
 
         if filter_value.isdigit():
             filter_value = int(filter_value)
@@ -542,7 +537,6 @@ class CollaboratorController:
         results = []
 
         if model_type in self.COLLABORATORS.keys():
-            print("COLLABORATOR")
             results = self.filter_collaborator(session=session,
                                                model_type=model_type,
                                                my_filter=my_filter,
@@ -550,7 +544,6 @@ class CollaboratorController:
                                                class_name=class_name)
 
         elif model_type in self.MODELS.keys():
-            print("MODEL")
             actions = {
                 "contract": self.main_controller.contract_controller.filter_contract,
 
@@ -566,8 +559,20 @@ class CollaboratorController:
     def filter_collaborator(self, session: Session,
                             model_type: str,
                             my_filter: str,
-                            filter_value: str | int |float | datetime,
+                            filter_value: str | int | float | datetime,
                             class_name: Commercial | Manager | Technician) -> list | None:
+        """
+        Method to filter collaborators
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+            my_filter (str): Filter
+            filter_value (str | int | float | datetime): Filter value
+            class_name (Commercial | Manager | Technician): Collaborator
+
+        Returns:
+        The filtered data as a list
+        """
         results = []
         if my_filter == "name":
             results = session.query(class_name).filter(class_name.is_active == True,
@@ -609,9 +614,34 @@ class CollaboratorController:
         models = session.query(model_class).filter_by(is_active=True).all()
         return models
 
+    def get_object(self, session: Session, model_type: str, object_id: int) -> (type[Client] | type[Event]
+                                                                     | type[Contract]):
+        """
+        Method to get an object of class Contract, Client or Event according to the given id and type
+        Args:
+            session (Session): Session object.
+            model_type (str): Model type.
+            object_id (int): Object id.
+
+        Returns:
+        The object found.
+        """
+        actions = {
+            "contract": self.main_controller.contract_controller.get_contract,
+            "client": self.main_controller.client_controller.get_client,
+            "event": self.main_controller.event_controller.get_event,
+        }
+
+        action = actions.get(model_type)
+        my_object = action(session=session, model_id=object_id)
+
+        return my_object
+
+
     def get_model(self, session: Session,
                   model_type: str,
-                  model_id: int) -> type[Client] | type[Event] | type[Collaborator]:
+                  model_id: int) -> (type[Client] | type[Event] | type[Contract] | type[Commercial] | type[Manager]
+                                     | type[Technician]):
         """
         Method to get a model by its id and type
         Args:
@@ -624,15 +654,7 @@ class CollaboratorController:
         """
         model = None
         if model_type in self.MODELS.keys():
-
-            actions = {
-                "contract": self.main_controller.contract_controller.get_contract,
-                "client": self.get_client,
-                "event": self.get_event,
-            }
-
-            action = actions.get(model_type)
-            model = action(session=session, model_id=model_id)
+            model=self.get_object(session=session, model_type=model_type, object_id=model_id)
 
         elif model_type in self.COLLABORATORS.keys():
             model = self.get_collaborator(session=session, collaborator_id=model_id, role=model_type)
@@ -640,46 +662,6 @@ class CollaboratorController:
             model.role_name = role.name
 
         return model
-
-    @staticmethod
-    def get_client(session: Session, model_id: int) -> type[Client]:
-        """
-        Method to get a client by its id
-        Args:
-            session (Session): Session object.
-            model_id (int): Model id.
-
-        Returns:
-        The client object.
-        """
-        client = session.query(Client).filter_by(is_active=True, id=model_id).first()
-        commercial = session.query(Commercial).filter_by(is_active=True, id=client.commercial_id).first()
-        client.commercial_name = commercial.name if commercial else ""
-
-        return client
-
-    @staticmethod
-    def get_event(session: Session, model_id: int) -> type[Event]:
-        """
-        Method to get an event by its id
-        Args:
-            session (Session): Session object.
-            model_id (int): Model id.
-
-        Returns:
-        The event object.
-        """
-        event = session.query(Event).filter_by(is_active=True, id=model_id).first()
-        contract = session.query(Contract).filter_by(is_active=True, id=event.contract_id).first()
-        technician = session.query(Technician).filter_by(is_active=True, id=event.technician_id).first()
-        client = session.query(Client).filter_by(is_active=True, id=contract.client_id).first()
-        event.client_name = client.name if client else ""
-        event.client_email = client.email if client else ""
-        event.client_phone = client.phone if client else ""
-        event.contract_id = contract.id if contract else ""
-        event.technician_name = technician.name if technician else ""
-
-        return event
 
     def get_collaborator(self, session: Session, collaborator_id: int, role: str) -> type[Collaborator]:
         """
@@ -696,6 +678,18 @@ class CollaboratorController:
         collaborator = session.query(collaborator_class).filter_by(is_active=True, id=collaborator_id).first()
 
         return collaborator
+
+    @staticmethod
+    def get_admin(session: Session) -> type[Manager]:
+        """
+        Method to get the admin
+        Args:
+            session (Session): Session object.
+
+        Returns:
+        The admin manager object.
+        """
+        return session.query(Manager).filter_by(is_active=True, id=1).first()
 
     def delete_model_with_view(self, session: Session, model_type: str) -> None:
         """
@@ -715,10 +709,11 @@ class CollaboratorController:
         if models:
             model_id = self.main_controller.view.prompt_for_model_id(model_type=model_type,
                                                                      models=models)
+            admin = self.get_admin(session=session)
 
-            admin = session.query(Manager).filter_by(is_active=True, name="admin").first()
-            requested = self.get_collaborator(session=session, collaborator_id=model_id, role=model_type)
-            if admin.id == model_id or requested == self.current_collaborator:
+            requested = self.get_model(session=session, model_id=model_id, model_type=model_type)
+
+            if admin == requested or requested == self.current_collaborator:
                 self.main_controller.view.display_cannot_delete_admin_manager_or_yourself()
                 return
 

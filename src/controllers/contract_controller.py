@@ -179,6 +179,17 @@ class ContractController:
                         my_filter: str,
                         filter_value: str | int | float | bool,
                         class_name: Contract):
+        """
+        Method to filter contracts
+        Args:
+            session (Session): session object
+            my_filter (str): filter
+            filter_value(str): filter value
+            class_name (Contract): Contract object class
+
+        Returns:
+        The filtered data for contracts as a list
+        """
         results = []
         if my_filter == "client_name":
             results = (session.query(class_name)

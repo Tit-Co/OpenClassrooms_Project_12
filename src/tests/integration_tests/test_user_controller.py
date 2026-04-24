@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.testing.pickleable import User
 
 from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.contract_controller import ContractController
@@ -78,9 +79,34 @@ class TestCollaboratorController(unittest.TestCase):
         role_technician = Role(
             name="TECHNICIAN",
         )
+
         self.session.add(role_manager)
         self.session.add(role_commercial)
         self.session.add(role_technician)
+        self.session.commit()
+
+        admin_credentials = {
+            "name": "admin",
+            "email": "admin@epicevents.url",
+            "password": "admin_pwd",
+            "role": "MANAGER"
+        }
+
+
+
+        admin = Manager(name=admin_credentials["name"],
+                        email=admin_credentials["email"],
+                        password=admin_credentials["password"],
+                        role_id=1
+                        )
+
+        manager = Manager(name="Manager Test",
+                          email="manager@test.com",
+                          password="test_pwd",
+                          role_id=1
+                          )
+        self.session.add(admin)
+        self.session.add(manager)
         self.session.commit()
 
         commercial = Commercial(name="Commercial name",
@@ -143,6 +169,7 @@ class TestCollaboratorController(unittest.TestCase):
 
 
         return {
+            "managers": [admin, manager],
             "commercials": [commercial],
             "technicians": [technician],
             "clients": [client],
@@ -420,6 +447,8 @@ class TestCollaboratorController(unittest.TestCase):
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
+        self.controller.current_collaborator = self.data["managers"][1]
+
         self.controller.delete_action(session=self.session, model_type="contract")
 
         result = self.session.query(Contract).filter_by(is_active=True, id=1).first()
@@ -432,6 +461,8 @@ class TestCollaboratorController(unittest.TestCase):
         """
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[2])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        self.controller.current_collaborator = self.data["managers"][1]
 
         self.controller.delete_action(session=self.session, model_type="contract")
 
@@ -446,6 +477,8 @@ class TestCollaboratorController(unittest.TestCase):
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
+        self.controller.current_collaborator = self.data["managers"][1]
+
         self.controller.delete_action(session=self.session, model_type="technician")
 
         result = self.session.query(Technician).filter_by(is_active=True, id=1).first()
@@ -458,6 +491,8 @@ class TestCollaboratorController(unittest.TestCase):
         """
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        self.controller.current_collaborator = self.data["commercials"][0]
 
         self.controller.delete_action(session=self.session, model_type="client")
 
@@ -472,6 +507,8 @@ class TestCollaboratorController(unittest.TestCase):
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[1])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
+        self.controller.current_collaborator = self.data["managers"][1]
+
         self.controller.delete_action(session=self.session, model_type="event")
 
         result = self.session.query(Event).filter_by(is_active=True, id=1).first()
@@ -484,6 +521,8 @@ class TestCollaboratorController(unittest.TestCase):
         """
         self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+
+        self.controller.current_collaborator = self.data["managers"][1]
 
         self.controller.delete_action(session=self.session, model_type="commercial")
 
@@ -529,6 +568,9 @@ class TestCollaboratorController(unittest.TestCase):
         self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
 
+        self.controller.current_collaborator = self.data["managers"][1]
+
+
         captured_output = StringIO()
         sys.stdout = captured_output
 
@@ -545,6 +587,9 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the method that deletes a collaborator in success case
         """
         self.controller.delete_collaborator(session=self.session, collaborator_id=1, role="technician")
+
+        self.controller.current_collaborator = self.data["managers"][1]
+
         result = self.session.query(Technician).filter_by(is_active=True, id=1).first()
 
         self.assertIsNone(result)

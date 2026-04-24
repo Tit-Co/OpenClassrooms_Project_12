@@ -12,7 +12,7 @@ from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
 from src.models.role import Role
-from src.models.user import Commercial, Technician
+from src.models.user import Commercial, Technician, Manager
 
 
 class TestCollaboratorController(unittest.TestCase):
@@ -68,6 +68,21 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.add(role_manager)
         self.session.add(role_commercial)
         self.session.add(role_technician)
+        self.session.commit()
+
+        admin_credentials = {
+            "name": "admin",
+            "email": "admin@epicevents.url",
+            "password": "admin_pwd",
+            "role": "MANAGER"
+        }
+
+        manager = Manager(name=admin_credentials["name"],
+                          email=admin_credentials["email"],
+                          password=admin_credentials["password"],
+                          role_id=1
+                          )
+        self.session.add(manager)
         self.session.commit()
 
         commercial = Commercial(name="Commercial name",
@@ -131,6 +146,7 @@ class TestCollaboratorController(unittest.TestCase):
 
 
         return {
+            "managers": [manager],
             "commercials": [commercial],
             "clients": [client],
             "contracts": [contract],
