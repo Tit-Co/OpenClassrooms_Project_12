@@ -127,7 +127,6 @@ class MainController:
             password = self.view.prompt_for_password()
 
             success = self.authenticate(session=session, email=email, password=password)
-            print(f"Perm : {self.user_controller.permissions}")
 
             if success:
                 self.user_controller.collaborator_menu(session=session)

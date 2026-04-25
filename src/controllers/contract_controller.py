@@ -170,18 +170,16 @@ class ContractController:
                         .join(Contract.client, isouter=True)
                         .where(
                 Contract.is_active == True,
-                            Contract.id == model_id,
-                            (Commercial.is_active == True) | (Commercial.id == None),
-                            (Client.is_active == True) | (Client.id == None)
+                            Contract.id == model_id
                         )
                     )
         result = session.execute(selection).first()
         contract, commercial, client = result
 
-        contract.commercial_name = commercial.name if commercial else ""
-        contract.client_name = client.name if client else ""
-        contract.client_email = client.email if client else ""
-        contract.client_phone = client.phone if client else ""
+        contract.commercial_name = commercial.name if commercial and commercial.is_active else ""
+        contract.client_name = client.name if client and client.is_active else ""
+        contract.client_email = client.email if client and client.is_active else ""
+        contract.client_phone = client.phone if client and client.is_active else ""
 
         return contract
 

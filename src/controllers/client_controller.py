@@ -178,8 +178,7 @@ class ClientController:
                         .join(Client.commercial, isouter=True)
                         .where(
                 Client.is_active == True,
-                            Client.id == model_id,
-                            (Commercial.is_active == True) | (Commercial.id == None)
+                            Client.id == model_id
                         )
                     )
 
@@ -190,7 +189,7 @@ class ClientController:
 
         client, commercial = result
 
-        client.commercial_name = commercial.name if commercial else ""
+        client.commercial_name = commercial.name if commercial and commercial.is_active else ""
 
         return client
 

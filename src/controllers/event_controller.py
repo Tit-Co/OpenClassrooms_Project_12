@@ -195,18 +195,16 @@ class EventController:
                         .join(Client, Client.id == Contract.client_id)
                         .where(
                             Event.is_active == True,
-                            Client.is_active == True,
-                            Event.id == model_id,
-                            (Technician.is_active == True) | (Technician.id == None)
+                            Event.id == model_id
                         )
                     )
         result = session.execute(selection).first()
         event, technician, contract, client = result
 
-        event.technician_name = technician.name if technician else ""
-        event.client_name = client.name if client else ""
-        event.client_email = client.email if client else ""
-        event.client_phone = client.phone if client else ""
+        event.technician_name = technician.name if technician and technician.is_active else ""
+        event.client_name = client.name if client and client.is_active else ""
+        event.client_email = client.email if client and client.is_active else ""
+        event.client_phone = client.phone if client and client.is_active else ""
 
         return event
 
