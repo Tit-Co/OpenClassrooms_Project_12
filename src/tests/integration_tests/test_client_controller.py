@@ -149,7 +149,7 @@ class TestCollaboratorController(unittest.TestCase):
             "client@client.com",
             "3355659845",
             "Company test",
-            1
+            1 # commercial_id
         ])
 
         captured_output = StringIO()

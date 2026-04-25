@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -173,8 +174,22 @@ class ClientController:
         Returns:
         The client object
         """
-        client = session.query(Client).filter_by(is_active=True, id=model_id).first()
-        commercial = session.query(Commercial).filter_by(is_active=True, id=client.commercial_id).first()
+        selection = (select(Client, Commercial)
+                        .join(Client.commercial, isouter=True)
+                        .where(
+                Client.is_active == True,
+                            Client.id == model_id,
+                            (Commercial.is_active == True) | (Commercial.id == None)
+                        )
+                    )
+
+        result = session.execute(selection).first()
+
+        if result is None:
+            return None
+
+        client, commercial = result
+
         client.commercial_name = commercial.name if commercial else ""
 
         return client

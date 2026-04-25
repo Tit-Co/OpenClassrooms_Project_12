@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import and_, exists
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -190,14 +189,24 @@ class EventController:
         Returns:
         The event object
         """
-        event = session.query(Event).filter_by(is_active=True, id=model_id).first()
-        technician = session.query(Technician).filter_by(is_active=True, id=event.technician_id).first()
-        contract = session.query(Contract).filter_by(is_active=True, id=event.contract_id).first()
-        client = session.query(Client).filter_by(is_active=True, id=contract.client_id).first()
+        selection = (select(Event, Technician, Contract, Client)
+                        .join(Event.technician, isouter=True)
+                        .join(Event.contract, isouter=True)
+                        .join(Client, Client.id == Contract.client_id)
+                        .where(
+                            Event.is_active == True,
+                            Client.is_active == True,
+                            Event.id == model_id,
+                            (Technician.is_active == True) | (Technician.id == None)
+                        )
+                    )
+        result = session.execute(selection).first()
+        event, technician, contract, client = result
+
         event.technician_name = technician.name if technician else ""
         event.client_name = client.name if client else ""
-        event.client_phone = client.phone if client else ""
         event.client_email = client.email if client else ""
+        event.client_phone = client.phone if client else ""
 
         return event
 

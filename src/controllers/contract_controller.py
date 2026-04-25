@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -165,9 +165,19 @@ class ContractController:
         Returns:
         A contract object
         """
-        contract = session.query(Contract).filter_by(is_active=True, id=model_id).first()
-        client = session.query(Client).filter_by(is_active=True, id=contract.client_id).first()
-        commercial = session.query(Commercial).filter_by(is_active=True, id=contract.commercial_id).first()
+        selection = (select(Contract, Commercial, Client)
+                        .join(Contract.commercial, isouter=True)
+                        .join(Contract.client, isouter=True)
+                        .where(
+                Contract.is_active == True,
+                            Contract.id == model_id,
+                            (Commercial.is_active == True) | (Commercial.id == None),
+                            (Client.is_active == True) | (Client.id == None)
+                        )
+                    )
+        result = session.execute(selection).first()
+        contract, commercial, client = result
+
         contract.commercial_name = commercial.name if commercial else ""
         contract.client_name = client.name if client else ""
         contract.client_email = client.email if client else ""
