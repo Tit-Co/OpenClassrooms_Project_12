@@ -294,3 +294,25 @@ class TestCollaboratorController(unittest.TestCase):
         contract = self.session.query(Contract).filter_by(is_active=True, id=1).first()
 
         self.assertIsNotNone(contract)
+
+    def test_filter_contract_ok(self) -> None:
+        """
+        Test for checking the method that creates collaborator with view
+        """
+        contracts = self.contract_controller.filter_contract(session=self.session,
+                                                            my_filter="client_id",
+                                                            filter_value="1",
+                                                            class_name=Contract)
+
+        self.assertEqual(contracts, self.data["contracts"])
+
+    def test_filter_contract_returns_empty_list(self) -> None:
+        """
+        Test for checking the method that creates collaborator with view
+        """
+        contracts = self.contract_controller.filter_contract(session=self.session,
+                                                            my_filter="client_id",
+                                                            filter_value="6",
+                                                            class_name=Contract)
+
+        self.assertEqual(contracts, [])

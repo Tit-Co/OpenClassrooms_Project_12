@@ -14,7 +14,7 @@ from src.models.base import Base
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
-from src.models.user import Commercial, Technician
+from src.models.user import Commercial, Technician, Manager
 
 
 class TestCollaboratorController(unittest.TestCase):
@@ -50,7 +50,6 @@ class TestCollaboratorController(unittest.TestCase):
         Base.metadata.drop_all(bind=self.db_engine)
         Base.metadata.create_all(bind=self.db_engine)
         self.session = self.session_test()
-        self.main_controller.init_db(self.db_engine, self.session)
         self.data = self.seed_data()
 
     def tearDown(self) -> None:
@@ -65,6 +64,22 @@ class TestCollaboratorController(unittest.TestCase):
         Returns:
         A dictionary with seed data
         """
+
+        admin_credentials = {
+            "name": "admin",
+            "email": "admin@epicevents.url",
+            "password": "admin_pwd",
+            "role": "MANAGER"
+        }
+
+        admin = Manager(name=admin_credentials["name"],
+                        email=admin_credentials["email"],
+                        password=admin_credentials["password"],
+                        role_id=1
+                        )
+        self.session.add(admin)
+        self.session.commit()
+
         commercial = Commercial(name="Commercial name",
                                 email="commercial.test@epicevents.url.com",
                                 password="pwd_test",
@@ -95,6 +110,7 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.commit()
 
         return {
+            "manager": admin,
             "commercial": commercial,
             "client": client,
             "contract": contract
@@ -244,3 +260,67 @@ class TestCollaboratorController(unittest.TestCase):
 
             self.assertIn("Goodbye !", output)
             self.assertEqual(mock.exception.code, 1)
+
+    def test_is_float_ok(self) -> None:
+        """
+        Test for checking the is_float method in a True case
+        """
+        float = self.controller.is_float(s=152.23)
+
+        self.assertTrue(float)
+
+    def test_is_float_return_false_with_str(self) -> None:
+        """
+        Test for checking the is_float method in a false case
+        """
+        float = self.controller.is_float(s="test")
+
+        self.assertFalse(float)
+
+    def test_is_date_ok(self) -> None:
+        """
+        Test for checking the is_date method in a success case
+        """
+        date = self.controller.is_date(s="25/04/26 11:00")
+
+        self.assertTrue(date)
+
+    def test_is_date_return_false_with_wrong_format(self) -> None:
+        """
+        Test for checking the is_date method in a failure case
+        """
+        date = self.controller.is_date(s="25/04/26 11")
+
+        self.assertFalse(date)
+
+    def test_is_bool(self) -> None:
+        """
+        Test for checking the is_bool method in a success case
+        """
+        my_bool = self.controller.is_bool(s="true")
+
+        self.assertTrue(my_bool)
+
+    def test_is_bool_fails(self) -> None:
+        """
+        Test for checking the is_bool method in a failure case
+        """
+        my_bool = self.controller.is_bool(s="test")
+
+        self.assertIsNone(my_bool)
+
+    def test_get_object(self) -> None:
+        """
+        Test for checking the get object method
+        """
+        my_object = self.controller.get_object(session=self.session, model_type="client", object_id=1)
+
+        self.assertEqual(my_object, self.data["client"])
+
+    def test_get_admin_ok(self) -> None:
+        """
+        Test for checking the get admin method
+        """
+        admin = self.controller.get_admin(session=self.session)
+
+        self.assertEqual(admin, self.data["manager"])

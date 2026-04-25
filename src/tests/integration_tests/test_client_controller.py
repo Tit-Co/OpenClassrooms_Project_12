@@ -256,3 +256,25 @@ class TestCollaboratorController(unittest.TestCase):
         client = self.session.query(Client).filter_by(is_active=True, id=1).first()
 
         self.assertIsNotNone(client)
+
+    def test_filter_client_ok(self) -> None:
+        """
+        Test for checking the method that creates collaborator with view
+        """
+        clients = self.client_controller.filter_client(session=self.session,
+                                                        my_filter="name",
+                                                        filter_value="Client Test",
+                                                        class_name=Client)
+
+        self.assertEqual(clients, self.data["clients"])
+
+    def test_filter_client_returns_empty_list(self) -> None:
+        """
+        Test for checking the method that creates collaborator with view
+        """
+        clients = self.client_controller.filter_client(session=self.session,
+                                                        my_filter="name",
+                                                        filter_value="machin",
+                                                        class_name=Client)
+
+        self.assertEqual(clients, [])

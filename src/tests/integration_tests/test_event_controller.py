@@ -146,12 +146,13 @@ class TestCollaboratorController(unittest.TestCase):
                       technician_id=technician.id)
 
         event_2 = Event(name="Event Test 2",
-                      start_date=datetime.now(),
-                      end_date=datetime.now(),
-                      location="Madrid",
-                      attendees=1000,
-                      notes="Notes",
-                      technician_id=technician.id)
+                        start_date=datetime.now(),
+                        end_date=datetime.now(),
+                        location="Madrid",
+                        attendees=1000,
+                        notes="Notes",
+                        contract_id=contract.id,
+                        technician_id=technician.id)
 
         self.session.add(event)
         self.session.add(event_2)
@@ -334,3 +335,25 @@ class TestCollaboratorController(unittest.TestCase):
         event = self.session.query(Event).filter_by(is_active=True, id=2).first()
 
         self.assertIsNone(event)
+
+    def test_filter_event_ok(self) -> None:
+        """
+        Test for checking the method that creates collaborator with view
+        """
+        events = self.event_controller.filter_event(session=self.session,
+                                                    my_filter="name",
+                                                    filter_value="Event Test",
+                                                    class_name=Event)
+
+        self.assertEqual(events, self.data["events"])
+
+    def test_filter_event_returns_empty_list(self) -> None:
+        """
+        Test for checking the method that creates collaborator with view
+        """
+        events = self.event_controller.filter_event(session=self.session,
+                                                    my_filter="name",
+                                                    filter_value="stuff",
+                                                    class_name=Event)
+
+        self.assertEqual(events, [])

@@ -244,6 +244,6 @@ class EventController:
                     class_name.is_active == True,
                     Technician.name.contains(filter_value)
                 ).all())
-
+        print(f"Results: {results}")
         results = [self.get_event(session=session, model_id=result.id) for result in results]
         return results

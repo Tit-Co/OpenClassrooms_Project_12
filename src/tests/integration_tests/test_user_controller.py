@@ -173,7 +173,7 @@ class TestCollaboratorController(unittest.TestCase):
             "commercials": [commercial],
             "technicians": [technician],
             "clients": [client],
-            "contracts": [contract],
+            "contracts": [contract, contract2],
             "events": [event]
         }
 
@@ -593,3 +593,27 @@ class TestCollaboratorController(unittest.TestCase):
         result = self.session.query(Technician).filter_by(is_active=True, id=1).first()
 
         self.assertIsNone(result)
+
+    def test_filter_action_ok(self) -> None:
+        """
+        Test for checking the filter action method
+        """
+
+        result = self.controller.filter_action(session=self.session,
+                                               model_type="contract",
+                                               my_filter="client_id",
+                                               filter_value="1")
+
+        self.assertEqual(result, self.data["contracts"])
+
+    def test_filter_collaborator_ok(self) -> None:
+        """
+        Test for checking the method that creates collaborator with view
+        """
+        collaborator = self.controller.filter_collaborator(session=self.session,
+                                                           model_type="manager",
+                                                           my_filter="name",
+                                                           filter_value="Manager Test",
+                                                           class_name=Manager)
+
+        self.assertEqual(collaborator, [self.data["managers"][1]])
