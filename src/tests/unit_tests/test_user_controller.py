@@ -218,14 +218,23 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.assertIn("You are successfully logged out.", output)
 
-    def test_get_collaborator(self) -> None:
+    def test_get_collaborator_by_id(self) -> None:
         """
-        Test for checking the method that gets collaborator
+        Test for checking the method that gets collaborator by its id
         """
-        collaborator = self.controller.get_collaborator(session=self.session,
-                                                        collaborator_id=self.data["commercial"].id,
-                                                        role="commercial")
+        collaborator = self.controller.get_collaborator_by_id(session=self.session,
+                                                              collaborator_id=self.data["commercial"].id,
+                                                              role="commercial")
         self.assertEqual(collaborator.id, self.data["commercial"].id)
+
+    def test_get_collaborator_by_email(self) -> None:
+        """
+        Test for checking the method that gets collaborator by its email
+        """
+        collaborator = self.controller.get_collaborator_by_mail(session=self.session,
+                                                                collaborator_email=self.data["commercial"].email,
+                                                                role="commercial")
+        self.assertEqual(collaborator.email, self.data["commercial"].email)
 
     def test_exists_returns_true(self) -> None:
         """
@@ -313,7 +322,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the get object method
         """
-        my_object = self.controller.get_object(session=self.session, model_type="client", object_id=1)
+        my_object = self.controller.get_object_by_id(session=self.session, model_type="client", object_id=1)
 
         self.assertEqual(my_object, self.data["client"])
 
@@ -324,3 +333,23 @@ class TestCollaboratorController(unittest.TestCase):
         admin = self.controller.get_admin(session=self.session)
 
         self.assertEqual(admin, self.data["manager"])
+
+    def test_filter_value_str_ok(self):
+        filter_value = self.controller.process_filter_value(filter_value="test")
+        self.assertEqual(filter_value, "test")
+
+    def test_filter_value_int_ok(self):
+        filter_value = self.controller.process_filter_value(filter_value="2")
+        self.assertEqual(filter_value, 2)
+
+    def test_filter_value_float_ok(self):
+        filter_value = self.controller.process_filter_value(filter_value="12.23")
+        self.assertEqual(filter_value, 12.23)
+
+    def test_filter_value_date_ok(self):
+        filter_value = self.controller.process_filter_value(filter_value="26/04/26 11:00")
+        self.assertEqual(filter_value, datetime.strptime("26/04/26 11:00:00", "%d/%m/%y %H:%M:%S"))
+
+    def test_filter_value_bool_ok(self):
+        filter_value = self.controller.process_filter_value(filter_value="true")
+        self.assertTrue(filter_value)

@@ -207,8 +207,8 @@ class CollaboratorController:
             "role": role
         }
         collaborator_class = self.COLLABORATORS.get(role)
-        requested = session.query(collaborator_class).filter_by(is_active=True, email=email).first()
-        inactive = session.query(collaborator_class).filter_by(is_active=False, email=email).first()
+        requested = self.get_collaborator_by_mail(session=session, collaborator_email=email, role=role)
+        inactive = self.get_collaborator_inactive_by_mail(session=session, collaborator_email=email, role=role)
 
         if requested:
             self.main_controller.view.display_collaborator_already_exists(collaborator=requested)
@@ -219,7 +219,7 @@ class CollaboratorController:
             self.main_controller.view.display_collaborator_already_exists_but_inactive(collaborator=inactive)
             self.main_controller.view.display_action_successfully_done(action="reactivated",
                                                                        model_type=role)
-            collaborator = session.query(collaborator_class).filter_by(is_active=True, email=email).first()
+            collaborator = self.get_collaborator_by_mail(session=session, collaborator_email=email, role=role)
             session.commit()
 
         else:
@@ -302,9 +302,9 @@ class CollaboratorController:
             collaborator_id = self.main_controller.view.prompt_for_model_id(model_type=role,
                                                                             models=models)
 
-            collaborator = self.get_collaborator(session=session,
-                                                 collaborator_id=collaborator_id,
-                                                 role=role)
+            collaborator = self.get_collaborator_by_id(session=session,
+                                                       collaborator_id=collaborator_id,
+                                                       role=role)
 
             self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
@@ -336,9 +336,9 @@ class CollaboratorController:
                                                            current_role=role,
                                                            data=new_collaborator_data)
 
-                collaborator = self.get_collaborator(session=session,
-                                                     collaborator_id=new_id,
-                                                     role=new_role_name)
+                collaborator = self.get_collaborator_by_id(session=session,
+                                                           collaborator_id=new_id,
+                                                           role=new_role_name)
 
                 label = f"collaborator ({role} to {new_role_name})"
 
@@ -355,9 +355,9 @@ class CollaboratorController:
                                          collaborator_id=collaborator_id,
                                          data=new_collaborator_data)
 
-                collaborator = self.get_collaborator(session=session,
-                                                     collaborator_id=collaborator_id,
-                                                     role=new_role_name)
+                collaborator = self.get_collaborator_by_id(session=session,
+                                                           collaborator_id=collaborator_id,
+                                                           role=new_role_name)
                 label = "collaborator"
 
             if collaborator:
@@ -505,6 +505,26 @@ class CollaboratorController:
         else:
             return None
 
+    def process_filter_value(self, filter_value: str) -> str | int | float | datetime:
+        """
+        Method to process filter value. The method change the type of the filter according to the str input.
+        Args:
+            filter_value (str): Filter value.
+
+        Returns:
+        The processed filter value.
+        """
+        if filter_value.isdigit():
+            return int(filter_value)
+        elif self.is_float(filter_value):
+            return float(filter_value)
+        elif self.is_date(filter_value):
+            return datetime.strptime(filter_value + ':00', '%d/%m/%y %H:%M:%S')
+        elif self.is_bool(filter_value):
+            return self.is_bool(filter_value)
+        else:
+            return filter_value
+
     def filter_action(self, session: Session,
                       model_type: str,
                       my_filter: str,
@@ -523,16 +543,7 @@ class CollaboratorController:
         class_name = self.MODELS.get(model_type) if self.MODELS.get(model_type) \
             else self.COLLABORATORS.get(model_type)
 
-        if filter_value.isdigit():
-            filter_value = int(filter_value)
-        elif self.is_float(filter_value):
-            filter_value = float(filter_value)
-        elif self.is_date(filter_value):
-            filter_value = datetime.strptime(filter_value + ':00', '%d/%m/%y %H:%M:%S')
-        elif self.is_bool(filter_value):
-            filter_value = self.is_bool(filter_value)
-        else:
-            pass
+        filter_value = self.process_filter_value(filter_value)
 
         results = []
 
@@ -582,7 +593,7 @@ class CollaboratorController:
             results = session.query(class_name).filter(class_name.is_active == True,
                                                        class_name.email.contains(filter_value)).all()
 
-        results = [self.get_collaborator(session=session, role=model_type, collaborator_id=result.id)
+        results = [self.get_collaborator_by_id(session=session, role=model_type, collaborator_id=result.id)
                    for result in results]
 
         return results
@@ -614,8 +625,8 @@ class CollaboratorController:
         models = session.query(model_class).filter_by(is_active=True).all()
         return models
 
-    def get_object(self, session: Session, model_type: str, object_id: int) -> (type[Client] | type[Event]
-                                                                     | type[Contract]):
+    def get_object_by_id(self, session: Session, model_type: str, object_id: int) -> (type[Client] | type[Event]
+                                                                                      | type[Contract]):
         """
         Method to get an object of class Contract, Client or Event according to the given id and type
         Args:
@@ -637,11 +648,10 @@ class CollaboratorController:
 
         return my_object
 
-
     def get_model(self, session: Session,
                   model_type: str,
                   model_id: int) -> (type[Client] | type[Event] | type[Contract] | type[Commercial] | type[Manager]
-                                     | type[Technician]):
+                                     | Technician):
         """
         Method to get a model by its id and type
         Args:
@@ -654,16 +664,16 @@ class CollaboratorController:
         """
         model = None
         if model_type in self.MODELS.keys():
-            model=self.get_object(session=session, model_type=model_type, object_id=model_id)
+            model=self.get_object_by_id(session=session, model_type=model_type, object_id=model_id)
 
         elif model_type in self.COLLABORATORS.keys():
-            model = self.get_collaborator(session=session, collaborator_id=model_id, role=model_type)
+            model = self.get_collaborator_by_id(session=session, collaborator_id=model_id, role=model_type)
             role = session.query(Role).filter_by(id=model.role_id).first()
             model.role_name = role.name
 
         return model
 
-    def get_collaborator(self, session: Session, collaborator_id: int, role: str) -> type[Collaborator]:
+    def get_collaborator_by_id(self, session: Session, collaborator_id: int, role: str) -> type[Collaborator]:
         """
         Method to get a collaborator by its id
         Args:
@@ -676,6 +686,38 @@ class CollaboratorController:
         """
         collaborator_class = self.COLLABORATORS.get(role)
         collaborator = session.query(collaborator_class).filter_by(is_active=True, id=collaborator_id).first()
+
+        return collaborator
+
+    def get_collaborator_by_mail(self, session: Session, collaborator_email: str, role: str) -> type[Collaborator]:
+        """
+        Method to get a collaborator by its email
+        Args:
+            session (Session): Session object
+            collaborator_email (str): Collaborator e-mail.
+            role (str): Collaborator role.
+
+        Returns:
+        The collaborator object as Commercial or Manager or Technician.
+        """
+        collaborator_class = self.COLLABORATORS.get(role)
+        collaborator = session.query(collaborator_class).filter_by(is_active=True, email=collaborator_email).first()
+
+        return collaborator
+
+    def get_collaborator_inactive_by_mail(self, session: Session, collaborator_email: str, role: str) -> type[Collaborator]:
+        """
+        Method to get an inactive collaborator by its name
+        Args:
+            session (Session): Session object
+            collaborator_email (str): Collaborator e-mail.
+            role (str): Collaborator role.
+
+        Returns:
+        The collaborator object as Commercial or Manager or Technician.
+        """
+        collaborator_class = self.COLLABORATORS.get(role)
+        collaborator = session.query(collaborator_class).filter_by(is_active=False, email=collaborator_email).first()
 
         return collaborator
 
@@ -787,14 +829,15 @@ class CollaboratorController:
         Returns:
         A boolean indicating whether model exists.
         """
-        query = None
+        result = None
         if model_type == "client":
-            query = session.query(self.MODELS[model_type]).filter_by(is_active=True, email=value).first()
+            result = session.query(self.MODELS[model_type]).filter_by(is_active=True, email=value).first()
 
         elif model_type == "event":
-            query = session.query(self.MODELS[model_type]).filter_by(is_active=True, name=value).first()
+            class_name = self.MODELS[model_type]
+            result = session.query(class_name).filter_by(is_active=True, name=value).first()
 
-        return query is not None or (isinstance(query, list) and (None,) not in query)
+        return result is not None or (isinstance(result, list) and (None,) not in result)
 
     def logout(self, session: Session) -> None:
         """
