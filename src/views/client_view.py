@@ -74,4 +74,4 @@ class ClientView:
         Returns:
         The email
         """
-        return self.main_view.prompt_for_email(model_type=" client")
+        return self.main_view.prompt_for_email()

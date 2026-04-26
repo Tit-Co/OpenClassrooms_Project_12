@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -45,11 +46,17 @@ class ContractController:
             "status": status
         }
         contract = self.create_contract(session=session, data=data)
-        self.main_controller.view.display_action_successfully_done(action="created",
-                                                                   model_type="contract")
-
         contract = self.get_contract(session=session, model_id=contract.id)
-        self.main_controller.view.contract_view.display_contract(contract=contract)
+
+        if contract or (isinstance(contract, list) and (None,) not in contract):
+
+            self.main_controller.view.display_action_successfully_done(action="created",
+                                                                       model_type="contract")
+
+            self.main_controller.view.contract_view.display_contract(contract=contract)
+
+        else:
+            self.main_controller.view.display_something_wrong("creating")
 
     @staticmethod
     def create_contract(session: Session, data: dict) -> Contract:
@@ -119,7 +126,7 @@ class ContractController:
                 self.main_controller.view.contract_view.display_contract(contract=contract)
 
             else:
-                self.main_controller.view.display_something_wrong_while_updating()
+                self.main_controller.view.display_something_wrong("updating")
 
     @staticmethod
     def update_contract(session: Session, contract_id: int, data: dict) -> None:
@@ -185,7 +192,7 @@ class ContractController:
 
     def filter_contract(self, session: Session,
                         my_filter: str,
-                        filter_value: str | int | float | bool,
+                        filter_value: str | int | float | bool | datetime,
                         class_name: Contract):
         """
         Method to filter contracts
@@ -199,7 +206,7 @@ class ContractController:
         The filtered data for contracts as a list
         """
         results = []
-        if my_filter == "client_name":
+        if my_filter == "client-name":
             results = (session.query(class_name)
                        .join(Client, class_name.client_id == Client.id)
                        .filter(
@@ -209,12 +216,17 @@ class ContractController:
         elif my_filter == "status":
             results = session.query(class_name).filter_by(is_active=True, status=filter_value).all()
 
-        elif my_filter == "client_id":
+        elif my_filter == "client-id":
             results = session.query(class_name).filter_by(is_active=True, client_id=filter_value).all()
 
-        elif my_filter == "bill_to_pay" and str(filter_value).isdigit():
+        elif my_filter == "bill-to-pay":
             results = session.query(class_name).filter(Contract.is_active == True,
-                                                     Contract.bill_to_pay > filter_value).all()
+                                                     Contract.bill_to_pay > 0).all()
+        elif my_filter =="creation-date":
+            print(f"Date {datetime.date(filter_value)}")
+            results = session.query(class_name).filter(Contract.is_active == True,
+                                                       Contract.creation_date.contains(
+                                                           datetime.date(filter_value))).all()
 
         results = [self.get_contract(session=session, model_id=result.id) for result in results]
         return results

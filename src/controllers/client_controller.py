@@ -129,7 +129,7 @@ class ClientController:
 
                 self.main_controller.view.client_view.display_client(client=client)
             else:
-                self.main_controller.view.display_something_wrong_while_updating()
+                self.main_controller.view.display_something_wrong("updating")
 
     @staticmethod
     def update_client(session: Session, client_id: int, data: dict) -> None:

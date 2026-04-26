@@ -146,7 +146,7 @@ class EventController:
                 self.main_controller.view.event_view.display_event(event=event)
 
             else:
-                self.main_controller.view.display_something_wrong_while_updating()
+                self.main_controller.view.display_something_wrong("updating")
 
     @staticmethod
     def update_event(session: Session, event_id: int, data: dict) -> None:
@@ -233,17 +233,37 @@ class EventController:
             results = (session.query(class_name)
                        .filter(class_name.is_active == True, class_name.location.contains(filter_value)).all())
 
-        elif my_filter == "attendees_max":
-            results = (session.query(class_name).
-                       filter(class_name.is_active == True, class_name.attendees < filter_value).all())
+        elif my_filter == "attendees-max":
+            results = (session.query(class_name)
+                       .filter(class_name.is_active == True, class_name.attendees < filter_value).all())
 
-        elif my_filter == "no_technician":
+        elif my_filter == "prior-date":
+            results = (
+                session.query(class_name)
+                .filter(
+                    class_name.is_active == True,
+                    class_name.start_date < filter_value
+                )
+                .all()
+            )
+
+        elif my_filter == "afterward-date":
+            results = (
+                session.query(class_name)
+                .filter(
+                    class_name.is_active == True,
+                    class_name.start_date > filter_value
+                )
+                .all()
+            )
+
+        elif my_filter == "no-technician":
             results = session.query(class_name).filter_by(is_active=True, technician_id=None).all()
 
-        elif my_filter == "technician_id":
+        elif my_filter == "technician-id":
             results = session.query(class_name).filter_by(is_active=True, technician_id=filter_value).all()
 
-        elif my_filter == "technician_name":
+        elif my_filter == "technician-name":
             results = (
                 session.query(class_name)
                 .join(class_name.technician)
@@ -251,6 +271,6 @@ class EventController:
                     class_name.is_active == True,
                     Technician.name.contains(filter_value)
                 ).all())
-        print(f"Results: {results}")
+
         results = [self.get_event(session=session, model_id=result.id) for result in results]
         return results

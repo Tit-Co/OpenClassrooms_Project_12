@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -40,10 +41,36 @@ class CollaboratorController:
             "manager": ["name", "email"],
             "commercial": ["name", "email"],
             "technician": ["name", "email"],
-            "contract": ["client_name", "client_id", "creation_date", "status", "bill_to_pay"],
-            "client": ["name", "no_commercial", "commercial_id", "commercial_name", "prior_date", "afterward_date"],
-            "event": ["name", "location", "attendees_max", "no_technician", "technician_id", "technician_name"]
+            "contract": ["client-name", "client-id", "creation-date", "status", "bill-to-pay"],
+            "client": ["name", "no-commercial", "commercial-id", "commercial-name", "prior-date", "afterward-date"],
+            "event": ["name", "location", "attendees-max", "no-technician", "technician-id", "technician-name",
+                      "prior-date", "afterward-date"]
         }
+
+    def get_permissions(self, session: Session, user: type[Commercial] | type[Manager] | type[Technician]) -> list:
+        role = session.query(Role).filter_by(id=user.role_id).first()
+
+        return self.main_controller.role_permissions.get(role.name)
+
+    def find_user(self, session, email) -> type[Commercial | Manager | Technician]:
+        user = self.get_collaborator_by_mail(session, email)
+        return user
+
+    def get_current_user(self, session):
+        with open("current_user.txt", 'r', encoding="utf-8") as f:
+            email = f.read()
+            if email:
+                return self.get_collaborator_by_mail(session, email)
+
+        return None
+
+    @staticmethod
+    def save_current_user(email: str) -> None:
+        with open("current_user.txt", 'w', encoding="utf-8") as f:
+            f.write(email)
+
+    def reset_current_user(self) -> None:
+        self.save_current_user("")
 
     def collaborator_menu(self, session: Session) -> None:
         """
@@ -207,8 +234,8 @@ class CollaboratorController:
             "role": role
         }
         collaborator_class = self.COLLABORATORS.get(role)
-        requested = self.get_collaborator_by_mail(session=session, collaborator_email=email, role=role)
-        inactive = self.get_collaborator_inactive_by_mail(session=session, collaborator_email=email, role=role)
+        requested = self.get_collaborator_by_mail(session=session, email=email)
+        inactive = self.get_collaborator_inactive_by_mail(session=session, email=email, role=role)
 
         if requested:
             self.main_controller.view.display_collaborator_already_exists(collaborator=requested)
@@ -219,7 +246,7 @@ class CollaboratorController:
             self.main_controller.view.display_collaborator_already_exists_but_inactive(collaborator=inactive)
             self.main_controller.view.display_action_successfully_done(action="reactivated",
                                                                        model_type=role)
-            collaborator = self.get_collaborator_by_mail(session=session, collaborator_email=email, role=role)
+            collaborator = self.get_collaborator_by_mail(session=session, email=email)
             session.commit()
 
         else:
@@ -368,7 +395,7 @@ class CollaboratorController:
                                                                role=new_role_name)
 
             else:
-                self.main_controller.view.display_something_wrong_while_updating()
+                self.main_controller.view.display_something_wrong("updating")
 
     def update_collaborator(self, session: Session, collaborator_id: int, data: dict):
         """
@@ -444,33 +471,44 @@ class CollaboratorController:
             session (Session): Session object.
             model_type (str): Model type.
         """
-        permissions = self.permissions
-        permission = f"filter:{model_type}"
+        filters = self.FILTERS.get(model_type.lower())
 
-        if permission in permissions:
-            filters = self.FILTERS.get(model_type.lower())
+        my_filter_id = self.main_controller.view.prompt_for_filter(filters=filters)
 
-            my_filter_id = self.main_controller.view.prompt_for_filter(filters=filters)
+        my_filter = self.FILTERS.get(model_type.lower())[my_filter_id - 1]
 
-            my_filter = self.FILTERS.get(model_type.lower())[my_filter_id - 1]
-            filter_value = self.main_controller.view.prompt_for_filter_value(model_type=model_type,
-                                                                             my_filter=my_filter)
+        if '-id' in my_filter or '-max' in my_filter:
+            filter_value = self.main_controller.view.prompt_for_integer(model_type=model_type, my_filter=my_filter)
 
-            results = self.filter_action(session=session,
-                                         model_type=model_type,
-                                         my_filter=my_filter,
-                                         filter_value=filter_value)
+        elif '-date' in my_filter:
+            filter_value = self.main_controller.view.prompt_for_date_filter_value(model_type=model_type, my_filter=my_filter)
 
-            if results:
-                self.main_controller.view.display_filter_results(model_type=model_type,
-                                                                 my_filter=my_filter,
-                                                                 filter_value=filter_value,
-                                                                 results=results)
-            else:
-                self.main_controller.view.display_filter_no_results(model_type=model_type,
-                                                                    my_filter=my_filter,
-                                                                    filter_value=filter_value)
+        elif 'no-' in my_filter:
+            filter_value=None
 
+        elif my_filter == 'status':
+            filter_value = self.main_controller.view.contract_view.prompt_for_contract_boolean()
+
+        elif my_filter == 'bill-to-pay':
+            filter_value = None
+
+        else:
+            filter_value = self.main_controller.view.prompt_for_filter_value(model_type=model_type, my_filter=my_filter)
+
+        results = self.filter_action(session=session,
+                                     model_type=model_type,
+                                     my_filter=my_filter,
+                                     filter_value=filter_value)
+
+        if results:
+            self.main_controller.view.display_filter_results(model_type=model_type,
+                                                             my_filter=my_filter,
+                                                             filter_value=filter_value,
+                                                             results=results)
+        else:
+            self.main_controller.view.display_filter_no_results(model_type=model_type,
+                                                                my_filter=my_filter,
+                                                                filter_value=filter_value)
     @staticmethod
     def is_float(s: str) -> bool:
         """
@@ -498,14 +536,14 @@ class CollaboratorController:
 
     @staticmethod
     def is_bool(s: str) -> bool | None:
-        if s.lower() == "true" or (s.isdigit() and int(s) == 1):
+        if str(s).lower() == "true" or (s.isdigit() and int(s) == 1):
             return True
-        elif s.lower() == "false" or (s.isdigit() and int(s) == 0):
+        elif str(s).lower() == "false" or (s.isdigit() and int(s) == 0):
             return False
         else:
             return None
 
-    def process_filter_value(self, filter_value: str) -> str | int | float | datetime:
+    def process_filter_value(self, filter_value: str) -> str | int | float | datetime | None:
         """
         Method to process filter value. The method change the type of the filter according to the str input.
         Args:
@@ -514,14 +552,21 @@ class CollaboratorController:
         Returns:
         The processed filter value.
         """
-        if filter_value.isdigit():
+        if filter_value is None or filter_value == '':
+            return None
+
+        elif str(filter_value).isdigit():
             return int(filter_value)
-        elif self.is_float(filter_value):
+
+        elif self.is_float(str(filter_value)):
             return float(filter_value)
-        elif self.is_date(filter_value):
-            return datetime.strptime(filter_value + ':00', '%d/%m/%y %H:%M:%S')
-        elif self.is_bool(filter_value):
+
+        elif self.is_date(str(filter_value)):
+            return datetime.strptime(filter_value, '%d/%m/%y %H:%M:%S')
+
+        elif self.is_bool(str(filter_value)):
             return self.is_bool(filter_value)
+
         else:
             return filter_value
 
@@ -625,8 +670,7 @@ class CollaboratorController:
         models = session.query(model_class).filter_by(is_active=True).all()
         return models
 
-    def get_object_by_id(self, session: Session, model_type: str, object_id: int) -> (type[Client] | type[Event]
-                                                                                      | type[Contract]):
+    def get_object_by_id(self, session: Session, model_type: str, object_id: int) -> (type[Client | Event | Contract]):
         """
         Method to get an object of class Contract, Client or Event according to the given id and type
         Args:
@@ -650,8 +694,7 @@ class CollaboratorController:
 
     def get_model(self, session: Session,
                   model_type: str,
-                  model_id: int) -> (type[Client] | type[Event] | type[Contract] | type[Commercial] | type[Manager]
-                                     | Technician):
+                  model_id: int) -> (type[Client | Event | Contract | Commercial | Manager | Technician]):
         """
         Method to get a model by its id and type
         Args:
@@ -689,23 +732,29 @@ class CollaboratorController:
 
         return collaborator
 
-    def get_collaborator_by_mail(self, session: Session, collaborator_email: str, role: str) -> type[Collaborator]:
+    @staticmethod
+    def get_collaborator_by_mail(session: Session, email: str) -> type[Commercial | Manager | Technician] | None:
         """
         Method to get a collaborator by its email
         Args:
             session (Session): Session object
-            collaborator_email (str): Collaborator e-mail.
-            role (str): Collaborator role.
+            email (str): Collaborator e-mail.
 
         Returns:
         The collaborator object as Commercial or Manager or Technician.
         """
-        collaborator_class = self.COLLABORATORS.get(role)
-        collaborator = session.query(collaborator_class).filter_by(is_active=True, email=collaborator_email).first()
+        collaborator = session.query(Manager).filter_by(is_active=True, email=email).first()
 
-        return collaborator
+        if collaborator:
+            return collaborator
 
-    def get_collaborator_inactive_by_mail(self, session: Session, collaborator_email: str, role: str) -> type[Collaborator]:
+        collaborator = session.query(Commercial).filter_by(is_active=True, email=email).first()
+        if collaborator:
+            return collaborator
+
+        return session.query(Technician).filter_by(is_active=True, email=email).first()
+
+    def get_collaborator_inactive_by_mail(self, session: Session, email: str, role: str) -> type[Collaborator]:
         """
         Method to get an inactive collaborator by its name
         Args:
@@ -717,7 +766,7 @@ class CollaboratorController:
         The collaborator object as Commercial or Manager or Technician.
         """
         collaborator_class = self.COLLABORATORS.get(role)
-        collaborator = session.query(collaborator_class).filter_by(is_active=False, email=collaborator_email).first()
+        collaborator = session.query(collaborator_class).filter_by(is_active=False, email=email).first()
 
         return collaborator
 
@@ -745,10 +794,11 @@ class CollaboratorController:
         """
         models = self.main_controller.user_controller.get_models(session=session,
                                                                  model_type=model_type)
-
-        self.main_controller.view.display_models(model_type=model_type, models=models)
+        models = models.get(model_type) if model_type=="contract" else models
 
         if models:
+            self.main_controller.view.display_models(model_type=model_type, models=models)
+
             model_id = self.main_controller.view.prompt_for_model_id(model_type=model_type,
                                                                      models=models)
             admin = self.get_admin(session=session)
@@ -788,6 +838,8 @@ class CollaboratorController:
             if success:
                 self.main_controller.view.display_action_successfully_done(action="deleted",
                                                                            model_type=model_type)
+        else:
+            self.main_controller.view.display_action_impossible(action="delete")
 
     def delete_collaborator(self, session: Session, collaborator_id: int, role: str) -> bool:
         """
@@ -815,7 +867,7 @@ class CollaboratorController:
             return True
 
         except Exception:
-            self.main_controller.view.display_something_wrong_while_deleting()
+            self.main_controller.view.display_something_wrong("deleting")
             return False
 
     def model_exists(self, session: Session, model_type: str, value: str) -> bool:
@@ -846,5 +898,6 @@ class CollaboratorController:
             session (Session): Session object.
         """
         session.close()
+        self.reset_current_user()
         self.permissions = None
         self.main_controller.view.display_logout()

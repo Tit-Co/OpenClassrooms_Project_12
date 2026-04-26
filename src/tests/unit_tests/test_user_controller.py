@@ -232,8 +232,7 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the method that gets collaborator by its email
         """
         collaborator = self.controller.get_collaborator_by_mail(session=self.session,
-                                                                collaborator_email=self.data["commercial"].email,
-                                                                role="commercial")
+                                                                collaborator_email=self.data["commercial"].email)
         self.assertEqual(collaborator.email, self.data["commercial"].email)
 
     def test_exists_returns_true(self) -> None:

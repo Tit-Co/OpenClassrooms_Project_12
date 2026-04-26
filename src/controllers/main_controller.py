@@ -26,9 +26,7 @@ class MainController:
 
         self.role_permissions = {
             "MANAGER": ["display:manager", "display:commercial", "display:technician",
-                        "create:manager", "create:commercial", "create:technician",
-                        "update:manager", "update:commercial", "update:technician",
-                        "delete:manager", "delete:commercial", "delete:technician",
+                        "create:collaborator", "update:collaborator", "delete:collaborator",
                         "display:contract", "display:client", "display:event",
                         "create:contract", "update:contract", "delete:contract",
                         "update:event", "delete:event", "filter:event", "filter:client",
@@ -42,7 +40,7 @@ class MainController:
 
             "TECHNICIAN": ["display:manager", "display:commercial", "display:technician",
                            "display:contract", "display:client", "display:event", "update:event",
-                           "filter:event", "filter:client",
+                           "filter:event", "filter:client", "filter:collaborator",
                            "filter:manager", "filter:commercial", "filter:technician"]
         }
 
@@ -95,8 +93,6 @@ class MainController:
         Args:
             session (Session): session
         """
-        self.init_db(engine, session)
-
         while True:
             self.view.display_main_menu()
             menu = self.view.prompt_for_menu(2)
@@ -109,30 +105,19 @@ class MainController:
             action = actions.get(menu)
             action()
 
-    def login(self, session: Session) -> None:
+    def login(self, session: Session, email: str, password: str) -> bool:
         """
         Method to launch login
         Args:
             session (Session): session
+            email (str): email
+            password (str): password
         """
-        while True:
-            self.view.display_login_submenu()
-            menu = self.view.prompt_for_continuing()
+        self.init_db(engine, session)
 
-            if menu == 'q':
-                break
+        return self.authenticate(session=session, email=email, password=password)
 
-            email = self.view.prompt_for_email("")
-
-            password = self.view.prompt_for_password()
-
-            success = self.authenticate(session=session, email=email, password=password)
-
-            if success:
-                self.user_controller.collaborator_menu(session=session)
-                break
-
-    def authenticate(self, session: Session, email: str, password: str) -> bool:
+    def authenticate(self, session: Session, email: str, password: str) -> bool | None:
         """
         Method to authenticate user and initialize user permissions
         Args:
@@ -152,15 +137,14 @@ class MainController:
                 break
 
         if user is None:
-            self.view.display_collaborator_does_not_exist()
-            return False
+            return None
 
         if not self.check_password(password=password, user_password=user.password):
-            self.view.display_wrong_password()
             return False
 
         self.init_permissions(session=session, user=user)
-        self.user_controller.current_collaborator = user
+
+        self.user_controller.save_current_user(email=email)
 
         return True
 
@@ -205,7 +189,6 @@ class MainController:
         """
         role = session.query(Role).filter_by(id=user.role_id).first()
         self.user_controller.permissions = self.role_permissions.get(role.name)
-        self.view.display_successfully_logged_in(name=user.name)
 
     def goodbye(self) -> None:
         """

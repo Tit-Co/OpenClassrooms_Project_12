@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import click
+
 from src.models.contract import Contract
 
 if TYPE_CHECKING:
@@ -99,15 +101,14 @@ class ContractView:
         Returns:
         The id of the model
         """
-        while True:
-            answer = input(f"\n▶ Please select a {model_type} for the contract if possible:\n▶▶ ").strip()
+        choice = click.prompt(f"\n▶ Please select a {model_type} for the contract if possible:\n▶▶ ",
+                              type=int,
+                              default=0)
 
-            if answer.isdigit() or answer == "":
-                return int(answer) if answer else None
+        return None if choice == 0 else choice
 
-            print("Please enter a number or leave blank to continue.")
-
-    def prompt_for_contract_float_number(self, amount_type: str) -> float | None:
+    @staticmethod
+    def prompt_for_contract_float_number(amount_type: str) -> float | None:
         """
         Method that prompts the user to enter the float number or leave it blank
         Args:
@@ -118,14 +119,14 @@ class ContractView:
         """
         while True:
             if amount_type == "total_amount":
-                answer = input("\n▶ Please type the contract total amount if possible:\n▶▶ ").strip()
+                answer = click.prompt("\n▶ Please type the contract total amount if possible:\n▶▶ ",
+                                      type=float)
             else:
-                answer = input("\n▶ Please type the amount left to pay if existing:\n▶▶ ").strip()
+                answer = click.prompt("\n▶ Please type the amount left to pay if existing:\n▶▶ ",
+                                      type=float)
 
-            if self.is_float(answer) or answer.isdigit() or answer == "":
-                return float(answer) if answer else None
 
-            print(f"Please enter a number or leave blank to continue.")
+            return answer
 
     @staticmethod
     def prompt_for_contract_boolean() -> bool:
@@ -135,10 +136,4 @@ class ContractView:
         Returns:
 
         """
-        while True:
-            status = input("\n▶ Is the contract signed (y/n):\n▶▶ ")
-
-            if status.lower() in ["y", "n"]:
-                return status == "y"
-
-            print(f"Please enter either 'y' or 'n'.")
+        return click.prompt("\n▶ Is the contract signed :\n▶▶ ", type=bool, default=False)
