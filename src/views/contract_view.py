@@ -1,13 +1,25 @@
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
+import sys
 import click
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 from src.models.contract import Contract
 
 if TYPE_CHECKING:
     from src.views.main_view import MainView
+
+
+console = Console(
+    file=sys.stdout,
+    force_terminal=True,
+    color_system="truecolor",
+    width=200
+)
 
 
 class ContractView:
@@ -45,26 +57,35 @@ class ContractView:
             commercial_id = contract.commercial_id
             client = next((c for c in clients if c.id == client_id), None)
             commercial = next((c for c in commercials if c.id == commercial_id), None)
-            click.echo(f"  - {contract.id}. Contract between the client {client.name if client else '[unknown]'} "
-                       f"and the commercial {commercial.name if commercial else '[unknown]'}")
 
-    def display_contract(self, contract: type[Contract]) -> None:
+            console.print(Panel(f"  - [bold red]{contract.id}.[/bold red] Contract between "
+                                f"the client {client.name if client else '[unknown]'} "
+                                f"and the commercial {commercial.name if commercial else '[unknown]'}",
+                                border_style="dark_red", expand=True))
+
+    @staticmethod
+    def display_contract(contract: type[Contract]) -> Panel:
         """
         Method to display a contract
         Args:
             contract (type[Contract]):
         """
-        self.main_view.display_title(model_type="contract")
+        table = Table(show_header=False, border_style="black")
+        table.add_row(f"[bold light_salmon3]Id[/bold light_salmon3] : {contract.id}")
+        table.add_row(f"[bold light_salmon3]Client name[/bold light_salmon3] : {contract.client_name \
+            if contract.client_name else ''}")
+        table.add_row(f"[bold light_salmon3]Client email[/bold light_salmon3] : {contract.client_email \
+            if contract.client_email else ''}")
+        table.add_row(f"[bold light_salmon3]Client phone[/bold light_salmon3] : {contract.client_phone \
+            if contract.client_phone else ''}")
+        table.add_row(f"[bold light_salmon3]Commercial name[/bold light_salmon3] : {contract.commercial_name \
+            if contract.commercial_name else ''}")
+        table.add_row(f"[bold light_salmon3]Total amount[/bold light_salmon3] : {contract.total_amount} $")
+        table.add_row(f"[bold light_salmon3]Bill to pay[/bold light_salmon3] : {contract.bill_to_pay} $")
+        table.add_row(f"[bold light_salmon3]Creation date[/bold light_salmon3] : {contract.creation_date}")
+        table.add_row(f"[bold light_salmon3]Contract signed[/bold light_salmon3] : {'✅' if contract.status else '❌'}\n")
 
-        click.echo(f"Id : {contract.id}")
-        click.echo(f"Client name : {contract.client_name if contract.client_name else ''}")
-        click.echo(f"Client email : {contract.client_email if contract.client_email else ''}")
-        click.echo(f"Client phone : {contract.client_phone if contract.client_phone else ''}")
-        click.echo(f"Commercial name : {contract.commercial_name if contract.commercial_name else ''}")
-        click.echo(f"Total amount : {contract.total_amount} $")
-        click.echo(f"Bill to pay : {contract.bill_to_pay} $")
-        click.echo(f"Creation date : {contract.creation_date}")
-        click.echo(f"Contract signed : {'✅' if contract.status else '❌'}\n")
+        return Panel(table, border_style="bold dark_red", expand=True)
 
     def prompt_for_contract(self, clients: list, commercials: list) -> tuple[
         int | None, int | None, float | None, float | None, bool]:

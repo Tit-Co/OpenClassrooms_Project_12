@@ -98,12 +98,35 @@ class MainController:
             menu = self.view.prompt_for_menu(2)
 
             actions = {
-                1: lambda : self.login(session=session),
+                1: lambda : self.login_2(session=session),
                 2: self.goodbye
             }
 
             action = actions.get(menu)
             action()
+
+    def login_2(self, session: Session) -> None:
+        """
+        Method to launch login
+        Args:
+            session (Session): session
+        """
+        while True:
+            self.view.display_login_submenu()
+            menu = self.view.prompt_for_continuing()
+
+            if menu == 'q':
+                break
+
+            email = self.view.prompt_for_email()
+
+            password = self.view.prompt_for_password()
+
+            success = self.authenticate(session=session, email=email, password=password)
+
+            if success:
+                self.user_controller.collaborator_menu(session=session)
+                break
 
     def login(self, session: Session, email: str, password: str) -> bool:
         """

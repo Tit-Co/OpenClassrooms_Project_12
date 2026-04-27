@@ -1,6 +1,14 @@
 import click
 import re
+import sys
+
 from datetime import datetime
+
+from rich import box
+from rich.console import Console, Group
+from rich.panel import Panel
+from rich.prompt import Prompt
+from rich.table import Table
 
 from src.models.client import Client
 from src.models.contract import Contract
@@ -9,6 +17,14 @@ from src.models.user import Commercial, Manager, Technician
 from src.views.client_view import ClientView
 from src.views.contract_view import ContractView
 from src.views.event_view import EventView
+
+
+console = Console(
+    file=sys.stdout,
+    force_terminal=True,
+    color_system="truecolor",
+    width=200
+)
 
 
 class MainView:
@@ -167,9 +183,10 @@ class MainView:
             models (list): The models list.
         """
         if (None,) in models or not models:
-            click.echo(f"\n • {model_type}s - No {model_type} to display.\n")
+            console.print(f"\n[bold red3] • {model_type.upper()}S[/bold red3] "
+                          f"- [gold3]No {model_type} to display.[/gold3]\n")
         else:
-            click.echo(f"\n • {model_type}s - Here is the list : \n")
+            console.print(f"\n[bold red3] • {model_type.upper()}S[/bold red3] : \n")
 
             actions = {
                 "contract": self.contract_view.display_contracts,
@@ -376,21 +393,52 @@ class MainView:
             filter_value (str | int | float): The filter value.
             results (list): The results.
         """
-        click.echo("─" * 60)
-        click.echo(f"All results for {model_type}s filtered by {my_filter} with '{filter_value}' value: ")
-        click.echo("─"*60)
-        click.echo("╌" * 50)
+        click.echo()
+        title = Panel(
+            f"[bold white]⮞ All results for {model_type}s filtered by {my_filter} "
+            f"with value '{filter_value}' ⮜[/bold white]",
+            border_style="bold white",
+            expand=False
+        )
+        console.print(title)
+
+        table = Table(
+            show_header=False,
+            box=box.MINIMAL,
+            expand=False,
+            padding=(0, 1),
+            border_style="cyan",
+        )
+
         for the_result in results:
+            header = ""
             if (model_type.lower() == "manager" or model_type.lower() == "commercial"
-                    or model_type.lower() == "technician" or model_type.lower() == "client"
-                    or model_type.lower() == "event"):
-                click.echo(f"  - {model_type.capitalize()} ❱ '{the_result.name}' : ")
+                    or model_type.lower() == "technician"):
+                header = Panel(f"[bold cyan]  - {model_type.upper()} ❱ '{the_result.name}' : [/bold cyan]",
+                               border_style="cyan",
+                               expand=True)
 
             elif model_type.lower() == "contract" :
-                click.echo(f"  - {model_type.capitalize()} ❱ n° {the_result.id} between '{the_result.client_name}' "
-                           f"and '{the_result.commercial_name}'")
+                header = Panel(f"[bold red]  - {model_type.upper()} ❱ n° {the_result.id} "
+                               f"between '{the_result.client_name}' "
+                               f"and '{the_result.commercial_name}'[/bold red]",
+                               border_style="bold dark_red",
+                               expand=True)
 
-            click.echo("╌" * 50)
+            elif model_type.lower() == "client" :
+                header = Panel(f"[bold cornflower_blue]  - {model_type.upper()} ❱ n° {the_result.id} [/bold cornflower_blue]"
+                               f"[cornflower_blue]- '{the_result.name}' [/cornflower_blue]",
+                               border_style="bold cornflower_blue",
+                               expand=True)
+
+            elif model_type.lower() == "event" :
+                header = Panel(f"[bold chartreuse2]  - {model_type.upper()} ❱ n° {the_result.id} [/bold chartreuse2]"
+                               f"[chartreuse2]- '{the_result.name}' [/chartreuse2]",
+                               border_style="bold chartreuse2",
+                               expand=True)
+
+            table.add_row(header)
+
             actions = {
                 "commercial": lambda : self.display_collaborator(collaborator=the_result, role="Commercial"),
                 "manager": lambda : self.display_collaborator(collaborator=the_result, role="manager"),
@@ -401,9 +449,10 @@ class MainView:
             }
 
             action = actions.get(model_type)
-            action()
-            click.echo("╌" * 50)
-        click.echo("─" * 60)
+            contract_details = action()
+            table.add_row(contract_details)
+            console.print(table)
+            console.print("[grey46]-[/grey46]" * 60)
 
     @staticmethod
     def display_filter_no_results(model_type: str, my_filter: str, filter_value: str | int | float) -> None:

@@ -1,8 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
-
+import sys
 import click
+
+from typing import TYPE_CHECKING, Any
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 from src.models.client import Client
 
@@ -10,25 +14,38 @@ if TYPE_CHECKING:
     from src.views.main_view import MainView
 
 
+console = Console(
+    file=sys.stdout,
+    force_terminal=True,
+    color_system="truecolor",
+    width=200
+)
+
+
 class ClientView:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
 
-    def display_client(self, client: type[Client]) -> None:
+    @staticmethod
+    def display_client(client: type[Client]) -> Panel:
         """
         Method that displays the client
         Args:
             client (Client): Client object
+        Returns:
+            A Panel object
         """
-        self.main_view.display_title(model_type="client")
-        click.echo(f"Id : {client.id}")
-        click.echo(f"name : {client.name}")
-        click.echo(f"E-mail : {client.email}")
-        click.echo(f"Phone : {client.phone}")
-        click.echo(f"Company : {client.company}")
-        click.echo(f"Creation date : {client.creation_date}")
-        click.echo(f"Last update : {client.last_update}")
-        click.echo(f"Commercial name : {client.commercial_name or ''}\n")
+        table = Table(show_header=False, border_style="black")
+        table.add_row(f"[bold light_salmon3]Id[/bold light_salmon3] :  : {client.id}")
+        table.add_row(f"[bold light_salmon3]name[/bold light_salmon3] : {client.name}")
+        table.add_row(f"[bold light_salmon3]E-mail[/bold light_salmon3] : {client.email}")
+        table.add_row(f"[bold light_salmon3]Phone[/bold light_salmon3] : {client.phone}")
+        table.add_row(f"[bold light_salmon3]Company[/bold light_salmon3] : {client.company}")
+        table.add_row(f"[bold light_salmon3]Creation date[/bold light_salmon3] : {client.creation_date}")
+        table.add_row(f"[bold light_salmon3]Last update[/bold light_salmon3] : {client.last_update}")
+        table.add_row(f"[bold light_salmon3]Commercial name[/bold light_salmon3] : {client.commercial_name or ''}\n")
+
+        return Panel(table, border_style="bold cornflower_blue", expand=True)
 
     def prompt_for_client(self, commercials: list) -> tuple[int | None, Any, str, Any, Any]:
         """
