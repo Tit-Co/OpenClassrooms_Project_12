@@ -500,6 +500,9 @@ class CollaboratorController:
                                      my_filter=my_filter,
                                      filter_value=filter_value)
 
+        filter_value = datetime.date(
+            datetime.now()) if filter_value == "" and my_filter == "creation-date" else filter_value
+
         if results:
             self.main_controller.view.display_filter_results(model_type=model_type,
                                                              my_filter=my_filter,
@@ -543,16 +546,17 @@ class CollaboratorController:
         else:
             return None
 
-    def process_filter_value(self, filter_value: str) -> str | int | float | datetime | None:
+    def process_filter_value(self, my_filter: str, filter_value: str) -> str | int | float | datetime | None:
         """
         Method to process filter value. The method change the type of the filter according to the str input.
         Args:
+            my_filter (str): The filter.
             filter_value (str): Filter value.
 
         Returns:
         The processed filter value.
         """
-        if filter_value is None or filter_value == '':
+        if filter_value is None:
             return None
 
         elif str(filter_value).isdigit():
@@ -566,6 +570,10 @@ class CollaboratorController:
 
         elif self.is_bool(str(filter_value)):
             return self.is_bool(filter_value)
+
+        elif filter_value == "" and my_filter == "creation-date":
+            filter_value = datetime.now()
+            return filter_value
 
         else:
             return filter_value
@@ -588,7 +596,7 @@ class CollaboratorController:
         class_name = self.MODELS.get(model_type) if self.MODELS.get(model_type) \
             else self.COLLABORATORS.get(model_type)
 
-        filter_value = self.process_filter_value(filter_value)
+        filter_value = self.process_filter_value(my_filter=my_filter, filter_value=filter_value)
 
         results = []
 

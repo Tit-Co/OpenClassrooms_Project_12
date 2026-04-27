@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+import click
+
 from src.models.event import Event
 
 if TYPE_CHECKING:
@@ -20,18 +22,18 @@ class EventView:
             event (type[Event]): The event to display
         """
         self.main_view.display_title(model_type="event")
-        print(f"Id : {event.id}")
-        print(f"Name : {event.name}")
-        print(f"Contract id : {event.contract_id}")
-        print(f"Client name : {event.client_name if event.client_name else "[unknown]"}")
-        print(f"Client phone : {event.client_phone if event.client_phone else "[unknown]"}")
-        print(f"Client e-mail : {event.client_email if event.client_email else "[unknown]"}")
-        print(f"Start date : {event.start_date if event.start_date else ""}")
-        print(f"End date : {event.end_date if event.end_date else ""}")
-        print(f"Technician name : {event.technician_name if event.technician_name else "[unknown]"}")
-        print(f"Location : {event.location if event.location else ""}")
-        print(f"Attendees : {event.attendees if event.attendees else ""}")
-        print(f"Notes : {event.notes if event.notes else ""}")
+        click.echo(f"Id : {event.id}")
+        click.echo(f"Name : {event.name}")
+        click.echo(f"Contract id : {event.contract_id}")
+        click.echo(f"Client name : {event.client_name if event.client_name else "[unknown]"}")
+        click.echo(f"Client phone : {event.client_phone if event.client_phone else "[unknown]"}")
+        click.echo(f"Client e-mail : {event.client_email if event.client_email else "[unknown]"}")
+        click.echo(f"Start date : {event.start_date if event.start_date else ""}")
+        click.echo(f"End date : {event.end_date if event.end_date else ""}")
+        click.echo(f"Technician name : {event.technician_name if event.technician_name else "[unknown]"}")
+        click.echo(f"Location : {event.location if event.location else ""}")
+        click.echo(f"Attendees : {event.attendees if event.attendees else ""}")
+        click.echo(f"Notes : {event.notes if event.notes else ""}\n")
 
     def prompt_for_event(self, contracts: list, technicians: list) -> tuple[
         str, int, datetime | None, datetime | None, int | None, str | None, int | None, str | None]:
@@ -74,13 +76,9 @@ class EventView:
         Returns:
         The id of the model or None
         """
-        while True:
-            answer = input(f"\n▶ Please select a {model_type} for the event if possible:\n▶▶ ").strip()
-
-            if answer.isdigit() or answer == "":
-                return int(answer) if answer else None
-
-            print("Please enter a number or leave blank to continue.")
+        answer = click.prompt(f"\n▶ Please select a {model_type} for the event if possible:\n▶▶ ",
+                              type=int).strip()
+        return answer
 
     @staticmethod
     def prompt_for_integer() -> int | None:
@@ -89,10 +87,6 @@ class EventView:
         Returns:
         The integer or None
         """
-        while True:
-            answer = input(f"\n▶ Please enter the number of attendees if known:\n▶▶ ").strip()
+        answer = click.prompt(f"\n▶ Please enter the number of attendees if known:\n▶▶ ", type=int).strip()
 
-            if answer.isdigit() or answer == "":
-                return int(answer) if answer else None
-
-            print("Please enter an integer or leave blank to continue.")
+        return answer

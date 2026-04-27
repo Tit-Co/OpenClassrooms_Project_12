@@ -209,25 +209,26 @@ class ClientController:
         The filtered data for clients as a list
         """
         results = []
+
         if my_filter == "name":
             results = (session.query(class_name)
                        .filter(class_name.is_active == True,
                                class_name.name.contains(filter_value)).all())
 
-        elif my_filter == "no_commercial":
+        elif my_filter == "no-commercial":
             results = session.query(class_name).filter_by(is_active=True, commercial_id=None).all()
 
-        elif my_filter == "commercial_id":
+        elif my_filter == "commercial-id":
             results = session.query(class_name).filter_by(is_active=True, commercial_id=filter_value).all()
 
-        elif my_filter == "commercial_name":
+        elif my_filter == "commercial-name":
             results = (session.query(class_name)
                        .join(Commercial, class_name.commercial_id == Commercial.id)
                        .filter(
                 class_name.is_active == True, Commercial.name.contains(filter_value)
             ).all())
 
-        elif my_filter == "prior_date":
+        elif my_filter == "prior-date":
             results = (
                 session.query(class_name)
                 .filter(
@@ -237,7 +238,7 @@ class ClientController:
                 .all()
             )
 
-        elif my_filter == "afterward_date":
+        elif my_filter == "afterward-date":
             results = (
                 session.query(class_name)
                 .filter(

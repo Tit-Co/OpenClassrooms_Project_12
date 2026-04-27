@@ -210,8 +210,9 @@ class ContractController:
             results = (session.query(class_name)
                        .join(Client, class_name.client_id == Client.id)
                        .filter(
-                class_name.is_active == True, Client.name.contains(filter_value)
-            ).all())
+                            class_name.is_active == True, Client.name.contains(filter_value))
+                       .all()
+                       )
 
         elif my_filter == "status":
             results = session.query(class_name).filter_by(is_active=True, status=filter_value).all()
@@ -221,9 +222,8 @@ class ContractController:
 
         elif my_filter == "bill-to-pay":
             results = session.query(class_name).filter(Contract.is_active == True,
-                                                     Contract.bill_to_pay > 0).all()
+                                                       Contract.bill_to_pay > 0).all()
         elif my_filter =="creation-date":
-            print(f"Date {datetime.date(filter_value)}")
             results = session.query(class_name).filter(Contract.is_active == True,
                                                        Contract.creation_date.contains(
                                                            datetime.date(filter_value))).all()

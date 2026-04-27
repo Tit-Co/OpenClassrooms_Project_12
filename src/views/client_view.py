@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+import click
+
 from src.models.client import Client
 
 if TYPE_CHECKING:
@@ -19,14 +21,14 @@ class ClientView:
             client (Client): Client object
         """
         self.main_view.display_title(model_type="client")
-        print(f"Id : {client.id}")
-        print(f"name : {client.name}")
-        print(f"E-mail : {client.email}")
-        print(f"Phone : {client.phone}")
-        print(f"Company : {client.company}")
-        print(f"Creation date : {client.creation_date}")
-        print(f"Last update : {client.last_update}")
-        print(f"Commercial name : {client.commercial_name or ''}")
+        click.echo(f"Id : {client.id}")
+        click.echo(f"name : {client.name}")
+        click.echo(f"E-mail : {client.email}")
+        click.echo(f"Phone : {client.phone}")
+        click.echo(f"Company : {client.company}")
+        click.echo(f"Creation date : {client.creation_date}")
+        click.echo(f"Last update : {client.last_update}")
+        click.echo(f"Commercial name : {client.commercial_name or ''}\n")
 
     def prompt_for_client(self, commercials: list) -> tuple[int | None, Any, str, Any, Any]:
         """
@@ -60,13 +62,9 @@ class ClientView:
         Returns:
         The id or None
         """
-        while True:
-            answer = input(f"\n▶ Please select a {model_type} for the client if possible:\n▶▶ ").strip()
-
-            if answer.isdigit() or answer == "":
-                return int(answer) if answer else None
-
-            print("Please enter a number or leave blank to continue.")
+        answer = click.prompt(f"\n▶ Please select a {model_type} for the client if possible:\n▶▶ ",
+                                  type=int).strip()
+        return answer
 
     def prompt_for_client_email(self) -> str:
         """

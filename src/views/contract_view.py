@@ -45,8 +45,8 @@ class ContractView:
             commercial_id = contract.commercial_id
             client = next((c for c in clients if c.id == client_id), None)
             commercial = next((c for c in commercials if c.id == commercial_id), None)
-            print(f"  - {contract.id}. Contract between the client {client.name if client else '[unknown]'} "
-                  f"and the commercial {commercial.name if commercial else '[unknown]'}")
+            click.echo(f"  - {contract.id}. Contract between the client {client.name if client else '[unknown]'} "
+                       f"and the commercial {commercial.name if commercial else '[unknown]'}")
 
     def display_contract(self, contract: type[Contract]) -> None:
         """
@@ -56,15 +56,15 @@ class ContractView:
         """
         self.main_view.display_title(model_type="contract")
 
-        print(f"Id : {contract.id}")
-        print(f"Client name : {contract.client_name if contract.client_name else ''}")
-        print(f"Client email : {contract.client_email if contract.client_email else ''}")
-        print(f"Client phone : {contract.client_phone if contract.client_phone else ''}")
-        print(f"Commercial name : {contract.commercial_name if contract.commercial_name else ''}")
-        print(f"Total amount : {contract.total_amount} $")
-        print(f"Bill to pay : {contract.bill_to_pay} $")
-        print(f"Creation date : {contract.creation_date}")
-        print(f"Contract signed : {'✅' if contract.status else '❌'}")
+        click.echo(f"Id : {contract.id}")
+        click.echo(f"Client name : {contract.client_name if contract.client_name else ''}")
+        click.echo(f"Client email : {contract.client_email if contract.client_email else ''}")
+        click.echo(f"Client phone : {contract.client_phone if contract.client_phone else ''}")
+        click.echo(f"Commercial name : {contract.commercial_name if contract.commercial_name else ''}")
+        click.echo(f"Total amount : {contract.total_amount} $")
+        click.echo(f"Bill to pay : {contract.bill_to_pay} $")
+        click.echo(f"Creation date : {contract.creation_date}")
+        click.echo(f"Contract signed : {'✅' if contract.status else '❌'}\n")
 
     def prompt_for_contract(self, clients: list, commercials: list) -> tuple[
         int | None, int | None, float | None, float | None, bool]:

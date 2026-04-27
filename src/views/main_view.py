@@ -64,7 +64,7 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        click.echo(f"❌ You don't have permission to {action} a {model_type}.")
+        click.echo(f"❌ You don't have the permission to {action} a {model_type}.")
 
     @staticmethod
     def display_action_introduction(action: str, model_type: str) -> None:
@@ -216,7 +216,7 @@ class MainView:
         click.echo(f"Employee number : {collaborator.employee_number}")
         click.echo(f"Name : {collaborator.name}")
         click.echo(f"Email : {collaborator.email}")
-        click.echo(f"Role: {role}")
+        click.echo(f"Role: {role}\n")
 
     @staticmethod
     def display_title(model_type: str) -> None:
@@ -379,10 +379,18 @@ class MainView:
         click.echo("─" * 60)
         click.echo(f"All results for {model_type}s filtered by {my_filter} with '{filter_value}' value: ")
         click.echo("─"*60)
-
+        click.echo("╌" * 50)
         for the_result in results:
-            click.echo(f"  - {model_type.capitalize()} ❱ '{the_result}' : ")
-            click.echo("╌" * 30)
+            if (model_type.lower() == "manager" or model_type.lower() == "commercial"
+                    or model_type.lower() == "technician" or model_type.lower() == "client"
+                    or model_type.lower() == "event"):
+                click.echo(f"  - {model_type.capitalize()} ❱ '{the_result.name}' : ")
+
+            elif model_type.lower() == "contract" :
+                click.echo(f"  - {model_type.capitalize()} ❱ n° {the_result.id} between '{the_result.client_name}' "
+                           f"and '{the_result.commercial_name}'")
+
+            click.echo("╌" * 50)
             actions = {
                 "commercial": lambda : self.display_collaborator(collaborator=the_result, role="Commercial"),
                 "manager": lambda : self.display_collaborator(collaborator=the_result, role="manager"),
@@ -394,7 +402,7 @@ class MainView:
 
             action = actions.get(model_type)
             action()
-            click.echo("╌"*30)
+            click.echo("╌" * 50)
         click.echo("─" * 60)
 
     @staticmethod
