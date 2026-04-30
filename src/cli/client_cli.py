@@ -71,6 +71,8 @@ def filter_client():
     permissions = main_controller.user_controller.get_permissions(session=session, user=user)
 
     if "filter:client" in permissions:
+        main_controller.view.display_action_introduction(action="filter",
+                                                         model_type="client")
         main_controller.user_controller.filter_action_with_view(session=session, model_type="client")
 
     else:

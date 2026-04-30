@@ -641,6 +641,7 @@ class CollaboratorController:
         if my_filter == "name":
             results = session.query(class_name).filter(class_name.is_active == True,
                                                        class_name.name.contains(filter_value)).all()
+            print(results)
 
         elif my_filter == "email":
             results = session.query(class_name).filter(class_name.is_active == True,

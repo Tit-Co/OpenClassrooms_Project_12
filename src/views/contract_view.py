@@ -6,6 +6,7 @@ import click
 
 from rich.console import Console
 from rich.panel import Panel
+from rich.prompt import Prompt
 from rich.table import Table
 
 from src.models.contract import Contract
@@ -43,6 +44,15 @@ class ContractView:
             return False
 
     @staticmethod
+    def is_bool(s: str) -> bool | None:
+        if str(s).lower() == "true" or (s.isdigit() and int(s) == 1):
+            return True
+        elif str(s).lower() == "false" or (s.isdigit() and int(s) == 0):
+            return False
+        else:
+            return None
+
+    @staticmethod
     def display_contracts(models: dict) -> None:
         """
         Method to display the list of contracts
@@ -70,7 +80,7 @@ class ContractView:
         Args:
             contract (type[Contract]):
         """
-        table = Table(show_header=False, border_style="black")
+        table = Table(show_header=False, box=None)
         table.add_row(f"[bold light_salmon3]Id[/bold light_salmon3] : {contract.id}")
         table.add_row(f"[bold light_salmon3]Client name[/bold light_salmon3] : {contract.client_name \
             if contract.client_name else ''}")
@@ -85,7 +95,7 @@ class ContractView:
         table.add_row(f"[bold light_salmon3]Creation date[/bold light_salmon3] : {contract.creation_date}")
         table.add_row(f"[bold light_salmon3]Contract signed[/bold light_salmon3] : {'✅' if contract.status else '❌'}\n")
 
-        return Panel(table, border_style="bold dark_red", expand=True)
+        return Panel(table, border_style="bold bright_red", expand=True)
 
     def prompt_for_contract(self, clients: list, commercials: list) -> tuple[
         int | None, int | None, float | None, float | None, bool]:
@@ -122,14 +132,18 @@ class ContractView:
         Returns:
         The id of the model
         """
-        choice = click.prompt(f"\n▶ Please select a {model_type} for the contract if possible:\n▶▶ ",
-                              type=int,
-                              default=0)
+        while True:
+            choice = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please select a {model_type} for the contract if possible"
+                                f"[/bold light_goldenrod2]\n"
+                                f"[dark_turquoise]▶▶[/dark_turquoise] ")
 
-        return None if choice == 0 else choice
+            if not choice.isdigit():
+                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                continue
 
-    @staticmethod
-    def prompt_for_contract_float_number(amount_type: str) -> float | None:
+            return None if choice == "" or int(choice) == 0 else int(choice)
+
+    def prompt_for_contract_float_number(self, amount_type: str) -> float | None:
         """
         Method that prompts the user to enter the float number or leave it blank
         Args:
@@ -140,21 +154,34 @@ class ContractView:
         """
         while True:
             if amount_type == "total_amount":
-                answer = click.prompt("\n▶ Please type the contract total amount if possible:\n▶▶ ",
-                                      type=float)
+                answer = Prompt.ask("\n[bold light_goldenrod2]▶ Please type the contract total amount if possible"
+                                    "[bold light_goldenrod2]\n"
+                                    "[dark_turquoise]▶▶[/dark_turquoise] ")
             else:
-                answer = click.prompt("\n▶ Please type the amount left to pay if existing:\n▶▶ ",
-                                      type=float)
+                answer = Prompt.ask("\n[bold light_goldenrod2]▶ Please type the amount left to pay if existing"
+                                    "[/bold light_goldenrod2]\n"
+                                    "[dark_turquoise]▶▶[/dark_turquoise] ")
 
+            if not self.is_float(answer):
+                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                continue
 
-            return answer
+            return float(answer)
 
-    @staticmethod
-    def prompt_for_contract_boolean() -> bool:
+    def prompt_for_contract_boolean(self) -> bool | None:
         """
         Method that prompts the user to enter the boolean value for the contract status
         (signed or not)
         Returns:
 
         """
-        return click.prompt("\n▶ Is the contract signed :\n▶▶ ", type=bool, default=False)
+        while True:
+            answer = Prompt.ask("\n[bold light_goldenrod2]▶ Is the contract signed [/bold light_goldenrod2]\n"
+                                "[dark_turquoise]▶▶[/dark_turquoise] ",
+                                default="False")
+
+            if not self.is_bool(answer):
+                console.print("\n❗ [bold red]Please enter a boolean (true/false | 1/0).\n[/bold red]")
+                continue
+
+            return bool(answer)

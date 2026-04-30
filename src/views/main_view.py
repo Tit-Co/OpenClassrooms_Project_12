@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 
 from rich import box
-from rich.console import Console, Group
+from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
@@ -23,7 +23,8 @@ console = Console(
     file=sys.stdout,
     force_terminal=True,
     color_system="truecolor",
-    width=200
+    width=200,
+    style="bright_white"
 )
 
 
@@ -55,7 +56,10 @@ class MainView:
         """
         Method to display the logout message.
         """
-        click.echo("\n✅ You are successfully logged out.\n")
+        console.print(Panel("\n✅ You are successfully logged out.\n",
+                            border_style="bold green",
+                            style="bold white",
+                            expand=False))
 
     @staticmethod
     def display_submenu(model_type) -> None:
@@ -80,7 +84,11 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        click.echo(f"❌ You don't have the permission to {action} a {model_type}.")
+        console.print(Panel(f"❌ You don't have the permission to [bold red]{action}[/bold red] "
+                            f"a [bold red]{model_type}[/bold red].",
+                            border_style="bold bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_action_introduction(action: str, model_type: str) -> None:
@@ -90,7 +98,7 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        click.echo(f"\nYou are going to {action} a {model_type}.\n")
+        console.print(f"\n[bold light_goldenrod2]⭢ You are going to {action} {model_type}s.[/bold light_goldenrod2]\n")
 
     @staticmethod
     def display_login_submenu() -> None:
@@ -109,7 +117,10 @@ class MainView:
         Args:
             name (str): The name of the user.
         """
-        click.echo(f"\n✅ {name.capitalize()}, you are successfully logged in.\n")
+        console.print(Panel(f"\n✅ {name.capitalize()}, you are successfully logged in.\n",
+                            border_style="bold green",
+                            style="bold white",
+                            expand=False))
 
     @staticmethod
     def display_action_successfully_done(action: str, model_type: str) -> None:
@@ -119,7 +130,10 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        click.echo(f"\n✅ The {model_type} has been successfully {action}.\n")
+        console.print(Panel(f"\n✅ The {model_type} has been successfully {action}.\n",
+                            border_style="bold green",
+                            style="bold white",
+                            expand=False))
 
     @staticmethod
     def display_action_fails(action: str, model_type: str) -> None:
@@ -129,28 +143,31 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        click.echo(f"\n❌ The {model_type} has not been {action}.\n")
+        console.print(Panel(f"\n❌ The [bold]{model_type}[/bold] has not been [bold]{action}[/bold].\n",
+                            border_style="bold bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_not_connected() -> None:
         """
         Method to display when the user is not logged in.
         """
-        click.echo("❗ You need to log in first.")
+        console.print("❗ [bold bright_red]You need to log in first.[/bold bright_red]")
 
     @staticmethod
     def display_wrong_password() -> None:
         """
         Method to display the wrong password message.
         """
-        click.echo("❗ Invalid password.")
+        console.print("❗ [bold bright_red]Invalid password.[/bold bright_red]")
 
     @staticmethod
     def display_collaborator_not_exists() -> None:
         """
         Method to display the message when a collaborator does not exist.
         """
-        click.echo("❗ This collaborator does not exist.")
+        console.print("❗ [bold bright_red]This collaborator does not exist.[/bold bright_red]")
 
     @staticmethod
     def display_collaborator_menu() -> None:
@@ -190,8 +207,8 @@ class MainView:
 
             actions = {
                 "contract": self.contract_view.display_contracts,
-                "client": self.display_clients_events,
-                "event": self.display_clients_events,
+                "client": self.display_clients,
+                "event": self.display_events,
                 "manager": self.display_collaborators,
                 "commercial": self.display_collaborators,
                 "technician": self.display_collaborators,
@@ -201,7 +218,17 @@ class MainView:
             action(models)
 
     @staticmethod
-    def display_clients_events(models: list) -> None:
+    def display_clients(models: list) -> None:
+        """
+        Method to display the clients events.
+        Args:
+            models (list): The models list.
+        """
+        for model in models:
+            click.echo(f"  - {model.id}. {model.name}")
+
+    @staticmethod
+    def display_events(models: list) -> None:
         """
         Method to display the clients events.
         Args:
@@ -218,22 +245,23 @@ class MainView:
             models (list): The models list.
         """
         for model in models:
-            click.echo(f"  - {model.id}. {model.name.capitalize()}")
+            console.print(f"  - {model.id}. {model.name.capitalize()}")
 
-    def display_collaborator(self, collaborator: type[Commercial] | type[Manager] | type[Technician],
-                             role: str) -> None:
+    @staticmethod
+    def display_collaborator(collaborator: type[Commercial | Manager | Technician], role: str) -> Panel:
         """
         Method to display the collaborator.
         Args:
             collaborator (type[Commercial] | type[Manager] | type[Technician]): The collaborator.
             role (str): The role of the collaborator.
         """
-        self.display_title("Collaborator")
-        click.echo(f"{role.capitalize()} id : {collaborator.id}")
-        click.echo(f"Employee number : {collaborator.employee_number}")
-        click.echo(f"Name : {collaborator.name}")
-        click.echo(f"Email : {collaborator.email}")
-        click.echo(f"Role: {role}\n")
+        table = Table(show_header=False, border_style="black")
+        table.add_row(f"[bold light_salmon3]Id[/bold light_salmon3] :  : {collaborator.id}")
+        table.add_row(f"[bold light_salmon3]name[/bold light_salmon3] : {collaborator.name}")
+        table.add_row(f"[bold light_salmon3]Employee number[/bold light_salmon3] : {collaborator.employee_number}")
+        table.add_row(f"[bold light_salmon3]E-mail[/bold light_salmon3] : {collaborator.email}")
+
+        return Panel(table, border_style="bold grey85", expand=True)
 
     @staticmethod
     def display_title(model_type: str) -> None:
@@ -279,7 +307,10 @@ class MainView:
         Args:
             model_type (str): The model type.
         """
-        click.echo(f"\n❌ This {model_type} already exists.\n")
+        console.print(Panel(f"\n❌ This [bold]{model_type}[/bold] already exists.\n",
+                            border_style="bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_collaborator_already_exists(collaborator: type[Commercial | Manager | Technician]) -> None:
@@ -288,7 +319,10 @@ class MainView:
         Args:
             collaborator (type[Commercial | Manager | Technician]): The collaborator
         """
-        click.echo(f"\n❌ The collaborator {collaborator.email} already exists.\n")
+        console.print(Panel(f"\n❌ The collaborator [bold]{collaborator.email}[/bold] already exists.\n",
+                            border_style="bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_collaborator_already_exists_but_inactive(collaborator: \
@@ -305,42 +339,61 @@ class MainView:
         """
         Method to display a message when something goes wrong during the givent action.
         """
-        click.echo(f"\n❌ Something went wrong while {action}.\n")
+        console.print(Panel(f"\n❌ Something went wrong while [bold]{action}[/bold].\n",
+                            border_style="bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_something_wrong_while_creating() -> None:
         """
         Method to display a message when something goes wrong while creating
         """
-        click.echo("\n❌ Something went wrong while creating.\n")
+        console.print(Panel(f"\n❌ Something went wrong while creating.\n",
+                            border_style="bold bright_red",
+                            style="white",
+                            expand=False))
         
     @staticmethod
     def display_something_wrong_while_updating() -> None:
         """
         Method to display a message when something goes wrong while updating
         """
-        click.echo("\n❌ Something went wrong while updating.\n")
+        console.print(Panel(f"\n❌ Something went wrong while updating.\n",
+                            border_style="bold bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_something_wrong_while_deleting() -> None:
         """
         Method to display a message when something goes wrong while deleting
         """
-        click.echo("\n❌ Something went wrong while deleting.\n")
+        console.print(Panel(f"\n❌ Something went wrong while deleting.\n",
+                            border_style="bold bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_action_impossible(action: str) -> None:
         """
         Method to display a message when the action is not possible.
         """
-        click.echo(f"\n❌ No models to {action}.\n")
+        console.print(Panel(f"\n❌ No models to [bold]{action}[/bold].\n",
+                            border_style="bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_cannot_delete_admin_manager_or_yourself() -> None:
         """
         Method to display a message when a user wants to delete the admin manager or its own profile
         """
-        click.echo("\n❌ You can not delete the admin manager or your own account.\n")
+        console.print(Panel(f"\n❌ You can not [bold]delete[/bold] the [bold]admin[/bold] manager "
+                            f"or your [bold]own account[/bold].\n",
+                            border_style="bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_cannot_delete(model_type, model_linked) -> None:
@@ -350,14 +403,38 @@ class MainView:
             model_type (str): The model type.
             model_linked (str): The model type linked to the model
         """
-        click.echo(f"\n❌ Cannot delete {model_type} : {model_linked}(s) linked.\n")
+        if model_type == "contract":
+            console.print(Panel(f"\n❌ Cannot delete [bold]{model_type}[/bold] : {model_linked}(s) "
+                                f"linked.\n",
+                                border_style="bright_red",
+                                style="white",
+                                expand=False))
+
+        elif model_type == "client":
+            console.print(Panel(f"\n❌ Cannot delete "
+                                f"[bold cornflower_blue]{model_type}[/bold cornflower_blue] : {model_linked}(s) "
+                                f"linked.\n",
+                                border_style="bright_red",
+                                style="white",
+                                expand=False))
+        else:
+            console.print(Panel(f"\n❌ Cannot delete "
+                                f"[bold chartreuse2]{model_type}[/bold chartreuse2] : {model_linked}(s) "
+                                f"linked.\n",
+                                border_style="bold bright_red",
+                                style="white",
+                                expand=False))
 
     @staticmethod
     def display_wrong_collaborator_role():
         """
         Method to display a message when the user enters a wrong collaborator role.
         """
-        click.echo("❌ You did not enter a valid role as below : [manager/commercial/technician].")
+        console.print(Panel(f"\n❌ You did not enter a valid role as below : "
+                            f"[manager | commercial | technician].\n",
+                            border_style="bold bright_red",
+                            style="white",
+                            expand=False))
 
     @staticmethod
     def display_roles(roles: dict) -> None:
@@ -366,9 +443,13 @@ class MainView:
         Args:
             roles (dict): The roles dictionary
         """
-        click.echo("\nAll roles:")
+        console.print("[bold gray62]\nAll roles :[/bold grey62]")
         for role_id, role_name in roles.items():
-            click.echo(f"  - {role_id}. {role_name.upper()}")
+            console.print(Panel(f"  - {role_id}. {role_name.upper()}"
+                                f"[manager | commercial | technician].\n",
+                                border_style="bold grey62",
+                                style= "grey62",
+                                expand=False))
 
     @staticmethod
     def display_filters(filters: list) -> None:
@@ -377,9 +458,28 @@ class MainView:
         Args:
             filters (list): The filters list
         """
-        click.echo("\nAll filters available :")
+        table = Table(
+            title="All filters available".upper(),
+            title_justify="center",
+            show_header=False,
+            expand=False,
+            padding=(0, 5),
+            border_style="bold pale_violet_red1",
+            style="pale_violet_red1",
+            title_style="bold pale_violet_red1",
+            box = box.ROUNDED
+        )
+        table.add_column(header="\nAll filters available\n")
+
         for the_filter in filters:
-            click.echo(f"  - {filters.index(the_filter) + 1}. {the_filter}")
+            table.add_row(Panel(f"  - {filters.index(the_filter) + 1}. {the_filter}"
+                                f"[manager | commercial | technician].\n",
+                                border_style="bold pale_violet_red1",
+                                style="pale_violet_red1",
+                                expand=False,
+                                height=3))
+
+        console.print(table)
 
     def display_filter_results(self, model_type: str,
                                my_filter: str,
@@ -414,27 +514,27 @@ class MainView:
             header = ""
             if (model_type.lower() == "manager" or model_type.lower() == "commercial"
                     or model_type.lower() == "technician"):
-                header = Panel(f"[bold cyan]  - {model_type.upper()} ❱ '{the_result.name}' : [/bold cyan]",
-                               border_style="cyan",
+                header = Panel(f"[bold grey85]  - {model_type.upper()} ❱ '{the_result.name}' : [/bold grey85]",
+                               border_style="",
                                expand=True)
 
             elif model_type.lower() == "contract" :
-                header = Panel(f"[bold red]  - {model_type.upper()} ❱ n° {the_result.id} "
+                header = Panel(f"[bold bright_red]  - {model_type.upper()} ❱ n° {the_result.id} "
                                f"between '{the_result.client_name}' "
-                               f"and '{the_result.commercial_name}'[/bold red]",
-                               border_style="bold dark_red",
+                               f"and '{the_result.commercial_name}'[/bold bright_red]",
+                               border_style="bold bright_red",
                                expand=True)
 
             elif model_type.lower() == "client" :
-                header = Panel(f"[bold cornflower_blue]  - {model_type.upper()} ❱ n° {the_result.id} [/bold cornflower_blue]"
-                               f"[cornflower_blue]- '{the_result.name}' [/cornflower_blue]",
-                               border_style="bold cornflower_blue",
+                header = Panel(f"[bold deep_sky_blue1]  - {model_type.upper()} ❱ n° {the_result.id} [/bold deep_sky_blue1]"
+                               f"[deep_sky_blue1]- '{the_result.name}' [/deep_sky_blue1]",
+                               border_style="bold deep_sky_blue1",
                                expand=True)
 
             elif model_type.lower() == "event" :
-                header = Panel(f"[bold chartreuse2]  - {model_type.upper()} ❱ n° {the_result.id} [/bold chartreuse2]"
-                               f"[chartreuse2]- '{the_result.name}' [/chartreuse2]",
-                               border_style="bold chartreuse2",
+                header = Panel(f"[bold spring_green3]  - {model_type.upper()} ❱ n° {the_result.id} [/bold spring_green3]"
+                               f"[spring_green3]- '{the_result.name}' [/spring_green3]",
+                               border_style="bold spring_green3",
                                expand=True)
 
             table.add_row(header)
@@ -449,10 +549,13 @@ class MainView:
             }
 
             action = actions.get(model_type)
-            contract_details = action()
-            table.add_row(contract_details)
-            console.print(table)
-            console.print("[grey46]-[/grey46]" * 60)
+            details = action()
+            table.add_row(details)
+            table.add_row("")
+            table.add_row("[grey46]-[/grey46]" * 60)
+            table.add_row("")
+
+        console.print(table)
 
     @staticmethod
     def display_filter_no_results(model_type: str, my_filter: str, filter_value: str | int | float) -> None:
@@ -464,11 +567,13 @@ class MainView:
             filter_value (str | int | float): The filter value.
         """
         if filter_value is not None :
-            click.echo(f"\n❗ No results found for '{my_filter}' filtering in {model_type} "
-                       f"with value '{filter_value}'.\n")
+            console.print(f"\n❗ [bright_red]No results found for [bold]'{my_filter}'[/bold] filtering "
+                          f"in [bold]{model_type}s[/bold] "
+                          f"with value [bold]'{filter_value}'[/bold].[/bright_red]\n")
 
         else:
-            click.echo(f"\n❗ No results found for '{my_filter}' filtering in {model_type}.\n")
+            console.print(f"\n❗ [bright_red]No results found for [bold]'{my_filter}'[/bold] filtering "
+                          f"in [bold]{model_type}[/bold].[/bright_red]\n")
 
     @staticmethod
     def prompt_for_menu(nb) -> int | None:
@@ -481,16 +586,17 @@ class MainView:
         The choice
         """
         while True:
-            answer = input("\n▶ What do you want to do ? \n▶▶ ")
+            answer = Prompt.ask("\n[bold light_goldenrod2]▶ What do you want to do ?[/bold light_goldenrod2]\n"
+                                "[dark_turquoise]▶▶[/dark_turquoise] ")
 
             if not answer.isdigit():
-                click.echo("❗ Please enter a number.")
+                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
             coll = (str(i+1) for i in range(nb))
 
             if answer not in coll:
-                click.echo(f"❗ Please choose between 1 and {nb}.")
+                console.print(f"\n❗ [bold bright_red]Please choose between 1 and {nb}.\n[/bold bright_red]")
                 continue
 
             return int(answer)
@@ -504,12 +610,23 @@ class MainView:
         Returns:
         The choice
         """
+        while True:
+            self.display_filters(filters)
 
-        self.display_filters(filters)
+            answer = Prompt.ask("[bold light_goldenrod2]\n▶ Which filter do you want ? [/bold light_goldenrod2]\n"
+                                "[dark_turquoise]▶▶[/dark_turquoise] ")
 
-        answer = click.prompt(text="\n▶ Which filter do you want ? \n▶▶ ", type=int, default=1)
+            if not answer.isdigit():
+                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                continue
 
-        return answer
+            coll = (str(i + 1) for i in range(len(filters)))
+
+            if answer not in coll:
+                console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(filters)}.\n[/bold bright_red]")
+                continue
+
+            return int(answer)
 
     @staticmethod
     def prompt_for_filter_value(model_type: str, my_filter: str) -> str:
@@ -522,8 +639,9 @@ class MainView:
         Returns:
         The string value
         """
-        answer = click.prompt(text=f"\n▷▷ Type the value of '{my_filter}' filter for {model_type} "
-                              f"or leave it blank if necessary : \n▶▶ ", type=str, default="")
+        answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Type the value of '{my_filter}' filter for {model_type} "
+                            f"or leave it blank if necessary [/bold light_goldenrod2]\n"
+                            f"[dark_turquoise]▶▶[/dark_turquoise] ", default="")
         return answer
 
     @staticmethod
@@ -538,33 +656,39 @@ class MainView:
         A datetime
         """
         while True:
-            answer = click.prompt(text=f"\n▷▷ Type the value of '{my_filter}' filter for {model_type} (dd/mm/yy) "
-                                       f"or leave it blank if necessary :\n▶▶ ",
-                                  type=str,
-                                  default="")
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Type the value of '{my_filter}' filter for {model_type} (dd/mm/yy) "
+                                f"or leave it blank if necessary[/bold light_goldenrod2]\n"
+                                f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                                default="")
             if answer:
                 try:
-                    click.echo("ici")
                     return datetime.strptime(answer, '%d/%m/%y')
 
                 except ValueError:
-                    click.echo("❗ Please enter a valid date.")
+                    console.print("❗ [bold bright_red]Please enter a valid date.[/bold bright_red]")
             else:
                 return ""
 
     @staticmethod
-    def prompt_for_integer(model_type: str, my_filter: str) -> int:
+    def prompt_for_integer(model_type: str, my_filter: str) -> int | None:
         """
         Method to prompt the user to type integer
         Args:
             model_type (str): The model type.
-            my_filter (int): The filter.
+            my_filter (str): The filter.
 
         Returns:
-        The string value
+        The integer value
         """
-        answer = click.prompt(text=f"▷▷ Type the value of '{my_filter}' filter for {model_type}", type=int)
-        return answer
+        while True:
+            answer = Prompt.ask(f"[bold light_goldenrod2]▷▷ Type the value of '{my_filter}' filter for {model_type}"
+                                f"[bold light_goldenrod2]")
+
+            if not answer.isdigit():
+                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                continue
+
+            return int(answer)
 
     @staticmethod
     def prompt_for_model_id_with_action(action: str, model_type: str, models: dict) -> int | None:
@@ -578,11 +702,24 @@ class MainView:
         Returns:
         The choice
         """
-        models = models.get("contracts") if model_type == "contract" else models
+        while True:
+            models = models.get("contracts") if model_type == "contract" else models
 
-        answer = click.prompt(text=f"\n▶ Which {model_type} (from id {models[0].id} to id {models[-1].id}) do you want "
-                                  f"to {action} ? \n▶▶ ", type=int, default=1)
-        return answer
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Which {model_type} (from id {models[0].id} to id {models[-1].id}) do you want "
+                                f"to {action} ?[/bold light_goldenrod2] \n"
+                                f"[dark_turquoise]▶▶[/dark_turquoise] ", default=1)
+
+            if not answer.isdigit():
+                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                continue
+
+            coll = (str(i + 1) for i in range(len(models)))
+
+            if answer not in coll:
+                console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(models)}.\n[/bold bright_red]")
+                continue
+
+            return int(answer)
 
     @staticmethod
     def prompt_for_model_id(model_type: str, models: list | dict) -> int | None:
@@ -593,15 +730,26 @@ class MainView:
             models (list): The models list.
 
         Returns:
-        The choice or None
+        The choice
         """
-        click.echo(models)
-        models = models.get("contracts") if isinstance(models, dict) else models
-        click.echo(models)
+        while True:
+            models = models.get("contracts") if isinstance(models, dict) else models
 
-        answer = click.prompt(text=f"\n▷▷ Please choose a {model_type} (from id {models[0].id} "
-                              f"to id {models[-1].id}):\n▶▶ ", type=int, default=0)
-        return answer
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please choose a {model_type} (from id {models[0].id} "
+                                f"to id {models[-1].id})[/bold light_goldenrod2]\n"
+                                f"[dark_turquoise]▶▶[/dark_turquoise] ", default=1)
+
+            if not answer.isdigit():
+                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                continue
+
+            coll = (str(i + 1) for i in range(len(models)))
+
+            if answer not in coll:
+                console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(models)}.\n[/bold bright_red]")
+                continue
+
+            return int(answer)
 
     @staticmethod
     def prompt_for_continuing() -> str:
@@ -611,7 +759,9 @@ class MainView:
         The answer (y/n)
         """
         while True:
-            input_key = input("▷▷ Type 'q' to go back or anything else to continue : \n▶▶ ")
+            input_key = Prompt.ask("[bold light_goldenrod2]▷▷ Type 'q' to go back or anything else to continue "
+                                   "[/bold light_goldenrod2]\n"
+                                   "[dark_turquoise]▶▶[/dark_turquoise] ")
             return input_key.lower()
 
     @staticmethod
@@ -623,10 +773,11 @@ class MainView:
         The e-mail address or None
         """
         while True:
-            email = click.prompt(text=f"\n▷▷ Enter the e-mail address : \n▶▶ ", type=str)
+            email = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Enter the e-mail address [/bold light_goldenrod2]\n"
+                               f"[dark_turquoise]▶▶[/dark_turquoise] ")
 
             if not re.fullmatch(r'[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', email):
-                click.echo("❗ Invalid e-mail address.")
+                console.print("❗ [bold bright_red]Invalid e-mail address.[/bold bright_red]")
                 continue
 
             return email
@@ -638,7 +789,8 @@ class MainView:
         Returns:
         The password or None
         """
-        answer = click.prompt(text="\n▷▷ Enter the password : \n▶▶ ", type=str)
+        answer = Prompt.ask("\n[bold light_goldenrod2]▷▷ Enter the password[/bold light_goldenrod2] \n"
+                            "[dark_turquoise]▶▶[/dark_turquoise] ")
         return answer
 
     @staticmethod
@@ -653,14 +805,15 @@ class MainView:
         The confirmation answer (y/n)
         """
         while True:
-            answer = click.prompt(text=f"\n▷▷ Are you sure you want to {action} this {model_type} (y/n) ?\n▶▶ ",
-                                  type=str,
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Are you sure you want to {action} this "
+                                f"{model_type} (y/n) ?[/bold light_goldenrod2]\n"
+                                f"[dark_turquoise]▶▶[/dark_turquoise] ",
                                   default="n")
 
             if answer.lower() in ["y", "n"]:
                 return True if answer.lower() == "y" else False
 
-            click.echo(f"❗ Please enter either 'y' or 'n'.")
+            click.echo(f"❗ [bold bright_red]Please enter either 'y' or 'n'.[/bold bright_red]")
 
     @staticmethod
     def prompt_for_string(model_type: str, field: str) -> str:
@@ -673,7 +826,9 @@ class MainView:
         Returns:
         The string
         """
-        answer = click.prompt(text=f"\n▷▷ Please type the {model_type} {field}:\n▶▶ ", type=str)
+        answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please type the {model_type} {field}:"
+                            f"[/bold light_goldenrod2]\n"
+                            f"[dark_turquoise]▶▶[/dark_turquoise] ")
         return answer
 
     @staticmethod
@@ -687,9 +842,10 @@ class MainView:
         Returns:
         The string or None
         """
-        answer = click.prompt(text=f"\n▷▷ Please type the {model_type} {field} or leave blank to continue:\n▶▶ ",
-                              type=str,
-                              default="")
+        answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please type the {model_type} {field} or leave blank to continue"
+                            f"[/bold light_goldenrod2]\n"
+                            f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                            default="")
         return answer
 
     @staticmethod
@@ -704,10 +860,10 @@ class MainView:
         A datetime or None
         """
         while True:
-            answer = click.prompt(text=f"\n▷▷ Please enter the {model_type} {field} (dd/mm/yy hh:mm) "
-                                  f"or leave blank to continue:\n▶▶ ",
-                                  type=str,
-                                  default="")
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please enter the {model_type} {field} (dd/mm/yy hh:mm) "
+                                f"or leave blank to continue[/bold light_goldenrod2]\n"
+                                f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                                default="")
             if answer:
 
                 answer += ':00'
@@ -716,7 +872,7 @@ class MainView:
                     return datetime.strptime(answer, '%d/%m/%y %H:%M:%S')
 
                 except ValueError:
-                    click.echo("❗ Please enter a valid date.")
+                    console.print("❗ [bold bright_red]Please enter a valid date.[/bold bright_red]")
             else:
                 return None
 
@@ -737,7 +893,7 @@ class MainView:
 
         return email, password, name
 
-    def prompt_for_collaborator_role(self, roles: dict) -> tuple[int, str]:
+    def prompt_for_collaborator_role(self, roles: dict) -> tuple[int, str] | None:
         """
         Method to prompt the user to enter the collaborator role
         Args:
@@ -749,9 +905,16 @@ class MainView:
         while True:
             self.display_roles(roles)
 
-            role = click.prompt(text=f"\n▷▷ Which new role do you want to assign ? (1,2,3)\n▶▶ ", type=int, default=1)
+            role = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Which new role do you want to assign ? (1,2,3)"
+                              f"[/bold light_goldenrod2]\n"
+                              f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                              default=1)
 
-            if role in [1,2,3]:
-                return role, roles[role]
+            if not role.isdigit():
+                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                continue
 
-            click.echo("❗ Please enter an integer between 1 and 3.")
+            if int(role) not in [1,2,3]:
+                console.print("❗ [bold bright_red]Please enter an integer between 1 and 3.[/bold bright_red]")
+
+            return int(role), roles[int(role)]

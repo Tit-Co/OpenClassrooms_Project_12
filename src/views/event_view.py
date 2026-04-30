@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from rich.console import Console
 from rich.panel import Panel
+from rich.prompt import Prompt
 from rich.table import Table
 
 from src.models.event import Event
@@ -27,7 +28,8 @@ class EventView:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
 
-    def display_event(self, event: Event) -> Panel:
+    @staticmethod
+    def display_event(event: Event) -> Panel:
         """
         Method to display an event
         Args:
@@ -35,7 +37,7 @@ class EventView:
         Returns:
             A Panel containing the event
         """
-        table = Table(show_header=False, border_style="black")
+        table = Table(show_header=False, box=None)
         table.add_row(f"[light_salmon3]Id[/light_salmon3] : {event.id}")
         table.add_row(f"[light_salmon3]Name[/light_salmon3] : {event.name}")
         table.add_row(f"[light_salmon3]Contract id[/light_salmon3] : {event.contract_id}")
@@ -49,7 +51,7 @@ class EventView:
         table.add_row(f"[light_salmon3]Attendees[/light_salmon3] : {event.attendees if event.attendees else ""}")
         table.add_row(f"[light_salmon3]Notes[/light_salmon3] : {event.notes if event.notes else ""}\n")
 
-        return Panel(table, border_style="bold chartreuse2", expand=True)
+        return Panel(table, border_style="bold spring_green3", expand=True)
 
     def prompt_for_event(self, contracts: list, technicians: list) -> tuple[
         str, int, datetime | None, datetime | None, int | None, str | None, int | None, str | None]:
@@ -63,10 +65,10 @@ class EventView:
         A tuple with the event data
         """
         self.main_view.display_models(model_type="contract", models=contracts)
-        contract_id = self.prompt_for_id(model_type="contract")
+        contract_id = self.prompt_for_id(model_type="contract", models=contracts)
 
         self.main_view.display_models(model_type="technician", models=technicians)
-        technician_id = self.prompt_for_id(model_type="technician")
+        technician_id = self.prompt_for_id(model_type="technician", models=technicians)
 
         name = self.main_view.prompt_for_string(model_type="event", field="name")
 
@@ -83,18 +85,33 @@ class EventView:
         return name, contract_id, start_date, end_date, technician_id, location, attendees, notes
 
     @staticmethod
-    def prompt_for_id(model_type: str) -> int | None:
+    def prompt_for_id(model_type: str, models: list) -> int | None:
         """
         Method that prompts the user to enter the id for the model
         Args:
             model_type (str): The model type
+            models (list): List of models
 
         Returns:
         The id of the model or None
         """
-        answer = click.prompt(f"\n▶ Please select a {model_type} for the event if possible:\n▶▶ ",
-                              type=int).strip()
-        return answer
+        while True:
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please select a {model_type} for the event if possible"
+                                f"[/bold light_goldenrod2]\n"
+                                f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                                default=1).strip()
+
+            if not answer.isdigit():
+                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                continue
+
+            coll = (str(i + 1) for i in range(len(models)))
+
+            if answer not in coll:
+                console.print(f"\n❗ [bold red]Please choose between 1 and {len(models)}.\n[/bold red]")
+                continue
+
+            return int(answer)
 
     @staticmethod
     def prompt_for_integer() -> int | None:
@@ -103,6 +120,13 @@ class EventView:
         Returns:
         The integer or None
         """
-        answer = click.prompt(f"\n▶ Please enter the number of attendees if known:\n▶▶ ", type=int).strip()
+        while True:
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please enter the number of attendees if known"
+                                f"[/bold light_goldenrod2]\n"
+                                f"[dark_turquoise]▶▶[/dark_turquoise] ").strip()
 
-        return answer
+            if not answer.isdigit():
+                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                continue
+
+            return int(answer)

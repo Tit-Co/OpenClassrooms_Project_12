@@ -6,6 +6,7 @@ import click
 from typing import TYPE_CHECKING, Any
 from rich.console import Console
 from rich.panel import Panel
+from rich.prompt import Prompt
 from rich.table import Table
 
 from src.models.client import Client
@@ -35,7 +36,7 @@ class ClientView:
         Returns:
             A Panel object
         """
-        table = Table(show_header=False, border_style="black")
+        table = Table(show_header=False, box=None)
         table.add_row(f"[bold light_salmon3]Id[/bold light_salmon3] :  : {client.id}")
         table.add_row(f"[bold light_salmon3]name[/bold light_salmon3] : {client.name}")
         table.add_row(f"[bold light_salmon3]E-mail[/bold light_salmon3] : {client.email}")
@@ -45,7 +46,7 @@ class ClientView:
         table.add_row(f"[bold light_salmon3]Last update[/bold light_salmon3] : {client.last_update}")
         table.add_row(f"[bold light_salmon3]Commercial name[/bold light_salmon3] : {client.commercial_name or ''}\n")
 
-        return Panel(table, border_style="bold cornflower_blue", expand=True)
+        return Panel(table, border_style="bold deep_sky_blue1", expand=True)
 
     def prompt_for_client(self, commercials: list) -> tuple[int | None, Any, str, Any, Any]:
         """
@@ -79,9 +80,15 @@ class ClientView:
         Returns:
         The id or None
         """
-        answer = click.prompt(f"\n▶ Please select a {model_type} for the client if possible:\n▶▶ ",
-                                  type=int).strip()
-        return answer
+        while True:
+            answer = Prompt.ask(f"\n▶ Please select a {model_type} for the client if possible\n"
+                                f"▶▶ ").strip()
+
+            if not answer.isdigit():
+                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                continue
+
+            return None if answer == "" or int(answer) == 0 else int(answer)
 
     def prompt_for_client_email(self) -> str:
         """
