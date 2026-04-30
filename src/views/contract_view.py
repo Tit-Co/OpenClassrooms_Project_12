@@ -68,10 +68,11 @@ class ContractView:
             client = next((c for c in clients if c.id == client_id), None)
             commercial = next((c for c in commercials if c.id == commercial_id), None)
 
-            console.print(Panel(f"  - [bold red]{contract.id}.[/bold red] Contract between "
-                                f"the client {client.name if client else '[unknown]'} "
-                                f"and the commercial {commercial.name if commercial else '[unknown]'}",
-                                border_style="dark_red", expand=True))
+            console.print(Panel(f"  [red3]- [bold]{contract.id}.[/bold] Contract between "
+                                f"the client [bold]{client.name if client else '[unknown]'}[/bold] "
+                                f"and the commercial [bold]{commercial.name if commercial else '[unknown]'}[/bold]"
+                                f"[/red3]",
+                                border_style="bold red3", expand=False))
 
     @staticmethod
     def display_contract(contract: type[Contract]) -> Panel:
@@ -81,21 +82,21 @@ class ContractView:
             contract (type[Contract]):
         """
         table = Table(show_header=False, box=None)
-        table.add_row(f"[bold light_salmon3]Id[/bold light_salmon3] : {contract.id}")
-        table.add_row(f"[bold light_salmon3]Client name[/bold light_salmon3] : {contract.client_name \
+        table.add_row(f"[bold red3]Id[/bold red3] : {contract.id}")
+        table.add_row(f"[bold red3]Client name[/bold red3] : {contract.client_name \
             if contract.client_name else ''}")
-        table.add_row(f"[bold light_salmon3]Client email[/bold light_salmon3] : {contract.client_email \
+        table.add_row(f"[bold red3]Client email[/bold red3] : {contract.client_email \
             if contract.client_email else ''}")
-        table.add_row(f"[bold light_salmon3]Client phone[/bold light_salmon3] : {contract.client_phone \
+        table.add_row(f"[bold red3]Client phone[/bold red3] : {contract.client_phone \
             if contract.client_phone else ''}")
-        table.add_row(f"[bold light_salmon3]Commercial name[/bold light_salmon3] : {contract.commercial_name \
+        table.add_row(f"[bold red3]Commercial name[/bold red3] : {contract.commercial_name \
             if contract.commercial_name else ''}")
-        table.add_row(f"[bold light_salmon3]Total amount[/bold light_salmon3] : {contract.total_amount} $")
-        table.add_row(f"[bold light_salmon3]Bill to pay[/bold light_salmon3] : {contract.bill_to_pay} $")
-        table.add_row(f"[bold light_salmon3]Creation date[/bold light_salmon3] : {contract.creation_date}")
-        table.add_row(f"[bold light_salmon3]Contract signed[/bold light_salmon3] : {'✅' if contract.status else '❌'}\n")
+        table.add_row(f"[bold red3]Total amount[/bold red3] : {contract.total_amount} $")
+        table.add_row(f"[bold red3]Bill to pay[/bold red3] : {contract.bill_to_pay} $")
+        table.add_row(f"[bold red3]Creation date[/bold red3] : {contract.creation_date}")
+        table.add_row(f"[bold red3]Contract signed[/bold red3] : {'✅' if contract.status else '❌'}\n")
 
-        return Panel(table, border_style="bold bright_red", expand=True)
+        return Panel(table, border_style="bold red3", expand=False)
 
     def prompt_for_contract(self, clients: list, commercials: list) -> tuple[
         int | None, int | None, float | None, float | None, bool]:

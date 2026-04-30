@@ -29,6 +29,20 @@ class EventView:
         self.main_view = main_view
 
     @staticmethod
+    def display_events(models: list) -> None:
+        """
+        Method to display the list of clients
+        Args:
+            models (list): List of clients
+        """
+        events = models
+        for event in events:
+            console.print(Panel(f"  [spring_green3]- [bold]{event.id}.[/bold] {event.name}"
+                                f"[/spring_green3]",
+                                border_style="bold spring_green3",
+                                expand=False))
+
+    @staticmethod
     def display_event(event: Event) -> Panel:
         """
         Method to display an event
@@ -38,20 +52,20 @@ class EventView:
             A Panel containing the event
         """
         table = Table(show_header=False, box=None)
-        table.add_row(f"[light_salmon3]Id[/light_salmon3] : {event.id}")
-        table.add_row(f"[light_salmon3]Name[/light_salmon3] : {event.name}")
-        table.add_row(f"[light_salmon3]Contract id[/light_salmon3] : {event.contract_id}")
-        table.add_row(f"[light_salmon3]Client name[/light_salmon3] : {event.client_name if event.client_name else "[unknown]"}")
-        table.add_row(f"[light_salmon3]Client phone[/light_salmon3] : {event.client_phone if event.client_phone else "[unknown]"}")
-        table.add_row(f"[light_salmon3]Client e-mail[/light_salmon3] : {event.client_email if event.client_email else "[unknown]"}")
-        table.add_row(f"[light_salmon3]Start date[/light_salmon3] : {event.start_date if event.start_date else ""}")
-        table.add_row(f"[light_salmon3]End date[/light_salmon3] : {event.end_date if event.end_date else ""}")
-        table.add_row(f"[light_salmon3]Technician name[/light_salmon3] : {event.technician_name if event.technician_name else "[unknown]"}")
-        table.add_row(f"[light_salmon3]Location[/light_salmon3] : {event.location if event.location else ""}")
-        table.add_row(f"[light_salmon3]Attendees[/light_salmon3] : {event.attendees if event.attendees else ""}")
-        table.add_row(f"[light_salmon3]Notes[/light_salmon3] : {event.notes if event.notes else ""}\n")
+        table.add_row(f"[spring_green3]Id[/spring_green3] : {event.id}")
+        table.add_row(f"[spring_green3]Name[/spring_green3] : {event.name}")
+        table.add_row(f"[spring_green3]Contract id[/spring_green3] : {event.contract_id}")
+        table.add_row(f"[spring_green3]Client name[/spring_green3] : {event.client_name if event.client_name else "[unknown]"}")
+        table.add_row(f"[spring_green3]Client phone[/spring_green3] : {event.client_phone if event.client_phone else "[unknown]"}")
+        table.add_row(f"[spring_green3]Client e-mail[/spring_green3] : {event.client_email if event.client_email else "[unknown]"}")
+        table.add_row(f"[spring_green3]Start date[/spring_green3] : {event.start_date if event.start_date else ""}")
+        table.add_row(f"[spring_green3]End date[/spring_green3] : {event.end_date if event.end_date else ""}")
+        table.add_row(f"[spring_green3]Technician name[/spring_green3] : {event.technician_name if event.technician_name else "[unknown]"}")
+        table.add_row(f"[spring_green3]Location[/spring_green3] : {event.location if event.location else ""}")
+        table.add_row(f"[spring_green3]Attendees[/spring_green3] : {event.attendees if event.attendees else ""}")
+        table.add_row(f"[spring_green3]Notes[/spring_green3] : {event.notes if event.notes else ""}\n")
 
-        return Panel(table, border_style="bold spring_green3", expand=True)
+        return Panel(table, border_style="bold spring_green3", expand=False)
 
     def prompt_for_event(self, contracts: list, technicians: list) -> tuple[
         str, int, datetime | None, datetime | None, int | None, str | None, int | None, str | None]:

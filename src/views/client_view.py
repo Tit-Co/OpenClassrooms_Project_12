@@ -28,6 +28,20 @@ class ClientView:
         self.main_view = main_view
 
     @staticmethod
+    def display_clients(models: list) -> None:
+        """
+        Method to display the list of clients
+        Args:
+            models (list): List of clients
+        """
+        clients = models
+        for client in clients:
+            console.print(Panel(f"  [deep_sky_blue1]- [bold]{client.id}.[/bold] {client.name}"
+                                f"[/deep_sky_blue1]",
+                                border_style="bold deep_sky_blue1",
+                                expand=False))
+
+    @staticmethod
     def display_client(client: type[Client]) -> Panel:
         """
         Method that displays the client
@@ -37,16 +51,16 @@ class ClientView:
             A Panel object
         """
         table = Table(show_header=False, box=None)
-        table.add_row(f"[bold light_salmon3]Id[/bold light_salmon3] :  : {client.id}")
-        table.add_row(f"[bold light_salmon3]name[/bold light_salmon3] : {client.name}")
-        table.add_row(f"[bold light_salmon3]E-mail[/bold light_salmon3] : {client.email}")
-        table.add_row(f"[bold light_salmon3]Phone[/bold light_salmon3] : {client.phone}")
-        table.add_row(f"[bold light_salmon3]Company[/bold light_salmon3] : {client.company}")
-        table.add_row(f"[bold light_salmon3]Creation date[/bold light_salmon3] : {client.creation_date}")
-        table.add_row(f"[bold light_salmon3]Last update[/bold light_salmon3] : {client.last_update}")
-        table.add_row(f"[bold light_salmon3]Commercial name[/bold light_salmon3] : {client.commercial_name or ''}\n")
+        table.add_row(f"[bold deep_sky_blue1]Id[/bold deep_sky_blue1] :  : {client.id}")
+        table.add_row(f"[bold deep_sky_blue1]name[/bold deep_sky_blue1] : {client.name}")
+        table.add_row(f"[bold deep_sky_blue1]E-mail[/bold deep_sky_blue1] : {client.email}")
+        table.add_row(f"[bold deep_sky_blue1]Phone[/bold deep_sky_blue1] : {client.phone}")
+        table.add_row(f"[bold deep_sky_blue1]Company[/bold deep_sky_blue1] : {client.company}")
+        table.add_row(f"[bold deep_sky_blue1]Creation date[/bold deep_sky_blue1] : {client.creation_date}")
+        table.add_row(f"[bold deep_sky_blue1]Last update[/bold deep_sky_blue1] : {client.last_update}")
+        table.add_row(f"[bold deep_sky_blue1]Commercial name[/bold deep_sky_blue1] : {client.commercial_name or ''}\n")
 
-        return Panel(table, border_style="bold deep_sky_blue1", expand=True)
+        return Panel(table, border_style="bold deep_sky_blue1", expand=False)
 
     def prompt_for_client(self, commercials: list) -> tuple[int | None, Any, str, Any, Any]:
         """

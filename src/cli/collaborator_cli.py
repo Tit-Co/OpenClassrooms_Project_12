@@ -102,6 +102,23 @@ def filter_collaborator(role):
         main_controller.view.display_permission_denied(action="filter", model_type=role)
 
 @collaborator.command()
+@click.option('--role', prompt="▶ Which model do you want to display? (manager/commercial/technician)\n▶▶ ")
+def display_collaborator(role):
+    session = SessionLocal()
+    main_controller = MainController()
+
+    user = main_controller.user_controller.get_current_user(session=session)
+    if not user:
+        main_controller.view.display_not_connected()
+        return
+
+    if role in main_controller.user_controller.COLLABORATORS.keys():
+        main_controller.user_controller.display_action(session=session, model_type=role)
+
+    else:
+        main_controller.view.display_wrong_collaborator_role()
+
+@collaborator.command()
 def logout():
     session = SessionLocal()
 

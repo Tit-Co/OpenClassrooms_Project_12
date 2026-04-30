@@ -111,18 +111,12 @@ class TestMainController(unittest.TestCase):
         captured_output = StringIO()
         sys.stdout = captured_output
 
-        self.controller.init_db(self.db_engine, self.session)
+        email = self.credentials['email']
+        password = self.credentials['password']
 
-        self.controller.view.prompt_for_continuing = Mock(return_value='anything_else')
-        self.controller.view.prompt_for_email = Mock(return_value=self.credentials['email'])
-        self.controller.view.prompt_for_password = Mock(return_value=self.credentials['password'])
-        self.controller.check_password = Mock(return_value=True)
+        self.controller.authenticate = Mock(return_value=True)
 
-        self.controller.authenticate(self.session, self.credentials['email'], self.credentials['password'])
-
-        self.controller.user_controller.collaborator_menu = Mock()
-
-        self.controller.login(self.session)
+        self.controller.login(self.session, email, password)
 
         sys.stdout = sys.__stdout__
         output = captured_output.getvalue()

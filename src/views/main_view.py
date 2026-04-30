@@ -200,15 +200,39 @@ class MainView:
             models (list): The models list.
         """
         if (None,) in models or not models:
-            console.print(f"\n[bold red3] • {model_type.upper()}S[/bold red3] "
-                          f"- [gold3]No {model_type} to display.[/gold3]\n")
+            if model_type == "contract":
+                console.print(f"\n[bold red3] ⯀ {model_type.upper()}S[/bold red3] "
+                              f"- [gold3]No {model_type} to display.[/gold3]\n")
+
+            elif model_type == "client":
+                console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S[/bold deep_sky_blue1] "
+                              f"- [gold3]No {model_type} to display.[/gold3]\n")
+
+            elif model_type == "event":
+                console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S[/bold spring_green3] "
+                              f"- [gold3]No {model_type} to display.[/gold3]\n")
+
+            else:
+                console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S[/bold grey85] "
+                              f"- [gold3]No {model_type} to display.[/gold3]\n")
+
         else:
-            console.print(f"\n[bold red3] • {model_type.upper()}S[/bold red3] : \n")
+            if model_type == "contract":
+                console.print(f"\n[bold red3] ⯀ {model_type.upper()}S TO DISPLAY : [/bold red3] \n")
+
+            elif model_type == "client":
+                console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S TO DISPLAY : [/bold deep_sky_blue1] \n")
+
+            elif model_type == "event":
+                console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S TO DISPLAY : [/bold spring_green3] \n")
+
+            else:
+                console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S TO DISPLAY : [/bold grey85] \n")
 
             actions = {
                 "contract": self.contract_view.display_contracts,
-                "client": self.display_clients,
-                "event": self.display_events,
+                "client": self.client_view.display_clients,
+                "event": self.event_view.display_events,
                 "manager": self.display_collaborators,
                 "commercial": self.display_collaborators,
                 "technician": self.display_collaborators,
@@ -218,26 +242,6 @@ class MainView:
             action(models)
 
     @staticmethod
-    def display_clients(models: list) -> None:
-        """
-        Method to display the clients events.
-        Args:
-            models (list): The models list.
-        """
-        for model in models:
-            click.echo(f"  - {model.id}. {model.name}")
-
-    @staticmethod
-    def display_events(models: list) -> None:
-        """
-        Method to display the clients events.
-        Args:
-            models (list): The models list.
-        """
-        for model in models:
-            click.echo(f"  - {model.id}. {model.name}")
-
-    @staticmethod
     def display_collaborators(models: list) -> None:
         """
         Method to display the collaborators list.
@@ -245,42 +249,56 @@ class MainView:
             models (list): The models list.
         """
         for model in models:
-            console.print(f"  - {model.id}. {model.name.capitalize()}")
+            console.print(Panel(f"  - {model.id}. {model.name.capitalize()}",
+                                expand=False,
+                                border_style="bold navajo_white3",
+                                style="navajo_white3"))
 
     @staticmethod
-    def display_collaborator(collaborator: type[Commercial | Manager | Technician], role: str) -> Panel:
+    def collaborator_to_display(collaborator: type[Commercial | Manager | Technician], role: str) -> Panel:
         """
-        Method to display the collaborator.
+        Method to build the panel to display for the collaborator.
         Args:
             collaborator (type[Commercial] | type[Manager] | type[Technician]): The collaborator.
             role (str): The role of the collaborator.
         """
-        table = Table(show_header=False, border_style="black")
-        table.add_row(f"[bold light_salmon3]Id[/bold light_salmon3] :  : {collaborator.id}")
-        table.add_row(f"[bold light_salmon3]name[/bold light_salmon3] : {collaborator.name}")
-        table.add_row(f"[bold light_salmon3]Employee number[/bold light_salmon3] : {collaborator.employee_number}")
-        table.add_row(f"[bold light_salmon3]E-mail[/bold light_salmon3] : {collaborator.email}")
+        table = Table(show_header=False, box=None, style="bright_white")
+        table.add_row(f"[bold navajo_white3]Id[/bold navajo_white3] : {collaborator.id}")
+        table.add_row(f"[bold navajo_white3]name[/bold navajo_white3] : {collaborator.name}")
+        table.add_row(f"[bold navajo_white3]Employee number[/bold navajo_white3] : {collaborator.employee_number}")
+        table.add_row(f"[bold navajo_white3]E-mail[/bold navajo_white3] : {collaborator.email}")
 
-        return Panel(table, border_style="bold grey85", expand=True)
+        return Panel(table, border_style="bold navajo_white3", expand=False)
+
+    def display_collaborator(self, collaborator: type[Commercial | Manager | Technician], role: str) -> None:
+        """
+        Method to display the collaborator.
+        Args:
+            collaborator (type[Commercial | Manager | Technician]): The collaborator.
+            role (str): The role of the collaborator.
+        """
+        panel = self.collaborator_to_display(collaborator, role)
+        console.print(panel)
 
     @staticmethod
-    def display_title(model_type: str) -> None:
+    def display_title(model_type: str, model_id: int) -> None:
         """
         Method to display a title for a given model.
         Args:
             model_type (str): The model type.
+            model_id (int): The model id.
         """
-        click.echo(f"\nHere is the {model_type} : \n")
+        console.print(f"\n[bright_white]Here is the {model_type} n°{model_id}: [/bright_white]\n")
 
     def display_model(self, model_type: str,
-                      model: type[Client] | type[Event] | type[Contract]) -> None:
+                      model: type[Client | Event | Contract]) -> None:
         """
         Method to display a model for a given type
         Args:
             model_type (str): The model type.
             model (type[Client] | type[Event] | type[Contract]): The model.
         """
-        self.display_title(model_type)
+        self.display_title(model_type, model.id)
         actions = {
             "contract": self.contract_view.display_contract,
             "client": self.client_view.display_client,
@@ -288,7 +306,9 @@ class MainView:
         }
 
         action = actions.get(model_type)
-        action(model)
+        panel = action(model)
+
+        console.print(panel)
 
     @staticmethod
     def display_new_data_request(model_type: str, model_id: int) -> None:
@@ -540,9 +560,9 @@ class MainView:
             table.add_row(header)
 
             actions = {
-                "commercial": lambda : self.display_collaborator(collaborator=the_result, role="Commercial"),
-                "manager": lambda : self.display_collaborator(collaborator=the_result, role="manager"),
-                "technician": lambda : self.display_collaborator(collaborator=the_result, role="technician"),
+                "commercial": lambda : self.collaborator_to_display(collaborator=the_result, role="Commercial"),
+                "manager": lambda : self.collaborator_to_display(collaborator=the_result, role="manager"),
+                "technician": lambda : self.collaborator_to_display(collaborator=the_result, role="technician"),
                 "contract": lambda : self.contract_view.display_contract(contract=the_result),
                 "client": lambda : self.client_view.display_client(client=the_result),
                 "event": lambda : self.event_view.display_event(event=the_result),
@@ -587,7 +607,7 @@ class MainView:
         """
         while True:
             answer = Prompt.ask("\n[bold light_goldenrod2]▶ What do you want to do ?[/bold light_goldenrod2]\n"
-                                "[dark_turquoise]▶▶[/dark_turquoise] ")
+                                "▶▶ ")
 
             if not answer.isdigit():
                 console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
@@ -614,7 +634,7 @@ class MainView:
             self.display_filters(filters)
 
             answer = Prompt.ask("[bold light_goldenrod2]\n▶ Which filter do you want ? [/bold light_goldenrod2]\n"
-                                "[dark_turquoise]▶▶[/dark_turquoise] ")
+                                "▶▶ ")
 
             if not answer.isdigit():
                 console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
@@ -641,7 +661,7 @@ class MainView:
         """
         answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Type the value of '{my_filter}' filter for {model_type} "
                             f"or leave it blank if necessary [/bold light_goldenrod2]\n"
-                            f"[dark_turquoise]▶▶[/dark_turquoise] ", default="")
+                            f"▶▶ ", default="")
         return answer
 
     @staticmethod
@@ -658,7 +678,7 @@ class MainView:
         while True:
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Type the value of '{my_filter}' filter for {model_type} (dd/mm/yy) "
                                 f"or leave it blank if necessary[/bold light_goldenrod2]\n"
-                                f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                                f"▶▶ ",
                                 default="")
             if answer:
                 try:
@@ -707,7 +727,7 @@ class MainView:
 
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Which {model_type} (from id {models[0].id} to id {models[-1].id}) do you want "
                                 f"to {action} ?[/bold light_goldenrod2] \n"
-                                f"[dark_turquoise]▶▶[/dark_turquoise] ", default=1)
+                                f"▶▶ ", default=1)
 
             if not answer.isdigit():
                 console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
@@ -737,7 +757,7 @@ class MainView:
 
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please choose a {model_type} (from id {models[0].id} "
                                 f"to id {models[-1].id})[/bold light_goldenrod2]\n"
-                                f"[dark_turquoise]▶▶[/dark_turquoise] ", default=1)
+                                f"▶▶ ", default=1)
 
             if not answer.isdigit():
                 console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
@@ -761,7 +781,7 @@ class MainView:
         while True:
             input_key = Prompt.ask("[bold light_goldenrod2]▷▷ Type 'q' to go back or anything else to continue "
                                    "[/bold light_goldenrod2]\n"
-                                   "[dark_turquoise]▶▶[/dark_turquoise] ")
+                                   "▶▶ ")
             return input_key.lower()
 
     @staticmethod
@@ -774,7 +794,7 @@ class MainView:
         """
         while True:
             email = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Enter the e-mail address [/bold light_goldenrod2]\n"
-                               f"[dark_turquoise]▶▶[/dark_turquoise] ")
+                               f"▶▶ ")
 
             if not re.fullmatch(r'[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', email):
                 console.print("❗ [bold bright_red]Invalid e-mail address.[/bold bright_red]")
@@ -790,7 +810,7 @@ class MainView:
         The password or None
         """
         answer = Prompt.ask("\n[bold light_goldenrod2]▷▷ Enter the password[/bold light_goldenrod2] \n"
-                            "[dark_turquoise]▶▶[/dark_turquoise] ")
+                            "▶▶ ")
         return answer
 
     @staticmethod
@@ -807,7 +827,7 @@ class MainView:
         while True:
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Are you sure you want to {action} this "
                                 f"{model_type} (y/n) ?[/bold light_goldenrod2]\n"
-                                f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                                f"▶▶ ",
                                   default="n")
 
             if answer.lower() in ["y", "n"]:
@@ -828,7 +848,7 @@ class MainView:
         """
         answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please type the {model_type} {field}:"
                             f"[/bold light_goldenrod2]\n"
-                            f"[dark_turquoise]▶▶[/dark_turquoise] ")
+                            f"▶▶ ")
         return answer
 
     @staticmethod
@@ -844,7 +864,7 @@ class MainView:
         """
         answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please type the {model_type} {field} or leave blank to continue"
                             f"[/bold light_goldenrod2]\n"
-                            f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                            f"▶▶ ",
                             default="")
         return answer
 
@@ -862,7 +882,7 @@ class MainView:
         while True:
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please enter the {model_type} {field} (dd/mm/yy hh:mm) "
                                 f"or leave blank to continue[/bold light_goldenrod2]\n"
-                                f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                                f"▶▶ ",
                                 default="")
             if answer:
 
@@ -907,7 +927,7 @@ class MainView:
 
             role = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Which new role do you want to assign ? (1,2,3)"
                               f"[/bold light_goldenrod2]\n"
-                              f"[dark_turquoise]▶▶[/dark_turquoise] ",
+                              f"▶▶ ",
                               default=1)
 
             if not role.isdigit():

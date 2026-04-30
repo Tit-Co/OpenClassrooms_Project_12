@@ -566,7 +566,7 @@ class CollaboratorController:
             return float(filter_value)
 
         elif self.is_date(str(filter_value)):
-            return datetime.strptime(filter_value, '%d/%m/%y %H:%M:%S')
+            return datetime.strptime(filter_value + ':00', '%d/%m/%y %H:%M:%S')
 
         elif self.is_bool(str(filter_value)):
             return self.is_bool(filter_value)

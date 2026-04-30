@@ -225,6 +225,7 @@ class TestCollaboratorController(unittest.TestCase):
         collaborator = self.controller.get_collaborator_by_id(session=self.session,
                                                               collaborator_id=self.data["commercial"].id,
                                                               role="commercial")
+
         self.assertEqual(collaborator.id, self.data["commercial"].id)
 
     def test_get_collaborator_by_email(self) -> None:
@@ -232,7 +233,8 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the method that gets collaborator by its email
         """
         collaborator = self.controller.get_collaborator_by_mail(session=self.session,
-                                                                collaborator_email=self.data["commercial"].email)
+                                                                email=self.data["commercial"].email)
+
         self.assertEqual(collaborator.email, self.data["commercial"].email)
 
     def test_exists_returns_true(self) -> None:
@@ -242,6 +244,7 @@ class TestCollaboratorController(unittest.TestCase):
         result = self.controller.model_exists(session=self.session,
                                               model_type="client",
                                               value="client@clienttest.com")
+
         self.assertTrue(result)
 
     def test_exists_returns_false(self) -> None:
@@ -251,6 +254,7 @@ class TestCollaboratorController(unittest.TestCase):
         result = self.controller.model_exists(session=self.session,
                                               model_type="client",
                                               value="unautreemail@clienttest.com")
+
         self.assertFalse(result)
 
     def test_goodbye(self) -> None:
@@ -273,7 +277,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the is_float method in a True case
         """
-        float = self.controller.is_float(s=152.23)
+        float = self.controller.is_float(s="152.23")
 
         self.assertTrue(float)
 
@@ -334,21 +338,21 @@ class TestCollaboratorController(unittest.TestCase):
         self.assertEqual(admin, self.data["manager"])
 
     def test_filter_value_str_ok(self):
-        filter_value = self.controller.process_filter_value(filter_value="test")
+        filter_value = self.controller.process_filter_value("test", filter_value="test")
         self.assertEqual(filter_value, "test")
 
     def test_filter_value_int_ok(self):
-        filter_value = self.controller.process_filter_value(filter_value="2")
+        filter_value = self.controller.process_filter_value("test", filter_value="2")
         self.assertEqual(filter_value, 2)
 
     def test_filter_value_float_ok(self):
-        filter_value = self.controller.process_filter_value(filter_value="12.23")
+        filter_value = self.controller.process_filter_value("test", filter_value="12.23")
         self.assertEqual(filter_value, 12.23)
 
     def test_filter_value_date_ok(self):
-        filter_value = self.controller.process_filter_value(filter_value="26/04/26 11:00")
+        filter_value = self.controller.process_filter_value("", filter_value="26/04/26 11:00")
         self.assertEqual(filter_value, datetime.strptime("26/04/26 11:00:00", "%d/%m/%y %H:%M:%S"))
 
     def test_filter_value_bool_ok(self):
-        filter_value = self.controller.process_filter_value(filter_value="true")
+        filter_value = self.controller.process_filter_value("name", filter_value="true")
         self.assertTrue(filter_value)

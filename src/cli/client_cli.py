@@ -77,3 +77,15 @@ def filter_client():
 
     else:
         main_controller.view.display_permission_denied(action="filter", model_type="client")
+
+@client.command()
+def display_client():
+    session = SessionLocal()
+    main_controller = MainController()
+
+    user = main_controller.user_controller.get_current_user(session=session)
+    if not user:
+        main_controller.view.display_not_connected()
+        return
+
+    main_controller.user_controller.display_action(session=session, model_type="client")
