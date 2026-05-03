@@ -119,7 +119,7 @@ class MainController:
 
             action()
 
-    def login_2(self, session: Session, db_engine: Engine) -> None:
+    def login_2(self, session: Session) -> None:
         """
         Method to launch login
         Args:
@@ -137,7 +137,7 @@ class MainController:
 
             password = self.view.prompt_for_password()
 
-            self.init_db(db_engine, session)
+            self.init_db(session)
 
             success = self.authenticate(session=session, email=email, password=password)
 
@@ -145,7 +145,7 @@ class MainController:
                 self.user_controller.collaborator_menu(session=session)
                 break
 
-    def login(self, session: Session, db_engine: Engine, email: str, password: str) -> bool:
+    def login(self, session: Session, email: str, password: str) -> bool:
         """
         Method to launch login
         Args:
@@ -154,7 +154,7 @@ class MainController:
             email (str): email
             password (str): password
         """
-        self.init_db(db_engine, session)
+        self.init_db(engine, session)
 
         return self.authenticate(session=session, email=email, password=password)
 

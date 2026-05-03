@@ -87,7 +87,6 @@ class TestCLI(unittest.TestCase):
 
         runner.invoke(cli, ["login", "--email", managers[0].email, "--password", managers[0].password],
                       obj={"session": self.session,
-                           "db_engine": self.db_engine,
                            "main_controller": self.main_controller})
 
         output = buffer.getvalue()
@@ -105,7 +104,6 @@ class TestCLI(unittest.TestCase):
 
         runner.invoke(cli, ["login", "--email", managers[0].email, "--password", "another_password"],
                       obj={"session": self.session,
-                           "db_engine": self.db_engine,
                            "main_controller": self.main_controller})
 
         output = buffer.getvalue()
@@ -121,7 +119,6 @@ class TestCLI(unittest.TestCase):
 
         runner.invoke(cli, ["login", "--email", "another.email@another.com", "--password", "another_password"],
                       obj={"session": self.session,
-                           "db_engine": self.db_engine,
                            "main_controller": self.main_controller})
 
         output = buffer.getvalue()

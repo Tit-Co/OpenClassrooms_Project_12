@@ -97,7 +97,7 @@ class TestMainController(unittest.TestCase):
         email = self.credentials['email']
         password = self.credentials['password']
 
-        self.controller.login(self.session, self.db_engine, email, password)
+        self.controller.login(self.session, email, password)
 
         output = buffer.getvalue()
 
