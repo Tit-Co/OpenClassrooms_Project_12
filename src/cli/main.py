@@ -36,7 +36,7 @@ def login(ctx, email, password):
     if not password:
         password = main_controller.view.prompt_for_password()
 
-    result = main_controller.login(session=session, db_engine=db_engine, email=email, password=password)
+    result = main_controller.login(session=session, email=email, password=password)
 
     session.close()
 
