@@ -15,20 +15,15 @@ if TYPE_CHECKING:
     from src.views.main_view import MainView
 
 
-console = Console(
-    file=sys.stdout,
-    force_terminal=True,
-    color_system="truecolor",
-    width=200
-)
-
-
 class ClientView:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
 
-    @staticmethod
-    def display_clients(models: list) -> None:
+    @property
+    def console(self) -> Console:
+        return self.main_view.console
+
+    def display_clients(self, models: list) -> None:
         """
         Method to display the list of clients
         Args:
@@ -36,7 +31,7 @@ class ClientView:
         """
         clients = models
         for client in clients:
-            console.print(Panel(f"  [deep_sky_blue1]- [bold]{client.id}.[/bold] {client.name}"
+            self.console.print(Panel(f"  [deep_sky_blue1]- [bold]{client.id}.[/bold] {client.name}"
                                 f"[/deep_sky_blue1]",
                                 border_style="bold deep_sky_blue1",
                                 expand=False))
@@ -84,8 +79,7 @@ class ClientView:
 
         return client_id, name, email, phone, company
 
-    @staticmethod
-    def prompt_for_id(model_type: str) -> int | None:
+    def prompt_for_id(self, model_type: str) -> int | None:
         """
         Method that prompts the user to enter the client ID
         Args:
@@ -99,7 +93,7 @@ class ClientView:
                                 f"▶▶ ").strip()
 
             if not answer.isdigit():
-                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
                 continue
 
             return None if answer == "" or int(answer) == 0 else int(answer)

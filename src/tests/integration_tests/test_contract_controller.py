@@ -2,6 +2,7 @@ import sys
 import unittest
 from datetime import datetime
 from io import StringIO
+from rich.console import Console
 from unittest.mock import Mock
 
 from sqlalchemy import create_engine
@@ -186,13 +187,13 @@ class TestCollaboratorController(unittest.TestCase):
             True # contract signed
         ])
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.view.console = test_console
 
         self.contract_controller.create_contract_with_view(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("The contract has been successfully created.", output)
 
@@ -243,13 +244,13 @@ class TestCollaboratorController(unittest.TestCase):
             True # contract signed
         ])
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.view.console = test_console
 
         self.contract_controller.update_contract_with_view(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         contract = self.session.query(Contract).filter_by(is_active=True, id=1).first()
 
@@ -300,9 +301,9 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the method that creates collaborator with view
         """
         contracts = self.contract_controller.filter_contract(session=self.session,
-                                                            my_filter="client_id",
-                                                            filter_value="1",
-                                                            class_name=Contract)
+                                                             my_filter="client-id",
+                                                             filter_value="1",
+                                                             class_name=Contract)
 
         self.assertEqual(contracts, self.data["contracts"])
 
@@ -311,8 +312,8 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the method that creates collaborator with view
         """
         contracts = self.contract_controller.filter_contract(session=self.session,
-                                                            my_filter="client_id",
-                                                            filter_value="6",
-                                                            class_name=Contract)
+                                                             my_filter="client-id",
+                                                             filter_value="6",
+                                                             class_name=Contract)
 
         self.assertEqual(contracts, [])

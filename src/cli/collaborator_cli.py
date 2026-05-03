@@ -6,14 +6,16 @@ from src.controllers.main_controller import MainController
 
 
 @click.group()
-def collaborator():
-    pass
+@click.pass_context
+def collaborator(ctx):
+    ctx.ensure_object(dict)
 
 @collaborator.command()
-@click.option('--role', prompt="▶ Which role do you want to create? (manager/commercial/technician)\n▶▶ ")
-def create_collaborator(role):
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def create_collaborator(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if user is None:
@@ -21,6 +23,8 @@ def create_collaborator(role):
         return
 
     permissions = main_controller.user_controller.get_permissions(session=session, user=user)
+
+    role = main_controller.view.prompt_for_collaborator_role_to_action(action="create")
 
     if "create:collaborator" in permissions:
         if role in main_controller.user_controller.COLLABORATORS.keys():
@@ -33,10 +37,13 @@ def create_collaborator(role):
         main_controller.view.display_permission_denied(action="update", model_type=role)
 
 @collaborator.command()
-@click.option('--role', prompt="▶ Which collaborator role do you want to update? (manager/commercial/technician)\n▶▶ ")
-def update_collaborator(role):
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def update_collaborator(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
+
+    main_controller.console.print("CLI controller id:", id(main_controller))
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -44,6 +51,9 @@ def update_collaborator(role):
         return
 
     permissions = main_controller.user_controller.get_permissions(session=session, user=user)
+
+    role = main_controller.view.prompt_for_collaborator_role_to_action(action="update")
+    main_controller.console.print("ROLE : ", role)
 
     if "update:collaborator" in permissions:
         if role in main_controller.user_controller.COLLABORATORS.keys():
@@ -56,10 +66,11 @@ def update_collaborator(role):
         main_controller.view.display_permission_denied(action="update", model_type=role)
 
 @collaborator.command()
-@click.option('--role', prompt="▶ Which collaborator role do you want to delete? (manager/commercial/technician)\n▶▶ ")
-def delete_collaborator(role):
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def delete_collaborator(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -67,6 +78,8 @@ def delete_collaborator(role):
         return
 
     permissions = main_controller.user_controller.get_permissions(session=session, user=user)
+
+    role = main_controller.view.prompt_for_collaborator_role_to_action(action="delete")
 
     if "update:collaborator" in permissions:
         if role in main_controller.user_controller.COLLABORATORS.keys():
@@ -79,10 +92,11 @@ def delete_collaborator(role):
         main_controller.view.display_permission_denied(action="delete", model_type=role)
 
 @collaborator.command()
-@click.option('--role', prompt="▶ Which model do you want to filter? (manager/commercial/technician)\n▶▶ ")
-def filter_collaborator(role):
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def filter_collaborator(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -90,6 +104,8 @@ def filter_collaborator(role):
         return
 
     permissions = main_controller.user_controller.get_permissions(session=session, user=user)
+
+    role = main_controller.view.prompt_for_collaborator_role_to_action(action="filter")
 
     if "filter:manager" in permissions or "filter:commercial" in permissions or "filter:technician" in permissions:
         if role in main_controller.user_controller.COLLABORATORS.keys():
@@ -102,15 +118,18 @@ def filter_collaborator(role):
         main_controller.view.display_permission_denied(action="filter", model_type=role)
 
 @collaborator.command()
-@click.option('--role', prompt="▶ Which model do you want to display? (manager/commercial/technician)\n▶▶ ")
-def display_collaborator(role):
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def display_collaborator(ctx, role):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
         main_controller.view.display_not_connected()
         return
+
+    role = main_controller.view.prompt_for_collaborator_role_to_action(action="display")
 
     if role in main_controller.user_controller.COLLABORATORS.keys():
         main_controller.user_controller.display_action(session=session, model_type=role)
@@ -119,8 +138,10 @@ def display_collaborator(role):
         main_controller.view.display_wrong_collaborator_role()
 
 @collaborator.command()
-def logout():
-    session = SessionLocal()
+@click.pass_context
+def logout(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
-    main_controller = MainController()
     main_controller.user_controller.logout(session)

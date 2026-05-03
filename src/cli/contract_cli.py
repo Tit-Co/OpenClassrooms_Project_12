@@ -6,13 +6,16 @@ from src.controllers.main_controller import MainController
 
 
 @click.group()
-def contract():
-    pass
+@click.pass_context
+def contract(ctx):
+    ctx.ensure_object(dict)
 
 @contract.command()
-def create_contract():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def create_contract(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -26,9 +29,11 @@ def create_contract():
         main_controller.view.display_permission_denied(action="create", model_type="contract")
 
 @contract.command()
-def update_contract():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def update_contract(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -43,9 +48,11 @@ def update_contract():
 
 
 @contract.command()
-def delete_contract():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def delete_contract(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -59,9 +66,11 @@ def delete_contract():
         main_controller.view.display_permission_denied(action="update", model_type="contract")
 
 @contract.command()
-def filter_contract():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def filter_contract(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -79,9 +88,11 @@ def filter_contract():
         main_controller.view.display_permission_denied(action="filter", model_type="contract")
 
 @contract.command()
-def display_contract():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def display_contract(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:

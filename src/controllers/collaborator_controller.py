@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -52,7 +51,7 @@ class CollaboratorController:
 
         return self.main_controller.role_permissions.get(role.name)
 
-    def find_user(self, session, email) -> type[Commercial | Manager | Technician]:
+    def find_user(self, session, email) -> type[Commercial] | type[Manager] | type[Technician] | None:
         user = self.get_collaborator_by_mail(session, email)
         return user
 
@@ -195,8 +194,7 @@ class CollaboratorController:
             if model_type in self.COLLABORATORS.keys():
                 self.main_controller.view.display_collaborator(collaborator=model, role=model_type)
             else:
-                self.main_controller.view.display_model(model_type=model_type,
-                                                        model=model)
+                self.main_controller.view.display_model(model_type=model_type, model=model)
 
     def create_action(self, session: Session, model_type: str) -> None:
         """
@@ -306,9 +304,9 @@ class CollaboratorController:
             "contract": lambda: self.main_controller.contract_controller.update_contract_with_view(session=session),
             "client": lambda: self.main_controller.client_controller.update_client_with_view(session=session),
             "event": lambda: self.main_controller.event_controller.update_event_with_view(session=session),
-            "manager": lambda: self.update_collaborator_with_view(session=session, role=model_type),
-            "commercial": lambda: self.update_collaborator_with_view(session=session, role=model_type),
-            "technician": lambda: self.update_collaborator_with_view(session=session, role=model_type)
+            "manager": lambda: self.update_collaborator_with_view(session=session, role="manager"),
+            "commercial": lambda: self.update_collaborator_with_view(session=session, role="commercial"),
+            "technician": lambda: self.update_collaborator_with_view(session=session, role="technician"),
         }
         action = actions.get(model_type)
         action()
@@ -321,6 +319,9 @@ class CollaboratorController:
             session (Session): Session object.
             role (str): Role.
         """
+        print("UPDATE SESSION", id(session))
+        print(">>> ENTER update_action_with_view")
+        print(f"Role : {role}")
         models = self.get_models(session=session, model_type=role)
 
         self.main_controller.view.display_models(model_type=role, models=models)
@@ -332,6 +333,8 @@ class CollaboratorController:
             collaborator = self.get_collaborator_by_id(session=session,
                                                        collaborator_id=collaborator_id,
                                                        role=role)
+            print(f"Collaborator role ID: {collaborator.role_id}")
+            print(f"Collaborator : {collaborator}")
 
             self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
@@ -347,10 +350,13 @@ class CollaboratorController:
                 2: "commercial",
                 3: "technician",
             }
-            new_role_id, new_role_name = self.main_controller.view.prompt_for_collaborator_role(roles=roles)
+            (new_role_id,
+             new_role_name) = self.main_controller.view.prompt_for_collaborator_role()
+            print(f"New Collaborator Role ID: {new_role_id} - New Collaborator Role Name: {new_role_name}")
 
-            current_role_id = session.query(Role).filter_by(name=role.upper()).first().id
-
+            current_role_id = collaborator.role_id
+            print("Current role id: ", current_role_id)
+            print("new_role_id : ", new_role_id)
             if new_role_id != current_role_id:
                 new_collaborator_data = {
                     "name": name,
@@ -363,9 +369,13 @@ class CollaboratorController:
                                                            current_role=role,
                                                            data=new_collaborator_data)
 
+                print("New Collaborator ID: ", new_id)
+                print("New role name : ", new_role_name)
+
                 collaborator = self.get_collaborator_by_id(session=session,
                                                            collaborator_id=new_id,
                                                            role=new_role_name)
+                print("RESULT : ", collaborator)
 
                 label = f"collaborator ({role} to {new_role_name})"
 
@@ -405,6 +415,7 @@ class CollaboratorController:
             collaborator_id (int): Collaborator id.
             data (dict): Collaborator data.
         """
+        print(">>> ENTER update_collaborator")
         role_id = data["role_id"]
         name = data["name"]
         email = data["email"]
@@ -432,16 +443,25 @@ class CollaboratorController:
         Returns:
         The collaborator id
         """
+        print(">>> ENTER change_role_for_collaborator")
         if current_role == "technician":
-            session.query(Event).filter(Event.is_active == True, Event.technician_id == collaborator_id)\
-                .update({"technician_id": None}, synchronize_session=False)
+            (session.query(Event)
+             .filter(Event.is_active == True, Event.technician_id == collaborator_id)
+             .update({"technician_id": None}, synchronize_session=False)
+             )
 
         elif current_role == "commercial":
-            session.query(Contract).filter(Contract.is_active == True, Contract.commercial_id == collaborator_id)\
-                .update({"commercial_id": None}, synchronize_session=False)
+            (session.query(Contract)
+             .filter(Contract.is_active == True, Contract.commercial_id == collaborator_id)
+             .update({"commercial_id": None}, synchronize_session=False)
+             )
 
-            session.query(Client).filter(Client.is_active == True, Client.commercial_id == collaborator_id) \
-                .update({"commercial_id": None}, synchronize_session=False)
+            (session.query(Client)
+             .filter(Client.is_active == True, Client.commercial_id == collaborator_id)
+             .update({"commercial_id": None}, synchronize_session=False)
+             )
+        else:
+            pass
 
         self.delete_collaborator(session=session,
                                  collaborator_id=collaborator_id,
@@ -450,8 +470,10 @@ class CollaboratorController:
         collaborator = self.create_collaborator(session=session, data=data)
 
         role = data.get("role")
-        new_collaborator_id = session.query(self.COLLABORATORS.get(role))\
-            .filter_by(is_active=True, id=collaborator.id).first().id
+        new_collaborator_id = (session.query(self.COLLABORATORS.get(role))
+                               .filter_by(is_active=True, id=collaborator.id)
+                               .first().id
+                               )
 
         return new_collaborator_id
 
@@ -641,7 +663,6 @@ class CollaboratorController:
         if my_filter == "name":
             results = session.query(class_name).filter(class_name.is_active == True,
                                                        class_name.name.contains(filter_value)).all()
-            print(results)
 
         elif my_filter == "email":
             results = session.query(class_name).filter(class_name.is_active == True,
@@ -676,6 +697,7 @@ class CollaboratorController:
                 model_class = self.MODELS.get(model_type)
         else:
             model_class = self.COLLABORATORS.get(model_type)
+
         models = session.query(model_class).filter_by(is_active=True).all()
         return models
 
@@ -716,7 +738,7 @@ class CollaboratorController:
         """
         model = None
         if model_type in self.MODELS.keys():
-            model=self.get_object_by_id(session=session, model_type=model_type, object_id=model_id)
+            model = self.get_object_by_id(session=session, model_type=model_type, object_id=model_id)
 
         elif model_type in self.COLLABORATORS.keys():
             model = self.get_collaborator_by_id(session=session, collaborator_id=model_id, role=model_type)
@@ -725,7 +747,8 @@ class CollaboratorController:
 
         return model
 
-    def get_collaborator_by_id(self, session: Session, collaborator_id: int, role: str) -> type[Collaborator]:
+    def get_collaborator_by_id(self, session: Session, collaborator_id: int, role: str) \
+            -> type[Manager] | type[Commercial] | type[Technician] | None:
         """
         Method to get a collaborator by its id
         Args:
@@ -803,7 +826,6 @@ class CollaboratorController:
         """
         models = self.main_controller.user_controller.get_models(session=session,
                                                                  model_type=model_type)
-        models = models.get(model_type) if model_type=="contract" else models
 
         if models:
             self.main_controller.view.display_models(model_type=model_type, models=models)
@@ -890,12 +912,13 @@ class CollaboratorController:
         Returns:
         A boolean indicating whether model exists.
         """
+        class_name = self.MODELS[model_type]
         result = None
-        if model_type == "client":
-            result = session.query(self.MODELS[model_type]).filter_by(is_active=True, email=value).first()
 
-        elif model_type == "event":
-            class_name = self.MODELS[model_type]
+        if class_name == Client:
+            result = session.query(class_name).filter_by(is_active=True, email=value).first()
+
+        elif class_name == Event:
             result = session.query(class_name).filter_by(is_active=True, name=value).first()
 
         return result is not None or (isinstance(result, list) and (None,) not in result)

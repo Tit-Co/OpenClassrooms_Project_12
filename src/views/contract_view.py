@@ -15,17 +15,13 @@ if TYPE_CHECKING:
     from src.views.main_view import MainView
 
 
-console = Console(
-    file=sys.stdout,
-    force_terminal=True,
-    color_system="truecolor",
-    width=200
-)
-
-
 class ContractView:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
+
+    @property
+    def console(self) -> Console:
+        return self.main_view.console
 
     @staticmethod
     def is_float(s: str) -> bool:
@@ -52,8 +48,7 @@ class ContractView:
         else:
             return None
 
-    @staticmethod
-    def display_contracts(models: dict) -> None:
+    def display_contracts(self, models: dict) -> None:
         """
         Method to display the list of contracts
         Args:
@@ -68,7 +63,7 @@ class ContractView:
             client = next((c for c in clients if c.id == client_id), None)
             commercial = next((c for c in commercials if c.id == commercial_id), None)
 
-            console.print(Panel(f"  [red3]- [bold]{contract.id}.[/bold] Contract between "
+            self.console.print(Panel(f"  [red3]- [bold]{contract.id}.[/bold] Contract between "
                                 f"the client [bold]{client.name if client else '[unknown]'}[/bold] "
                                 f"and the commercial [bold]{commercial.name if commercial else '[unknown]'}[/bold]"
                                 f"[/red3]",
@@ -123,8 +118,7 @@ class ContractView:
 
         return client_id, commercial_id, total_amount, bill_to_pay, status
 
-    @staticmethod
-    def prompt_for_id(model_type: str) -> int | None:
+    def prompt_for_id(self, model_type: str) -> int | None:
         """
         Method that prompts the user to enter the id of a model or leave it blank
         Args:
@@ -139,7 +133,7 @@ class ContractView:
                                 f"[dark_turquoise]▶▶[/dark_turquoise] ")
 
             if not choice.isdigit():
-                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
                 continue
 
             return None if choice == "" or int(choice) == 0 else int(choice)
@@ -164,7 +158,7 @@ class ContractView:
                                     "[dark_turquoise]▶▶[/dark_turquoise] ")
 
             if not self.is_float(answer):
-                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
                 continue
 
             return float(answer)
@@ -182,7 +176,7 @@ class ContractView:
                                 default="False")
 
             if not self.is_bool(answer):
-                console.print("\n❗ [bold red]Please enter a boolean (true/false | 1/0).\n[/bold red]")
+                self.console.print("\n❗ [bold red]Please enter a boolean (true/false | 1/0).\n[/bold red]")
                 continue
 
             return bool(answer)

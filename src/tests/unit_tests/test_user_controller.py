@@ -1,6 +1,7 @@
 import sys
 import unittest
 from datetime import datetime
+from rich.console import Console
 from io import StringIO
 
 from sqlalchemy import create_engine
@@ -207,14 +208,15 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the logout method
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
 
         self.controller.logout(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("You are successfully logged out.", output)
 
@@ -262,13 +264,14 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the exit method
         """
         with self.assertRaises(SystemExit) as mock:
-            captured_output = StringIO()
-            sys.stdout = captured_output
+            buffer = StringIO()
+            test_console = Console(file=buffer, force_terminal=False)
+            self.main_controller.console = test_console
+            self.main_controller.view.console = test_console
 
             self.main_controller.goodbye()
 
-            sys.stdout = sys.__stdout__
-            output = captured_output.getvalue()
+            output = buffer.getvalue()
 
             self.assertIn("Goodbye !", output)
             self.assertEqual(mock.exception.code, 1)

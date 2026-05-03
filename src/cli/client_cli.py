@@ -6,13 +6,16 @@ from src.controllers.main_controller import MainController
 
 
 @click.group()
-def client():
-    pass
+@click.pass_context
+def client(ctx):
+    ctx.ensure_object(dict)
 
 @client.command()
-def create_client():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def create_client(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -26,9 +29,11 @@ def create_client():
         main_controller.view.display_permission_denied(action="create", model_type="client")
 
 @client.command()
-def update_client():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def update_client(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -43,9 +48,11 @@ def update_client():
 
 
 @client.command()
-def delete_client():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def delete_client(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -59,9 +66,11 @@ def delete_client():
         main_controller.view.display_permission_denied(action="delete", model_type="client")
 
 @client.command()
-def filter_client():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def filter_client(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -79,9 +88,11 @@ def filter_client():
         main_controller.view.display_permission_denied(action="filter", model_type="client")
 
 @client.command()
-def display_client():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def display_client(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:

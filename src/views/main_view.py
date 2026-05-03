@@ -1,3 +1,5 @@
+from typing import Any
+
 import click
 import re
 import sys
@@ -19,178 +21,160 @@ from src.views.contract_view import ContractView
 from src.views.event_view import EventView
 
 
-console = Console(
-    file=sys.stdout,
-    force_terminal=True,
-    color_system="truecolor",
-    width=200,
-    style="bright_white"
-)
-
-
 class MainView:
-    def __init__(self):
+    def __init__(self, console=None):
+        self.console = console or Console(file=sys.stdout,
+                                          force_terminal=True,
+                                          color_system="truecolor",
+                                          width=200,
+                                          style="bright_white")
+
         self.contract_view = ContractView(self)
         self.client_view = ClientView(self)
         self.event_view = EventView(self)
 
-    @staticmethod
-    def display_main_menu() -> None:
+    def display_main_menu(self) -> None:
         """
         Method to display the main menu.
         """
-        click.echo("\nWELCOME TO EPIC EVENTS !\n")
-        click.echo("▶ MAIN MENU ◀")
-        click.echo("▷▷ 1. Log in")
-        click.echo("▷▷ 2. Quit the app\n")
+        self.console.print("\nWELCOME TO EPIC EVENTS !\n")
+        self.console.print("▶ MAIN MENU ◀")
+        self.console.print("▷▷ 1. Log in")
+        self.console.print("▷▷ 2. Quit the app\n")
 
-    @staticmethod
-    def display_goodbye() -> None:
+    def display_goodbye(self) -> None:
         """
         Method to display the goodbye message.
         """
-        click.echo("\n👋  Goodbye ! 👋\n")
+        self.console.print("\n👋  Goodbye ! 👋\n")
 
-    @staticmethod
-    def display_logout() -> None:
+    def display_logout(self) -> None:
         """
         Method to display the logout message.
         """
-        console.print(Panel("\n✅ You are successfully logged out.\n",
-                            border_style="bold green",
-                            style="bold white",
-                            expand=False))
+        self.console.print(Panel("\n✅ You are successfully logged out.\n",
+                                 border_style="bold green",
+                                 style="bold white",
+                                 expand=False))
 
-    @staticmethod
-    def display_submenu(model_type) -> None:
+    def display_submenu(self, model_type) -> None:
         """
         Method to display the submenu.
         Args:
             model_type ():
         """
-        click.echo(f"\n▶ {model_type.upper()} MENU ◀\n")
-        click.echo("▷▷ 1. Display")
-        click.echo("▷▷ 2. Create")
-        click.echo("▷▷ 3. Update")
-        click.echo("▷▷ 4. Delete")
-        click.echo("▷▷ 5. Filter")
-        click.echo("▷▷ 6. Go back")
+        self.console.print(f"\n▶ {model_type.upper()} MENU ◀\n")
+        self.console.print("▷▷ 1. Display")
+        self.console.print("▷▷ 2. Create")
+        self.console.print("▷▷ 3. Update")
+        self.console.print("▷▷ 4. Delete")
+        self.console.print("▷▷ 5. Filter")
+        self.console.print("▷▷ 6. Go back")
 
-    @staticmethod
-    def display_permission_denied(action: str, model_type: str) -> None:
+    def display_permission_denied(self, action: str, model_type: str) -> None:
         """
         Method to display the permission denied message.
         Args:
             action (str): The action.
             model_type (str): The model type.
         """
-        console.print(Panel(f"❌ You don't have the permission to [bold red]{action}[/bold red] "
+        self.console.print(Panel(f"❌ You don't have the permission to [bold red]{action}[/bold red] "
                             f"a [bold red]{model_type}[/bold red].",
                             border_style="bold bright_red",
                             style="white",
                             expand=False))
 
-    @staticmethod
-    def display_action_introduction(action: str, model_type: str) -> None:
+    def display_action_introduction(self, action: str, model_type: str) -> None:
         """
         Method to display the introduction message from an action.
         Args:
             action (str): The action.
             model_type (str): The model type.
         """
-        console.print(f"\n[bold light_goldenrod2]⭢ You are going to {action} {model_type}s.[/bold light_goldenrod2]\n")
+        self.console.print(f"\n[bold light_goldenrod2]⭢ You are going to {action} {model_type}s.[/bold light_goldenrod2]\n")
 
-    @staticmethod
-    def display_login_submenu() -> None:
+    def display_login_submenu(self) -> None:
         """
         Method to display the submenu after login.
         """
-        click.echo("\n▶ LOG IN ◀\n")
-        click.echo("▷▷ You are going to enter the followings details :")
-        click.echo(" • your e-mail address")
-        click.echo(" • your password\n")
+        self.console.print("\n▶ LOG IN ◀\n")
+        self.console.print("▷▷ You are going to enter the followings details :")
+        self.console.print(" • your e-mail address")
+        self.console.print(" • your password\n")
 
-    @staticmethod
-    def display_successfully_logged_in(name: str) -> None:
+    def display_successfully_logged_in(self, name: str) -> None:
         """
         Method to display the successfully logged in message.
         Args:
             name (str): The name of the user.
         """
-        console.print(Panel(f"\n✅ {name.capitalize()}, you are successfully logged in.\n",
+        self.console.print(Panel(f"\n✅ {name.capitalize()}, you are successfully logged in.\n",
                             border_style="bold green",
                             style="bold white",
                             expand=False))
 
-    @staticmethod
-    def display_action_successfully_done(action: str, model_type: str) -> None:
+    def display_action_successfully_done(self, action: str, model_type: str) -> None:
         """
         Method to display the successfully done message.
         Args:
             action (str): The action.
             model_type (str): The model type.
         """
-        console.print(Panel(f"\n✅ The {model_type} has been successfully {action}.\n",
+        self.console.print(Panel(f"\n✅ The {model_type} has been successfully {action}.\n",
                             border_style="bold green",
                             style="bold white",
                             expand=False))
 
-    @staticmethod
-    def display_action_fails(action: str, model_type: str) -> None:
+    def display_action_fails(self, action: str, model_type: str) -> None:
         """
         Method to display the failure message.
         Args:
             action (str): The action.
             model_type (str): The model type.
         """
-        console.print(Panel(f"\n❌ The [bold]{model_type}[/bold] has not been [bold]{action}[/bold].\n",
+        self.console.print(Panel(f"\n❌ The [bold]{model_type}[/bold] has not been [bold]{action}[/bold].\n",
                             border_style="bold bright_red",
                             style="white",
                             expand=False))
 
-    @staticmethod
-    def display_not_connected() -> None:
+    def display_not_connected(self) -> None:
         """
         Method to display when the user is not logged in.
         """
-        console.print("❗ [bold bright_red]You need to log in first.[/bold bright_red]")
+        self.console.print("❗ [bold bright_red]You need to log in first.[/bold bright_red]")
 
-    @staticmethod
-    def display_wrong_password() -> None:
+    def display_wrong_password(self) -> None:
         """
         Method to display the wrong password message.
         """
-        console.print("❗ [bold bright_red]Invalid password.[/bold bright_red]")
+        self.console.print("❗ [bold bright_red]Invalid password.[/bold bright_red]")
 
-    @staticmethod
-    def display_collaborator_not_exists() -> None:
+    def display_collaborator_not_exists(self) -> None:
         """
         Method to display the message when a collaborator does not exist.
         """
-        console.print("❗ [bold bright_red]This collaborator does not exist.[/bold bright_red]")
+        self.console.print("❗ [bold bright_red]This collaborator does not exist.[/bold bright_red]")
 
-    @staticmethod
-    def display_collaborator_menu() -> None:
+    def display_collaborator_menu(self) -> None:
         """
         Method to display the collaborator menu when successfully logged in.
         """
-        click.echo(f"\n▶ EPIC EVENTS - COLLABORATOR MENU ◀\n")
-        click.echo("▷▷ 1. Collaborator")
-        click.echo("▷▷ 2. Contract")
-        click.echo("▷▷ 3. Client")
-        click.echo("▷▷ 4. Event")
-        click.echo("▷▷ 5. Log out\n")
+        self.console.print(f"\n▶ EPIC EVENTS - COLLABORATOR MENU ◀\n")
+        self.console.print("▷▷ 1. Collaborator")
+        self.console.print("▷▷ 2. Contract")
+        self.console.print("▷▷ 3. Client")
+        self.console.print("▷▷ 4. Event")
+        self.console.print("▷▷ 5. Log out\n")
 
-    @staticmethod
-    def display_collaborator_submenu() -> None:
+    def display_collaborator_submenu(self) -> None:
         """
         Method to display the collaborator submenu.
         """
-        click.echo(f"\n▶ EPIC EVENTS - COLLABORATOR SUBMENU ◀\n")
-        click.echo("▷▷ 1. Manager")
-        click.echo("▷▷ 2. Commercial")
-        click.echo("▷▷ 3. Technician")
-        click.echo("▷▷ 4. Go back\n")
+        self.console.print(f"\n▶ EPIC EVENTS - COLLABORATOR SUBMENU ◀\n")
+        self.console.print("▷▷ 1. Manager")
+        self.console.print("▷▷ 2. Commercial")
+        self.console.print("▷▷ 3. Technician")
+        self.console.print("▷▷ 4. Go back\n")
 
     def display_models(self, model_type: str, models: list) -> None:
         """
@@ -201,33 +185,33 @@ class MainView:
         """
         if (None,) in models or not models:
             if model_type == "contract":
-                console.print(f"\n[bold red3] ⯀ {model_type.upper()}S[/bold red3] "
+                self.console.print(f"\n[bold red3] ⯀ {model_type.upper()}S[/bold red3] "
                               f"- [gold3]No {model_type} to display.[/gold3]\n")
 
             elif model_type == "client":
-                console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S[/bold deep_sky_blue1] "
+                self.console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S[/bold deep_sky_blue1] "
                               f"- [gold3]No {model_type} to display.[/gold3]\n")
 
             elif model_type == "event":
-                console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S[/bold spring_green3] "
+                self.console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S[/bold spring_green3] "
                               f"- [gold3]No {model_type} to display.[/gold3]\n")
 
             else:
-                console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S[/bold grey85] "
+                self.console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S[/bold grey85] "
                               f"- [gold3]No {model_type} to display.[/gold3]\n")
 
         else:
             if model_type == "contract":
-                console.print(f"\n[bold red3] ⯀ {model_type.upper()}S TO DISPLAY : [/bold red3] \n")
+                self.console.print(f"\n[bold red3] ⯀ {model_type.upper()}S TO DISPLAY : [/bold red3] \n")
 
             elif model_type == "client":
-                console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S TO DISPLAY : [/bold deep_sky_blue1] \n")
+                self.console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S TO DISPLAY : [/bold deep_sky_blue1] \n")
 
             elif model_type == "event":
-                console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S TO DISPLAY : [/bold spring_green3] \n")
+                self.console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S TO DISPLAY : [/bold spring_green3] \n")
 
             else:
-                console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S TO DISPLAY : [/bold grey85] \n")
+                self.console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S TO DISPLAY : [/bold grey85] \n")
 
             actions = {
                 "contract": self.contract_view.display_contracts,
@@ -241,15 +225,14 @@ class MainView:
             action = actions.get(model_type)
             action(models)
 
-    @staticmethod
-    def display_collaborators(models: list) -> None:
+    def display_collaborators(self, models: list) -> None:
         """
         Method to display the collaborators list.
         Args:
             models (list): The models list.
         """
         for model in models:
-            console.print(Panel(f"  - {model.id}. {model.name.capitalize()}",
+            self.console.print(Panel(f"  - {model.id}. {model.name.capitalize()}",
                                 expand=False,
                                 border_style="bold navajo_white3",
                                 style="navajo_white3"))
@@ -264,9 +247,10 @@ class MainView:
         """
         table = Table(show_header=False, box=None, style="bright_white")
         table.add_row(f"[bold navajo_white3]Id[/bold navajo_white3] : {collaborator.id}")
-        table.add_row(f"[bold navajo_white3]name[/bold navajo_white3] : {collaborator.name}")
+        table.add_row(f"[bold navajo_white3]Name[/bold navajo_white3] : {collaborator.name}")
         table.add_row(f"[bold navajo_white3]Employee number[/bold navajo_white3] : {collaborator.employee_number}")
         table.add_row(f"[bold navajo_white3]E-mail[/bold navajo_white3] : {collaborator.email}")
+        table.add_row(f"[bold navajo_white3]Role[/bold navajo_white3] : {role}")
 
         return Panel(table, border_style="bold navajo_white3", expand=False)
 
@@ -278,17 +262,16 @@ class MainView:
             role (str): The role of the collaborator.
         """
         panel = self.collaborator_to_display(collaborator, role)
-        console.print(panel)
+        self.console.print(panel)
 
-    @staticmethod
-    def display_title(model_type: str, model_id: int) -> None:
+    def display_title(self, model_type: str, model_id: int) -> None:
         """
         Method to display a title for a given model.
         Args:
             model_type (str): The model type.
             model_id (int): The model id.
         """
-        console.print(f"\n[bright_white]Here is the {model_type} n°{model_id}: [/bright_white]\n")
+        self.console.print(f"\n[bright_white]Here is the {model_type} n°{model_id}: [/bright_white]\n")
 
     def display_model(self, model_type: str,
                       model: type[Client | Event | Contract]) -> None:
@@ -308,38 +291,35 @@ class MainView:
         action = actions.get(model_type)
         panel = action(model)
 
-        console.print(panel)
+        self.console.print(panel)
 
-    @staticmethod
-    def display_new_data_request(model_type: str, model_id: int) -> None:
+    def display_new_data_request(self, model_type: str, model_id: int) -> None:
         """
         Method to display a title for the new data request action for a given model type and model id.
         Args:
             model_type (str): The model type.
             model_id (int): The model id.
         """
-        click.echo(f"\n▶ Please enter the new data for the {model_type} n°{model_id}.")
+        self.console.print(f"\n▶ Please enter the new data for the {model_type} n°{model_id}.")
 
-    @staticmethod
-    def display_model_already_exist(model_type: str) -> None:
+    def display_model_already_exist(self, model_type: str) -> None:
         """
         Method to display a message when a model already exists.
         Args:
             model_type (str): The model type.
         """
-        console.print(Panel(f"\n❌ This [bold]{model_type}[/bold] already exists.\n",
+        self.console.print(Panel(f"\n❌ This [bold]{model_type}[/bold] already exists.\n",
                             border_style="bright_red",
                             style="white",
                             expand=False))
 
-    @staticmethod
-    def display_collaborator_already_exists(collaborator: type[Commercial | Manager | Technician]) -> None:
+    def display_collaborator_already_exists(self, collaborator: type[Commercial | Manager | Technician]) -> None:
         """
         Method to display a message when a model already exists.
         Args:
             collaborator (type[Commercial | Manager | Technician]): The collaborator
         """
-        console.print(Panel(f"\n❌ The collaborator [bold]{collaborator.email}[/bold] already exists.\n",
+        self.console.print(Panel(f"\n❌ The collaborator [bold]{collaborator.email}[/bold] already exists.\n",
                             border_style="bright_red",
                             style="white",
                             expand=False))
@@ -354,69 +334,62 @@ class MainView:
         """
         click.echo(f"\n❗ A collaborator inactive with this email [{collaborator.email}] already exists.\n")
 
-    @staticmethod
-    def display_something_wrong(action: str) -> None:
+    def display_something_wrong(self, action: str) -> None:
         """
         Method to display a message when something goes wrong during the givent action.
         """
-        console.print(Panel(f"\n❌ Something went wrong while [bold]{action}[/bold].\n",
+        self.console.print(Panel(f"\n❌ Something went wrong while [bold]{action}[/bold].\n",
                             border_style="bright_red",
                             style="white",
                             expand=False))
 
-    @staticmethod
-    def display_something_wrong_while_creating() -> None:
+    def display_something_wrong_while_creating(self) -> None:
         """
         Method to display a message when something goes wrong while creating
         """
-        console.print(Panel(f"\n❌ Something went wrong while creating.\n",
+        self.console.print(Panel(f"\n❌ Something went wrong while creating.\n",
                             border_style="bold bright_red",
                             style="white",
                             expand=False))
-        
-    @staticmethod
-    def display_something_wrong_while_updating() -> None:
+
+    def display_something_wrong_while_updating(self) -> None:
         """
         Method to display a message when something goes wrong while updating
         """
-        console.print(Panel(f"\n❌ Something went wrong while updating.\n",
+        self.console.print(Panel(f"\n❌ Something went wrong while updating.\n",
                             border_style="bold bright_red",
                             style="white",
                             expand=False))
 
-    @staticmethod
-    def display_something_wrong_while_deleting() -> None:
+    def display_something_wrong_while_deleting(self) -> None:
         """
         Method to display a message when something goes wrong while deleting
         """
-        console.print(Panel(f"\n❌ Something went wrong while deleting.\n",
+        self.console.print(Panel(f"\n❌ Something went wrong while deleting.\n",
                             border_style="bold bright_red",
                             style="white",
                             expand=False))
 
-    @staticmethod
-    def display_action_impossible(action: str) -> None:
+    def display_action_impossible(self, action: str) -> None:
         """
         Method to display a message when the action is not possible.
         """
-        console.print(Panel(f"\n❌ No models to [bold]{action}[/bold].\n",
+        self.console.print(Panel(f"\n❌ No models to [bold]{action}[/bold].\n",
                             border_style="bright_red",
                             style="white",
                             expand=False))
 
-    @staticmethod
-    def display_cannot_delete_admin_manager_or_yourself() -> None:
+    def display_cannot_delete_admin_manager_or_yourself(self) -> None:
         """
         Method to display a message when a user wants to delete the admin manager or its own profile
         """
-        console.print(Panel(f"\n❌ You can not [bold]delete[/bold] the [bold]admin[/bold] manager "
+        self.console.print(Panel(f"\n❌ You can not [bold]delete[/bold] the [bold]admin[/bold] manager "
                             f"or your [bold]own account[/bold].\n",
                             border_style="bright_red",
                             style="white",
                             expand=False))
 
-    @staticmethod
-    def display_cannot_delete(model_type, model_linked) -> None:
+    def display_cannot_delete(self, model_type, model_linked) -> None:
         """
         Method to display when deletion is not possible
         Args:
@@ -424,55 +397,52 @@ class MainView:
             model_linked (str): The model type linked to the model
         """
         if model_type == "contract":
-            console.print(Panel(f"\n❌ Cannot delete [bold]{model_type}[/bold] : {model_linked}(s) "
+            self.console.print(Panel(f"\n❌ Cannot delete [bold]{model_type}[/bold] : {model_linked}(s) "
                                 f"linked.\n",
                                 border_style="bright_red",
                                 style="white",
                                 expand=False))
 
         elif model_type == "client":
-            console.print(Panel(f"\n❌ Cannot delete "
+            self.console.print(Panel(f"\n❌ Cannot delete "
                                 f"[bold cornflower_blue]{model_type}[/bold cornflower_blue] : {model_linked}(s) "
                                 f"linked.\n",
                                 border_style="bright_red",
                                 style="white",
                                 expand=False))
         else:
-            console.print(Panel(f"\n❌ Cannot delete "
+            self.console.print(Panel(f"\n❌ Cannot delete "
                                 f"[bold chartreuse2]{model_type}[/bold chartreuse2] : {model_linked}(s) "
                                 f"linked.\n",
                                 border_style="bold bright_red",
                                 style="white",
                                 expand=False))
 
-    @staticmethod
-    def display_wrong_collaborator_role():
+    def display_wrong_collaborator_role(self):
         """
         Method to display a message when the user enters a wrong collaborator role.
         """
-        console.print(Panel(f"\n❌ You did not enter a valid role as below : "
+        self.console.print(Panel(f"\n❌ You did not enter a valid role as below : "
                             f"[manager | commercial | technician].\n",
                             border_style="bold bright_red",
                             style="white",
                             expand=False))
 
-    @staticmethod
-    def display_roles(roles: dict) -> None:
+    def display_roles(self, roles: dict) -> None:
         """
         Method to display the roles list.
         Args:
             roles (dict): The roles dictionary
         """
-        console.print("[bold gray62]\nAll roles :[/bold grey62]")
+        self.console.print("[bold grey62]\nAll roles :[/bold grey62]")
         for role_id, role_name in roles.items():
-            console.print(Panel(f"  - {role_id}. {role_name.upper()}"
+            self.console.print(Panel(f"  - {role_id}. {role_name.upper()}"
                                 f"[manager | commercial | technician].\n",
                                 border_style="bold grey62",
                                 style= "grey62",
                                 expand=False))
 
-    @staticmethod
-    def display_filters(filters: list) -> None:
+    def display_filters(self, filters: list) -> None:
         """
         Method to display the filters list.
         Args:
@@ -499,7 +469,7 @@ class MainView:
                                 expand=False,
                                 height=3))
 
-        console.print(table)
+        self.console.print(table)
 
     def display_filter_results(self, model_type: str,
                                my_filter: str,
@@ -513,14 +483,14 @@ class MainView:
             filter_value (str | int | float): The filter value.
             results (list): The results.
         """
-        click.echo()
+        self.console.print()
         title = Panel(
             f"[bold white]⮞ All results for {model_type}s filtered by {my_filter} "
             f"with value '{filter_value}' ⮜[/bold white]",
             border_style="bold white",
             expand=False
         )
-        console.print(title)
+        self.console.print(title)
 
         table = Table(
             show_header=False,
@@ -575,10 +545,9 @@ class MainView:
             table.add_row("[grey46]-[/grey46]" * 60)
             table.add_row("")
 
-        console.print(table)
+        self.console.print(table)
 
-    @staticmethod
-    def display_filter_no_results(model_type: str, my_filter: str, filter_value: str | int | float) -> None:
+    def display_filter_no_results(self, model_type: str, my_filter: str, filter_value: str | int | float) -> None:
         """
         Method to display when filtering results are empty.
         Args:
@@ -587,16 +556,15 @@ class MainView:
             filter_value (str | int | float): The filter value.
         """
         if filter_value is not None :
-            console.print(f"\n❗ [bright_red]No results found for [bold]'{my_filter}'[/bold] filtering "
+            self.console.print(f"\n❗ [bright_red]No results found for [bold]'{my_filter}'[/bold] filtering "
                           f"in [bold]{model_type}s[/bold] "
                           f"with value [bold]'{filter_value}'[/bold].[/bright_red]\n")
 
         else:
-            console.print(f"\n❗ [bright_red]No results found for [bold]'{my_filter}'[/bold] filtering "
+            self.console.print(f"\n❗ [bright_red]No results found for [bold]'{my_filter}'[/bold] filtering "
                           f"in [bold]{model_type}[/bold].[/bright_red]\n")
 
-    @staticmethod
-    def prompt_for_menu(nb) -> int | None:
+    def prompt_for_menu(self, nb) -> int | None:
         """
         Method to prompt the user to choose the action in the menu
         Args:
@@ -610,13 +578,13 @@ class MainView:
                                 "▶▶ ")
 
             if not answer.isdigit():
-                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
             coll = (str(i+1) for i in range(nb))
 
             if answer not in coll:
-                console.print(f"\n❗ [bold bright_red]Please choose between 1 and {nb}.\n[/bold bright_red]")
+                self.console.print(f"\n❗ [bold bright_red]Please choose between 1 and {nb}.\n[/bold bright_red]")
                 continue
 
             return int(answer)
@@ -637,13 +605,13 @@ class MainView:
                                 "▶▶ ")
 
             if not answer.isdigit():
-                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
             coll = (str(i + 1) for i in range(len(filters)))
 
             if answer not in coll:
-                console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(filters)}.\n[/bold bright_red]")
+                self.console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(filters)}.\n[/bold bright_red]")
                 continue
 
             return int(answer)
@@ -664,8 +632,7 @@ class MainView:
                             f"▶▶ ", default="")
         return answer
 
-    @staticmethod
-    def prompt_for_date_filter_value(model_type: str, my_filter: str) -> datetime | str:
+    def prompt_for_date_filter_value(self, model_type: str, my_filter: str) -> datetime | str:
         """
         Method to prompt the user to enter a date as filter value.
         Args:
@@ -685,12 +652,11 @@ class MainView:
                     return datetime.strptime(answer, '%d/%m/%y')
 
                 except ValueError:
-                    console.print("❗ [bold bright_red]Please enter a valid date.[/bold bright_red]")
+                    self.console.print("❗ [bold bright_red]Please enter a valid date.[/bold bright_red]")
             else:
                 return ""
 
-    @staticmethod
-    def prompt_for_integer(model_type: str, my_filter: str) -> int | None:
+    def prompt_for_integer(self, model_type: str, my_filter: str) -> int | None:
         """
         Method to prompt the user to type integer
         Args:
@@ -705,13 +671,12 @@ class MainView:
                                 f"[bold light_goldenrod2]")
 
             if not answer.isdigit():
-                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
             return int(answer)
 
-    @staticmethod
-    def prompt_for_model_id_with_action(action: str, model_type: str, models: dict) -> int | None:
+    def prompt_for_model_id_with_action(self, action: str, model_type: str, models: dict) -> int | None:
         """
         Method
         Args:
@@ -725,24 +690,25 @@ class MainView:
         while True:
             models = models.get("contracts") if model_type == "contract" else models
 
-            answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Which {model_type} (from id {models[0].id} to id {models[-1].id}) do you want "
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Which {model_type} "
+                                f"(from id {models[0].id} to id {models[-1].id}) do you want "
                                 f"to {action} ?[/bold light_goldenrod2] \n"
-                                f"▶▶ ", default=1)
+                                f"▶▶ ", default="1")
 
             if not answer.isdigit():
-                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
             coll = (str(i + 1) for i in range(len(models)))
 
             if answer not in coll:
-                console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(models)}.\n[/bold bright_red]")
+                self.console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(models)}."
+                                   f"\n[/bold bright_red]")
                 continue
 
             return int(answer)
 
-    @staticmethod
-    def prompt_for_model_id(model_type: str, models: list | dict) -> int | None:
+    def prompt_for_model_id(self, model_type: str, models: list | dict) -> int | None:
         """
         Method to prompt the user to choose an id in the models list.
         Args:
@@ -755,18 +721,20 @@ class MainView:
         while True:
             models = models.get("contracts") if isinstance(models, dict) else models
 
-            answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please choose a {model_type} (from id {models[0].id} "
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please choose a {model_type} "
+                                f"(from id {models[0].id} "
                                 f"to id {models[-1].id})[/bold light_goldenrod2]\n"
-                                f"▶▶ ", default=1)
+                                f"▶▶ ", default="1")
 
             if not answer.isdigit():
-                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
             coll = (str(i + 1) for i in range(len(models)))
 
             if answer not in coll:
-                console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(models)}.\n[/bold bright_red]")
+                self.console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(models)}."
+                                   f"\n[/bold bright_red]")
                 continue
 
             return int(answer)
@@ -784,8 +752,7 @@ class MainView:
                                    "▶▶ ")
             return input_key.lower()
 
-    @staticmethod
-    def prompt_for_email() -> str | None:
+    def prompt_for_email(self) -> str | None:
         """
         Method to prompt the user the e-mail address.
 
@@ -797,7 +764,7 @@ class MainView:
                                f"▶▶ ")
 
             if not re.fullmatch(r'[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', email):
-                console.print("❗ [bold bright_red]Invalid e-mail address.[/bold bright_red]")
+                self.console.print("❗ [bold bright_red]Invalid e-mail address.[/bold bright_red]")
                 continue
 
             return email
@@ -868,8 +835,7 @@ class MainView:
                             default="")
         return answer
 
-    @staticmethod
-    def prompt_for_date(model_type: str, field: str) -> datetime | None:
+    def prompt_for_date(self, model_type: str, field: str) -> datetime | None:
         """
         Method to prompt the user to enter a date
         Args:
@@ -892,11 +858,11 @@ class MainView:
                     return datetime.strptime(answer, '%d/%m/%y %H:%M:%S')
 
                 except ValueError:
-                    console.print("❗ [bold bright_red]Please enter a valid date.[/bold bright_red]")
+                    self.console.print("❗ [bold bright_red]Please enter a valid date.[/bold bright_red]")
             else:
                 return None
 
-    def prompt_for_collaborator(self, role) -> tuple[str, str, str]:
+    def prompt_for_collaborator(self, role) -> tuple[str | None, str | None, str]:
         """
         Method to prompt the user to enter the collaborator data
         Args:
@@ -913,28 +879,63 @@ class MainView:
 
         return email, password, name
 
-    def prompt_for_collaborator_role(self, roles: dict) -> tuple[int, str] | None:
+    def prompt_for_collaborator_role(self) -> tuple[int, Any | None] | None:
         """
         Method to prompt the user to enter the collaborator role
-        Args:
-            roles (list): The roles available for the collaborator.
 
         Returns:
         A tuple with the role id and the role of the collaborator.
         """
         while True:
+            roles = {
+                1: "manager",
+                2: "commercial",
+                3: "technician",
+            }
             self.display_roles(roles)
 
-            role = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Which new role do you want to assign ? (1,2,3)"
-                              f"[/bold light_goldenrod2]\n"
-                              f"▶▶ ",
-                              default=1)
+            role = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Which new role do you want to assign, "
+                              f"if wanted? (1,2,3)[/bold light_goldenrod2]\n"
+                              f"▶▶ ")
 
             if not role.isdigit():
-                console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
             if int(role) not in [1,2,3]:
-                console.print("❗ [bold bright_red]Please enter an integer between 1 and 3.[/bold bright_red]")
+                self.console.print("\n❗ [bold bright_red]Please enter an integer between 1 and 3.\n"
+                                   "[/bold bright_red]")
+                continue
 
-            return int(role), roles[int(role)]
+            return int(role), str(roles.get(int(role)))
+
+    def prompt_for_collaborator_role_to_action(self, action) -> str | None:
+        """
+        Method to prompt the user to enter the collaborator role
+
+        Returns:
+        The role.
+        """
+        while True:
+            roles = {
+                1: "manager",
+                2: "commercial",
+                3: "technician",
+            }
+            self.display_roles(roles)
+
+            role = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Which collaborator do you want to {action}? "
+                              f"(1,2,3)[/bold light_goldenrod2]\n"
+                              f"▶▶ ")
+
+            if not role.isdigit():
+                self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
+                continue
+
+            role = int(role)
+            if role not in [1,2,3]:
+                self.console.print("\n❗ [bold bright_red]Please enter an integer between 1 and 3.\n"
+                                   "[/bold bright_red]")
+                continue
+
+            return roles.get(role)

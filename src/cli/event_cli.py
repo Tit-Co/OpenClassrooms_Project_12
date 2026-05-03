@@ -6,13 +6,16 @@ from src.controllers.main_controller import MainController
 
 
 @click.group()
-def event():
-    pass
+@click.pass_context
+def event(ctx):
+    ctx.ensure_object(dict)
 
 @event.command()
-def create_event():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def create_event(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -26,9 +29,11 @@ def create_event():
         main_controller.view.display_permission_denied(action="create", model_type="event")
 
 @event.command()
-def update_event():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def update_event(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -43,9 +48,11 @@ def update_event():
 
 
 @event.command()
-def delete_event():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def delete_event(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -59,9 +66,11 @@ def delete_event():
         main_controller.view.display_permission_denied(action="delete", model_type="event")
 
 @event.command()
-def filter_event():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def filter_event(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -79,9 +88,11 @@ def filter_event():
         main_controller.view.display_permission_denied(action="filter", model_type="event")
 
 @event.command()
-def display_event():
-    session = SessionLocal()
-    main_controller = MainController()
+@click.pass_context
+def display_event(ctx):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:

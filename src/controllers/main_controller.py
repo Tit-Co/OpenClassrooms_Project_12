@@ -1,4 +1,7 @@
+import sys
 import bcrypt
+
+from rich.console import Console
 from sqlalchemy import Engine
 from sqlalchemy.orm import InstrumentedAttribute, Session
 
@@ -17,7 +20,13 @@ from .event_controller import EventController
 
 class MainController:
     def __init__(self):
-        self.view = MainView()
+
+        self.console = Console(file=sys.stdout,
+                               force_terminal=True,
+                               color_system="truecolor",
+                               width=200)
+
+        self.view = MainView(self.console)
 
         self.user_controller = CollaboratorController(self)
         self.contract_controller = ContractController(self)
@@ -95,6 +104,7 @@ class MainController:
         """
         while True:
             self.view.display_main_menu()
+
             menu = self.view.prompt_for_menu(2)
 
             actions = {
@@ -103,13 +113,18 @@ class MainController:
             }
 
             action = actions.get(menu)
+
+            if not action:
+                raise TypeError("Invalid choice")
+
             action()
 
-    def login_2(self, session: Session) -> None:
+    def login_2(self, session: Session, db_engine: Engine) -> None:
         """
         Method to launch login
         Args:
             session (Session): session
+            db_engine (Engine): database engine
         """
         while True:
             self.view.display_login_submenu()
@@ -122,21 +137,24 @@ class MainController:
 
             password = self.view.prompt_for_password()
 
+            self.init_db(db_engine, session)
+
             success = self.authenticate(session=session, email=email, password=password)
 
             if success:
                 self.user_controller.collaborator_menu(session=session)
                 break
 
-    def login(self, session: Session, email: str, password: str) -> bool:
+    def login(self, session: Session, db_engine: Engine, email: str, password: str) -> bool:
         """
         Method to launch login
         Args:
             session (Session): session
+            db_engine (Engine): database engine
             email (str): email
             password (str): password
         """
-        self.init_db(engine, session)
+        self.init_db(db_engine, session)
 
         return self.authenticate(session=session, email=email, password=password)
 
@@ -160,14 +178,18 @@ class MainController:
                 break
 
         if user is None:
+            self.view.display_collaborator_not_exists()
             return None
 
         if not self.check_password(password=password, user_password=user.password):
+            self.view.display_wrong_password()
             return False
 
         self.init_permissions(session=session, user=user)
 
         self.user_controller.save_current_user(email=email)
+
+        self.view.display_successfully_logged_in(name = user.name.capitalize())
 
         return True
 

@@ -11,8 +11,9 @@ from src.controllers.main_controller import MainController
 
 
 @click.group()
-def cli():
-    pass
+@click.pass_context
+def cli(ctx):
+    ctx.ensure_object(dict)
 
 cli.add_command(collaborator)
 cli.add_command(contract)
@@ -20,34 +21,22 @@ cli.add_command(client)
 cli.add_command(event)
 
 @cli.command()
-def login():
-    session = SessionLocal()
+@click.option("--email", required=False)
+@click.option("--password", required=False)
+@click.pass_context
+def login(ctx, email, password):
+    ctx.ensure_object(dict)
+    session = ctx.obj.get("session") or SessionLocal()
+    main_controller = ctx.obj.get("main_controller") or MainController()
+    db_engine = ctx.obj.get("db_engine")
 
-    main_controller = MainController()
+    if not email:
+        email = main_controller.view.prompt_for_email()
 
-    email = main_controller.view.prompt_for_email()
+    if not password:
+        password = main_controller.view.prompt_for_password()
 
-    password = main_controller.view.prompt_for_password()
-
-    # if main_controller.login(session=session, email=email, password=password):
-    #     user = main_controller.user_controller.get_collaborator_by_mail(session=session, email=email)
-    #     main_controller.view.display_successfully_logged_in(user.name)
-    #
-    # elif not main_controller.login(session=session, email=email, password=password):
-    #     main_controller.view.display_credentials_wrong()
-    #
-    # else:
-    #     main_controller.view.display_something_wrong("logging")
-    result = main_controller.login(session=session, email=email, password=password)
-    if result:
-        user = main_controller.user_controller.get_collaborator_by_mail(session=session, email=email)
-        main_controller.view.display_successfully_logged_in(name=user.name)
-
-    elif result is None:
-        main_controller.view.display_collaborator_not_exists()
-
-    else:
-        main_controller.view.display_wrong_password()
+    result = main_controller.login(session=session, db_engine=db_engine, email=email, password=password)
 
     session.close()
 

@@ -2,6 +2,7 @@ import sys
 import unittest
 from datetime import datetime
 from io import StringIO
+from rich.console import Console
 from unittest.mock import Mock
 
 from sqlalchemy import create_engine
@@ -21,7 +22,6 @@ class TestCollaboratorController(unittest.TestCase):
     main_controller = MainController()
     controller = CollaboratorController(main_controller)
     client_controller = ClientController(main_controller)
-
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -152,13 +152,13 @@ class TestCollaboratorController(unittest.TestCase):
             1 # commercial_id
         ])
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.view.console = test_console
 
         self.client_controller.create_client_with_view(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("The client has been successfully created.", output)
 
@@ -202,13 +202,13 @@ class TestCollaboratorController(unittest.TestCase):
             "Company test update",
             ])
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.view.console = test_console
 
         self.client_controller.update_client_with_view(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         client = self.session.query(Client).filter_by(is_active=True, id=1).first()
 

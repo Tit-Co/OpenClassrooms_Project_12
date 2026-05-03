@@ -16,20 +16,15 @@ if TYPE_CHECKING:
     from src.views.main_view import MainView
 
 
-console = Console(
-    file=sys.stdout,
-    force_terminal=True,
-    color_system="truecolor",
-    width=200
-)
-
-
 class EventView:
     def __init__(self, main_view: MainView):
         self.main_view = main_view
 
-    @staticmethod
-    def display_events(models: list) -> None:
+    @property
+    def console(self) -> Console:
+        return self.main_view.console
+
+    def display_events(self, models: list) -> None:
         """
         Method to display the list of clients
         Args:
@@ -37,7 +32,7 @@ class EventView:
         """
         events = models
         for event in events:
-            console.print(Panel(f"  [spring_green3]- [bold]{event.id}.[/bold] {event.name}"
+            self.console.print(Panel(f"  [spring_green3]- [bold]{event.id}.[/bold] {event.name}"
                                 f"[/spring_green3]",
                                 border_style="bold spring_green3",
                                 expand=False))
@@ -98,8 +93,7 @@ class EventView:
 
         return name, contract_id, start_date, end_date, technician_id, location, attendees, notes
 
-    @staticmethod
-    def prompt_for_id(model_type: str, models: list) -> int | None:
+    def prompt_for_id(self, model_type: str, models: list) -> int | None:
         """
         Method that prompts the user to enter the id for the model
         Args:
@@ -116,19 +110,18 @@ class EventView:
                                 default=1).strip()
 
             if not answer.isdigit():
-                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
                 continue
 
             coll = (str(i + 1) for i in range(len(models)))
 
             if answer not in coll:
-                console.print(f"\n❗ [bold red]Please choose between 1 and {len(models)}.\n[/bold red]")
+                self.console.print(f"\n❗ [bold red]Please choose between 1 and {len(models)}.\n[/bold red]")
                 continue
 
             return int(answer)
 
-    @staticmethod
-    def prompt_for_integer() -> int | None:
+    def prompt_for_integer(self) -> int | None:
         """
         Method that prompts the user to enter an integer
         Returns:
@@ -140,7 +133,7 @@ class EventView:
                                 f"[dark_turquoise]▶▶[/dark_turquoise] ").strip()
 
             if not answer.isdigit():
-                console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
                 continue
 
             return int(answer)

@@ -1,12 +1,12 @@
-import sys
 import unittest
 from datetime import datetime
 from io import StringIO
+
+from rich.console import Console
 from unittest.mock import Mock, patch
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.testing.pickleable import User
 
 from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.contract_controller import ContractController
@@ -181,8 +181,10 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that launches the collaborator menu
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
         self.main_controller.view.prompt_for_menu = Mock(return_value=5)
 
@@ -190,8 +192,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.collaborator_menu(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("▶ EPIC EVENTS - COLLABORATOR MENU ◀", output)
 
@@ -199,15 +200,16 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that logs out the collaborator
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
         self.main_controller.view.prompt_for_menu = Mock(return_value=5)
 
         self.controller.collaborator_menu(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("▶ EPIC EVENTS - COLLABORATOR MENU ◀", output)
         self.assertIn("You are successfully logged out.", output)
@@ -216,8 +218,10 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that launches the contract submenu
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
         self.main_controller.view.prompt_for_menu = Mock(side_effect=[2, Exception("stop")])
 
@@ -226,8 +230,7 @@ class TestCollaboratorController(unittest.TestCase):
         with self.assertRaises(Exception):
             self.controller.collaborator_menu(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("▶ EPIC EVENTS - COLLABORATOR MENU ◀", output)
         self.assertIn("▶ CONTRACT MENU ◀", output)
@@ -242,16 +245,17 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that launches the collaborator submenu
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
         self.main_controller.view.prompt_for_menu = Mock(side_effect=[1, Exception("stop")])
 
         with self.assertRaises(Exception):
             self.controller.collaborator_submenu(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("▶ EPIC EVENTS - COLLABORATOR SUBMENU ◀", output)
 
@@ -259,43 +263,51 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that launches the action submenu
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
         self.main_controller.view.prompt_for_menu = Mock(side_effect=[1, Exception("stop")])
+        self.controller.get_models = Mock(return_value={"contracts": self.data.get("contracts"),
+                                                        "clients": [],
+                                                        "commercials": []})
+        self.main_controller.view.prompt_for_model_id_with_action = Mock(side_effect=[Exception("stop")])
 
         with self.assertRaises(Exception):
             self.controller.action_submenu(self.session, "contract", 6)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
-        self.assertIn("▶ CONTRACT MENU ◀", output)
+        self.assertIn("⯀ CONTRACTS TO DISPLAY :", output)
 
     def test_action_ok(self) -> None:
         """
         Test for checking the method action
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
         self.controller.get_models = Mock(return_value=[])
         self.controller.permissions = self.main_controller.role_permissions["MANAGER"]
 
         self.controller.action(self.session, "display", "contract")
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
-        self.assertIn("You are going to display a contract.", output)
+        self.assertIn("You are going to display contracts.", output)
         self.assertIn("No contract to display.", output)
 
     def test_display_action_ok(self) -> None:
         """
         Test for checking the display action method
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
         self.controller.get_models = Mock(return_value=self.data)
 
@@ -303,12 +315,11 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.display_action(session=self.session, model_type="contract")
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
-        self.assertIn(" • contracts - Here is the list : ", output)
+        self.assertIn("⯀ CONTRACTS TO DISPLAY :", output)
         self.assertIn("Contract between the client", output)
-        self.assertIn("Here is the contract : ", output)
+        self.assertIn("Here is the contract", output)
 
     def test_create_action_ok(self) -> None:
         """
@@ -332,15 +343,16 @@ class TestCollaboratorController(unittest.TestCase):
                 "prompt_for_collaborator"
         ) as mock_create:
 
-            captured_output = StringIO()
-            sys.stdout = captured_output
+            buffer = StringIO()
+            test_console = Console(file=buffer, force_terminal=False)
+            self.main_controller.console = test_console
+            self.main_controller.view.console = test_console
 
             mock_create.return_value = {"email": "test@test.com", "password": "password_test", "name": "name_test"}
 
             self.controller.create_collaborator_with_view(session=self.session, role="manager")
 
-            sys.stdout = sys.__stdout__
-            output = captured_output.getvalue()
+            output = buffer.getvalue()
 
             self.assertIn("The manager has been successfully created.", output)
 
@@ -394,13 +406,14 @@ class TestCollaboratorController(unittest.TestCase):
             "Technician name"))
         self.main_controller.view.prompt_for_collaborator_role = Mock(return_value=(2, "commercial"))
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
         self.controller.update_action(session=self.session, model_type="technician")
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("The collaborator (technician to commercial) "
                       "has been successfully updated.", output)
@@ -461,13 +474,24 @@ class TestCollaboratorController(unittest.TestCase):
         """
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[2])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
+        self.controller.get_models = Mock(return_value={"contracts": self.data["contracts"],
+                                                       "clients": self.data["clients"],
+                                                       "commercials": self.data["commercials"]})
 
         self.controller.current_collaborator = self.data["managers"][1]
 
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
+
         self.controller.delete_action(session=self.session, model_type="contract")
+
+        output = buffer.getvalue()
 
         result = self.session.query(Contract).filter_by(is_active=True, id=2).first()
 
+        self.assertIn("The contract has been successfully deleted.", output)
         self.assertIsNone(result)
 
     def test_delete_action_for_technician_ok(self) -> None:
@@ -534,31 +558,26 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that updates collaborator in success case
         """
-        with patch.object(
-                self.controller,
-                "get_models"
-        ) as mock_create:
-            mock_create.return_value = self.data["technicians"]
-            mock_create()
+        self.controller.get_models = Mock(return_value=self.data["technicians"])
 
-            self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
-            self.main_controller.view.prompt_for_collaborator = Mock(return_value=(
-                "test@test.com",
-                "pwd_test",
-                "Technician name"))
+        self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
+        self.main_controller.view.prompt_for_collaborator = Mock(return_value=(
+            "test@test.com",
+            "pwd_test",
+            "Technician name"))
 
-            self.main_controller.view.prompt_for_collaborator_role = Mock(return_value=(2,"commercial"))
+        self.main_controller.view.prompt_for_collaborator_role = Mock(return_value=(2,"commercial"))
 
-            captured_output = StringIO()
-            sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
-            self.controller.update_collaborator_with_view(session=self.session, role="technician")
+        self.controller.update_collaborator_with_view(session=self.session, role="technician")
 
-            sys.stdout = sys.__stdout__
-            output = captured_output.getvalue()
+        output = buffer.getvalue()
 
-            self.assertIn("The collaborator (technician to commercial) "
-                             "has been successfully updated.", output)
+        self.assertIn("The collaborator (technician to commercial) has been successfully updated.", output)
 
     def test_delete_technician_with_view_ok(self) -> None:
         """
@@ -570,14 +589,14 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.controller.current_collaborator = self.data["managers"][1]
 
-
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
 
         self.controller.delete_model_with_view(session=self.session, model_type="technician")
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("The technician has been successfully deleted.", output)
 
@@ -601,7 +620,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         result = self.controller.filter_action(session=self.session,
                                                model_type="contract",
-                                               my_filter="client_id",
+                                               my_filter="client-id",
                                                filter_value="1")
 
         self.assertEqual(result, self.data["contracts"])

@@ -1,7 +1,9 @@
 import sys
 import unittest
+
 from datetime import datetime
 from io import StringIO
+from rich.console import Console
 from unittest.mock import Mock
 
 from sqlalchemy import create_engine
@@ -191,13 +193,13 @@ class TestCollaboratorController(unittest.TestCase):
             "Notes"
         ])
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.view.console = test_console
 
         self.event_controller.create_event_with_view(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("The event has been successfully created.", output)
 
@@ -227,13 +229,13 @@ class TestCollaboratorController(unittest.TestCase):
             "Notes"
         ])
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.view.console = test_console
 
         self.event_controller.create_event_with_view(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("❌ This event already exists.", output)
 
@@ -290,13 +292,13 @@ class TestCollaboratorController(unittest.TestCase):
             "Notes Updated"
         ])
 
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.view.console = test_console
 
         self.event_controller.update_event_with_view(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         event = self.session.query(Event).filter_by(is_active=True, id=1).first()
 

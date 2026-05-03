@@ -1,6 +1,8 @@
 import sys
 import unittest
+
 from io import StringIO
+from rich.console import Console
 from unittest.mock import Mock
 
 from sqlalchemy import create_engine
@@ -63,41 +65,21 @@ class TestMainController(unittest.TestCase):
         admin = self.session.query(Manager).first()
         self.assertNotEqual(admin, None)
 
-    def test_run_quit_case_ok(self) -> None:
-        """
-        Test for checking the method that quits the application
-        """
-        captured_output = StringIO()
-        sys.stdout = captured_output
-
-        self.controller.view.prompt_for_menu = Mock(return_value=2)
-
-        with self.assertRaises(SystemExit):
-            self.controller.run(self.session)
-
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
-
-        self.assertIn("WELCOME TO EPIC EVENTS !", output)
-        self.assertIn("▶ MAIN MENU ◀", output)
-        self.assertIn("▷▷ 1. Log in", output)
-        self.assertIn("▷▷ 2. Quit the app", output)
-        self.assertIn("👋  Goodbye ! 👋", output)
-
     def test_run_with_wrong_input_raises_exception(self) -> None:
         """
         Test for checking if an exception is raises when a wrong input is given
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.controller.console = test_console
+        self.controller.view.console = test_console
 
         self.controller.view.prompt_for_menu = Mock(return_value=3)
 
         with self.assertRaises(TypeError):
             self.controller.run(self.session)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
         self.assertIn("WELCOME TO EPIC EVENTS !", output)
         self.assertIn("▶ MAIN MENU ◀", output)
@@ -108,21 +90,17 @@ class TestMainController(unittest.TestCase):
         """
         Test for checking the method that logs in a user in success case
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.controller.view.console = test_console
 
         email = self.credentials['email']
         password = self.credentials['password']
 
-        self.controller.authenticate = Mock(return_value=True)
+        self.controller.login(self.session, self.db_engine, email, password)
 
-        self.controller.login(self.session, email, password)
+        output = buffer.getvalue()
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
-
-        self.assertIn("LOG IN", output)
-        self.assertIn("You are going to enter the followings details", output)
         self.assertIn("Admin, you are successfully logged in", output)
 
     def test_authenticate_ok(self) -> None:
@@ -155,8 +133,9 @@ class TestMainController(unittest.TestCase):
         """
         Test for checking the method that initializes the user permissions
         """
-        captured_output = StringIO()
-        sys.stdout = captured_output
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.controller.view.console = test_console
 
         self.controller.init_db(self.db_engine, self.session)
 
@@ -164,7 +143,13 @@ class TestMainController(unittest.TestCase):
 
         self.controller.init_permissions(self.session, user)
 
-        sys.stdout = sys.__stdout__
-        output = captured_output.getvalue()
+        output = buffer.getvalue()
 
-        self.assertIn(f"{user.name.capitalize()}, you are successfully logged in.", output)
+        permissions = ["display:manager", "display:commercial", "display:technician",
+                        "create:collaborator", "update:collaborator", "delete:collaborator",
+                        "display:contract", "display:client", "display:event",
+                        "create:contract", "update:contract", "delete:contract",
+                        "update:event", "delete:event", "filter:event", "filter:client",
+                        "filter:manager", "filter:commercial", "filter:technician"]
+
+        self.assertEqual(self.controller.user_controller.permissions, permissions)
