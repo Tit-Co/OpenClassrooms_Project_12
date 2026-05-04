@@ -1,9 +1,9 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 
 import sys
-import click
+from typing import TYPE_CHECKING
 
+import click
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
@@ -104,11 +104,24 @@ class ContractView:
         Returns:
         A tuple with the contract data
         """
+
         self.main_view.display_models(model_type="client", models=clients)
-        client_id = self.prompt_for_id(model_type="client")
+
+        try:
+            client_id = self.prompt_for_id(model_type="client")
+        except EOFError:
+            client_id = None
+
+        self.console.print(client_id)
 
         self.main_view.display_models(model_type="commercial", models=commercials)
-        commercial_id = self.prompt_for_id(model_type="commercial")
+
+        try:
+            commercial_id = self.prompt_for_id(model_type="commercial")
+        except EOFError:
+            commercial_id = None
+
+        self.console.print(commercial_id)
 
         total_amount = self.prompt_for_contract_float_number(amount_type="total_amount")
 
@@ -125,18 +138,18 @@ class ContractView:
             model_type (str): The type of the model
 
         Returns:
-        The id of the model
+        The id of the model or None
         """
         while True:
             choice = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please select a {model_type} for the contract if possible"
                                 f"[/bold light_goldenrod2]\n"
                                 f"[dark_turquoise]▶▶[/dark_turquoise] ")
 
-            if not choice.isdigit():
-                self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+            if not choice.isdigit() and choice != "":
+                self.console.print("\n❗ [bold red]Please enter a number or leave blank.\n[/bold red]")
                 continue
 
-            return None if choice == "" or int(choice) == 0 else int(choice)
+            return None if (choice == "" or int(choice) == 0) else int(choice)
 
     def prompt_for_contract_float_number(self, amount_type: str) -> float | None:
         """

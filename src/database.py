@@ -11,9 +11,11 @@ PORT = os.getenv("PORT")
 
 DATABASE_URL = f"mysql+pymysql://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
 
-engine = create_engine(
-    DATABASE_URL,
+def get_engine(database_url=None):
+    return create_engine(
+    database_url or DATABASE_URL,
     echo=False
 )
 
-SessionLocal = sessionmaker(bind=engine)
+def get_session(engine):
+    return sessionmaker(bind=engine)

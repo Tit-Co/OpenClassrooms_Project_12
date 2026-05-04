@@ -1,8 +1,7 @@
 import click
 
-from src.database import SessionLocal
-
 from src.controllers.main_controller import MainController
+from src.database import get_session, get_engine, DATABASE_URL
 
 
 @click.group()
@@ -14,7 +13,7 @@ def collaborator(ctx):
 @click.pass_context
 def create_collaborator(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -40,10 +39,8 @@ def create_collaborator(ctx):
 @click.pass_context
 def update_collaborator(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
-
-    main_controller.console.print("CLI controller id:", id(main_controller))
 
     user = main_controller.user_controller.get_current_user(session=session)
     if not user:
@@ -53,7 +50,6 @@ def update_collaborator(ctx):
     permissions = main_controller.user_controller.get_permissions(session=session, user=user)
 
     role = main_controller.view.prompt_for_collaborator_role_to_action(action="update")
-    main_controller.console.print("ROLE : ", role)
 
     if "update:collaborator" in permissions:
         if role in main_controller.user_controller.COLLABORATORS.keys():
@@ -69,7 +65,7 @@ def update_collaborator(ctx):
 @click.pass_context
 def delete_collaborator(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -95,7 +91,7 @@ def delete_collaborator(ctx):
 @click.pass_context
 def filter_collaborator(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -121,7 +117,7 @@ def filter_collaborator(ctx):
 @click.pass_context
 def display_collaborator(ctx, role):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -141,7 +137,7 @@ def display_collaborator(ctx, role):
 @click.pass_context
 def logout(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     main_controller.user_controller.logout(session)

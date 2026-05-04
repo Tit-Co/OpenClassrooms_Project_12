@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -65,8 +66,7 @@ class EventController:
         else:
             self.main_controller.view.display_model_already_exist(model_type="event")
 
-    @staticmethod
-    def create_event(session: Session, data: dict) -> Event:
+    def create_event(self, session: Session, data: dict) -> Event | None:
         """
         Method to create event
         Args:
@@ -86,8 +86,14 @@ class EventController:
                       notes=data["notes"])
 
         session.add(event)
-        session.commit()
-        return event
+        try:
+            session.commit()
+            return event
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
+            return None
 
     def update_event_with_view(self, session: Session) -> None:
         """
@@ -148,8 +154,7 @@ class EventController:
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-    @staticmethod
-    def update_event(session: Session, event_id: int, data: dict) -> None:
+    def update_event(self, session: Session, event_id: int, data: dict) -> None:
         """
         Method to update event with view
         Args:
@@ -158,10 +163,14 @@ class EventController:
             data (dict): data
         """
         session.query(Event).filter_by(is_active=True, id=event_id).update(data)
-        session.commit()
+        try:
+            session.commit()
 
-    @staticmethod
-    def delete_event(session: Session, event_id: int) -> bool:
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
+
+    def delete_event(self, session: Session, event_id: int) -> bool:
         """
         Method to delete event
         Args:
@@ -171,11 +180,15 @@ class EventController:
         Returns:
         A boolean indicating if the event was deleted successfully
         """
+        session.query(Event).filter_by(is_active=True, id=event_id).update({"is_active": False})
+
         try:
-            session.query(Event).filter_by(is_active=True, id=event_id).update({"is_active": False})
             session.commit()
             return True
-        except Exception:
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
             return False
 
     @staticmethod

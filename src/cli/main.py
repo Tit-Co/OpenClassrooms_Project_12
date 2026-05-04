@@ -1,13 +1,11 @@
 import click
 
-from src.database import SessionLocal
-
+from src.cli.client_cli import client
 from src.cli.collaborator_cli import collaborator
 from src.cli.contract_cli import contract
-from src.cli.client_cli import client
 from src.cli.event_cli import event
-
 from src.controllers.main_controller import MainController
+from src.database import get_session, get_engine, DATABASE_URL
 
 
 @click.group()
@@ -26,9 +24,12 @@ cli.add_command(event)
 @click.pass_context
 def login(ctx, email, password):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
-    main_controller = ctx.obj.get("main_controller") or MainController()
-    db_engine = ctx.obj.get("db_engine")
+
+    db_engine = ctx.obj["db_engine"] or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj["session"] or get_session(db_engine)()
+    main_controller = ctx.obj["main_controller"] or MainController()
+
+    main_controller.init_db(db_engine, session)
 
     if not email:
         email = main_controller.view.prompt_for_email()
@@ -36,7 +37,12 @@ def login(ctx, email, password):
     if not password:
         password = main_controller.view.prompt_for_password()
 
-    result = main_controller.login(session=session, email=email, password=password)
+    try:
+        result = main_controller.authenticate(session=session,
+                                              email=email,
+                                              password=password)
+    except Exception as e:
+        main_controller.view.display_error_while_logging_in()
 
     session.close()
 

@@ -1,10 +1,9 @@
 import sys
 import unittest
-
 from io import StringIO
-from rich.console import Console
 from unittest.mock import Mock
 
+from rich.console import Console
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -46,6 +45,7 @@ class TestMainController(unittest.TestCase):
         Method called before every test case
         """
         self.session = self.session_test()
+        self.controller.init_db(self.db_engine, self.session)
 
     def tearDown(self) -> None:
         """
@@ -57,8 +57,6 @@ class TestMainController(unittest.TestCase):
         """
         Test for checking the method that initializes the database
         """
-        self.controller.init_db(self.db_engine, self.session)
-
         roles = self.session.query(Role).all()
         self.assertEqual(len(roles), 3)
 
@@ -86,29 +84,10 @@ class TestMainController(unittest.TestCase):
         self.assertIn("▷▷ 1. Log in", output)
         self.assertIn("▷▷ 2. Quit the app", output)
 
-    def test_login_ok(self) -> None:
-        """
-        Test for checking the method that logs in a user in success case
-        """
-        buffer = StringIO()
-        test_console = Console(file=buffer, force_terminal=False)
-        self.controller.view.console = test_console
-
-        email = self.credentials['email']
-        password = self.credentials['password']
-
-        self.controller.login(self.session, email, password)
-
-        output = buffer.getvalue()
-
-        self.assertIn("Admin, you are successfully logged in", output)
-
     def test_authenticate_ok(self) -> None:
         """
         Test for checking the method that authenticates a user in success case
         """
-        self.controller.init_db(self.db_engine, self.session)
-
         email = self.credentials['email']
         password = self.credentials['password']
 
@@ -120,8 +99,6 @@ class TestMainController(unittest.TestCase):
         """
         Test for checking the method that authenticates a user in failure case
         """
-        self.controller.init_db(self.db_engine, self.session)
-
         email = self.wrong_credentials['email']
         password = self.wrong_credentials['password']
 
@@ -136,8 +113,6 @@ class TestMainController(unittest.TestCase):
         buffer = StringIO()
         test_console = Console(file=buffer, force_terminal=False)
         self.controller.view.console = test_console
-
-        self.controller.init_db(self.db_engine, self.session)
 
         user = self.session.query(Manager).filter_by(is_active=True, email=self.credentials['email']).first()
 

@@ -2,9 +2,9 @@ import sys
 import unittest
 from datetime import datetime
 from io import StringIO
-from rich.console import Console
 from unittest.mock import Mock
 
+from rich.console import Console
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -16,7 +16,7 @@ from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
 from src.models.role import Role
-from src.models.user import Commercial, Technician, Manager
+from src.models.user import Commercial, Manager, Technician
 
 
 class TestCollaboratorController(unittest.TestCase):

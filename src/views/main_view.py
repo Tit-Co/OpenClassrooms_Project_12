@@ -1,11 +1,9 @@
+import re
+import sys
+from datetime import datetime
 from typing import Any
 
 import click
-import re
-import sys
-
-from datetime import datetime
-
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
@@ -78,11 +76,35 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        self.console.print(Panel(f"❌ You don't have the permission to [bold red]{action}[/bold red] "
-                            f"a [bold red]{model_type}[/bold red].",
+        self.console.print(Panel(f"❌[bold] You don't have the permission to [bold red]{action} "
+                            f"a {model_type}[/bold].",
                             border_style="bold bright_red",
                             style="white",
                             expand=False))
+
+    def display_database_error(self):
+        self.console.print(Panel(f"❗ Database error!.",
+                                 border_style="bold red3",
+                                 style="bold red3",
+                                 expand=False))
+
+    def display_error_while_filtering_value(self):
+        self.console.print(Panel(f"❗ Error while filtering!.",
+                                 border_style="bold red3",
+                                 style="bold red3",
+                                 expand=False))
+
+    def display_date_format_error(self):
+        self.console.print(Panel(f"❗ Try to format date fails!.",
+                                 border_style="bold bright_red",
+                                 style="bold red3",
+                                 expand=False))
+
+    def filtering_format_error(self):
+        self.console.print(Panel(f"❗ Try to format filter fails!.",
+                                 border_style="bold bright_red",
+                                 style="bold red3",
+                                 expand=False))
 
     def display_action_introduction(self, action: str, model_type: str) -> None:
         """
@@ -113,6 +135,15 @@ class MainView:
                             style="bold white",
                             expand=False))
 
+    def display_error_while_logging_in(self) -> None:
+        """
+        Method to display the successfully logged in message.
+        """
+        self.console.print(Panel(f"\n❗ An unexpected error occurred while logging in.\n",
+                            border_style="bold red3",
+                            style="bold red3",
+                            expand=False))
+
     def display_action_successfully_done(self, action: str, model_type: str) -> None:
         """
         Method to display the successfully done message.
@@ -134,26 +165,26 @@ class MainView:
         """
         self.console.print(Panel(f"\n❌ The [bold]{model_type}[/bold] has not been [bold]{action}[/bold].\n",
                             border_style="bold bright_red",
-                            style="white",
+                            style="bold white",
                             expand=False))
 
     def display_not_connected(self) -> None:
         """
         Method to display when the user is not logged in.
         """
-        self.console.print("❗ [bold bright_red]You need to log in first.[/bold bright_red]")
+        self.console.print("\n❗ [bold bright_red]You need to log in first.[/bold bright_red]\n")
 
     def display_wrong_password(self) -> None:
         """
         Method to display the wrong password message.
         """
-        self.console.print("❗ [bold bright_red]Invalid password.[/bold bright_red]")
+        self.console.print("\n❗ [bold bright_red]Invalid password.[/bold bright_red]\n")
 
     def display_collaborator_not_exists(self) -> None:
         """
         Method to display the message when a collaborator does not exist.
         """
-        self.console.print("❗ [bold bright_red]This collaborator does not exist.[/bold bright_red]")
+        self.console.print("\n❗ [bold bright_red]This collaborator does not exist.[/bold bright_red]\n")
 
     def display_collaborator_menu(self) -> None:
         """
@@ -643,7 +674,8 @@ class MainView:
         A datetime
         """
         while True:
-            answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Type the value of '{my_filter}' filter for {model_type} (dd/mm/yy) "
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Type the value of '{my_filter}' filter for "
+                                f"{model_type} (dd/mm/yy) "
                                 f"or leave it blank if necessary[/bold light_goldenrod2]\n"
                                 f"▶▶ ",
                                 default="")
@@ -653,8 +685,8 @@ class MainView:
 
                 except ValueError:
                     self.console.print("❗ [bold bright_red]Please enter a valid date.[/bold bright_red]")
-            else:
-                return ""
+
+            return ""
 
     def prompt_for_integer(self, model_type: str, my_filter: str) -> int | None:
         """
@@ -902,7 +934,7 @@ class MainView:
                 self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
-            if int(role) not in [1,2,3]:
+            if int(role) not in roles:
                 self.console.print("\n❗ [bold bright_red]Please enter an integer between 1 and 3.\n"
                                    "[/bold bright_red]")
                 continue
@@ -933,7 +965,7 @@ class MainView:
                 continue
 
             role = int(role)
-            if role not in [1,2,3]:
+            if role not in roles:
                 self.console.print("\n❗ [bold bright_red]Please enter an integer between 1 and 3.\n"
                                    "[/bold bright_red]")
                 continue

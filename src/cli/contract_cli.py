@@ -1,8 +1,7 @@
 import click
 
-from src.database import SessionLocal
-
 from src.controllers.main_controller import MainController
+from src.database import get_session, get_engine, DATABASE_URL
 
 
 @click.group()
@@ -14,7 +13,7 @@ def contract(ctx):
 @click.pass_context
 def create_contract(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -32,7 +31,7 @@ def create_contract(ctx):
 @click.pass_context
 def update_contract(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -51,7 +50,7 @@ def update_contract(ctx):
 @click.pass_context
 def delete_contract(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -63,13 +62,13 @@ def delete_contract(ctx):
         main_controller.user_controller.delete_model_with_view(session=session, model_type="contract")
 
     else:
-        main_controller.view.display_permission_denied(action="update", model_type="contract")
+        main_controller.view.display_permission_denied(action="delete", model_type="contract")
 
 @contract.command()
 @click.pass_context
 def filter_contract(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -91,7 +90,7 @@ def filter_contract(ctx):
 @click.pass_context
 def display_contract(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)

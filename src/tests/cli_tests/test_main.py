@@ -8,8 +8,9 @@ from sqlalchemy.orm import sessionmaker
 
 from src.cli.main import cli
 from src.controllers.main_controller import MainController
-from src.models.user import Manager
 from src.models.base import Base
+from src.models.role import Role
+from src.models.user import Manager
 
 
 class TestCLI(unittest.TestCase):
@@ -44,6 +45,8 @@ class TestCLI(unittest.TestCase):
         self.session = self.session_test()
         self.data = self.seed_data()
 
+        self.main_controller.init_db(self.db_engine, self.session)
+
     def tearDown(self) -> None:
         """
         Method called after every test case
@@ -56,6 +59,19 @@ class TestCLI(unittest.TestCase):
         Returns:
         A dictionary with seed data
         """
+        role_manager = Role(
+            name="MANAGER",
+        )
+        role_commercial = Role(
+            name="COMMERCIAL",
+        )
+        role_technician = Role(
+            name="TECHNICIAN",
+        )
+        self.session.add(role_manager)
+        self.session.add(role_commercial)
+        self.session.add(role_technician)
+        self.session.commit()
 
         admin_credentials = {
             "name": "admin",
@@ -64,9 +80,11 @@ class TestCLI(unittest.TestCase):
             "role": "MANAGER"
         }
 
+        hashed = self.main_controller.hash_password(password=admin_credentials["password"])
+
         admin = Manager(name=admin_credentials["name"],
                         email=admin_credentials["email"],
-                        password=admin_credentials["password"],
+                        password=hashed,
                         role_id=1
                         )
         self.session.add(admin)
@@ -79,48 +97,59 @@ class TestCLI(unittest.TestCase):
     def test_login_ok(self):
         runner = CliRunner()
 
-        managers = self.data.get("managers")
+        manager = self.data["managers"][0]
 
         buffer = StringIO()
         test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
         self.main_controller.view.console = test_console
 
-        runner.invoke(cli, ["login", "--email", managers[0].email, "--password", managers[0].password],
+        password = "admin_pwd"
+
+        runner.invoke(cli,
+                      ["login", "--email", manager.email, "--password", password],
                       obj={"session": self.session,
+                           "db_engine": self.db_engine,
                            "main_controller": self.main_controller})
 
         output = buffer.getvalue()
 
-        self.assertIn("Admin, you are successfully logged in", output)
+        self.assertIn("✅ Admin, you are successfully logged in.", output)
 
     def test_login_fails_with_wrong_password(self):
         runner = CliRunner()
 
-        managers = self.data.get("managers")
+        manager = self.data["managers"][0]
 
         buffer = StringIO()
         test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
         self.main_controller.view.console = test_console
 
-        runner.invoke(cli, ["login", "--email", managers[0].email, "--password", "another_password"],
+        runner.invoke(cli,
+                      ["login", "--email", manager.email, "--password", "another_password"],
                       obj={"session": self.session,
+                           "db_engine": self.db_engine,
                            "main_controller": self.main_controller})
 
         output = buffer.getvalue()
 
-        self.assertIn("Invalid password", output)
+        self.assertIn("❗ Invalid password.", output)
 
     def test_login_fails_with_unknown_email(self):
         runner = CliRunner()
 
         buffer = StringIO()
         test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
         self.main_controller.view.console = test_console
 
-        runner.invoke(cli, ["login", "--email", "another.email@another.com", "--password", "another_password"],
+        runner.invoke(cli,
+                      ["login", "--email", "another.email@another.com", "--password", "another_password"],
                       obj={"session": self.session,
+                           "db_engine": self.db_engine,
                            "main_controller": self.main_controller})
 
         output = buffer.getvalue()
 
-        self.assertIn("This collaborator does not exist", output)
+        self.assertIn("❗ This collaborator does not exist.", output)

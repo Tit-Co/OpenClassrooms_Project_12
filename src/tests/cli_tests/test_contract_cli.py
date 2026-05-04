@@ -1,8 +1,7 @@
 import unittest
-
 from datetime import datetime
 from io import StringIO
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from click.testing import CliRunner
 from rich.console import Console
@@ -11,10 +10,10 @@ from sqlalchemy.orm import sessionmaker
 
 from src.cli.contract_cli import contract
 from src.controllers.main_controller import MainController
+from src.models.base import Base
 from src.models.client import Client
 from src.models.contract import Contract
-from src.models.user import Manager, Commercial
-from src.models.base import Base
+from src.models.user import Commercial, Manager
 
 
 class TestContractCLI(unittest.TestCase):
@@ -150,3 +149,96 @@ class TestContractCLI(unittest.TestCase):
         self.assertIn("Here is the contract n°1", output)
         self.assertIn("Client name : Client Test", output)
         self.assertIn("Total amount : 100.0", output)
+
+    def test_delete_contract_with_no_permission_fails(self):
+        runner = CliRunner()
+
+        test_session = self.session
+        test_controller = self.main_controller
+
+        user = self.data.get("commercials")[0]
+
+        permissions = self.main_controller.role_permissions["COMMERCIAL"]
+
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
+
+        test_controller.user_controller.get_current_user = Mock(return_value=user)
+        test_controller.user_controller.get_permissions = Mock(return_value=permissions)
+        test_controller.view.prompt_for_model_id = Mock(return_value=1)
+        test_controller.view.prompt_for_confirmation = Mock(return_value="y")
+
+        contracts = test_session.query(Contract).filter(Contract.is_active == True).all()
+        nb = len(contracts)
+        self.assertEqual(len(contracts), nb)
+
+        runner.invoke(contract,
+                      ["delete-contract"],
+                      obj={"session": test_session, "main_controller": test_controller})
+
+        output = buffer.getvalue()
+
+        contracts = test_session.query(Contract).filter(Contract.is_active == True).all()
+        self.assertEqual(len(contracts), nb)
+        contract_to_delete = (
+            test_session.query(Contract)
+            .filter(Contract.client_id == self.data["contracts"][0].client_id)
+            .filter(Contract.commercial_id == self.data["contracts"][0].commercial_id)
+            .filter(Contract.total_amount == self.data["contracts"][0].total_amount)
+            .filter(Contract.bill_to_pay == self.data["contracts"][0].bill_to_pay)
+            .first()
+        )
+        self.assertTrue(contract_to_delete.is_active)
+        self.assertIn("❌ You don't have the permission to delete a contract.", output)
+
+    def test_create_contract_ok(self):
+        runner = CliRunner()
+
+        test_session = self.session
+        test_controller = self.main_controller
+
+        user = self.data.get("managers")[0]
+
+        permissions = self.main_controller.role_permissions["MANAGER"]
+
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
+
+        test_controller.user_controller.get_current_user = Mock(return_value=user)
+        test_controller.user_controller.get_permissions = Mock(return_value=permissions)
+
+        test_controller.view.contract_view.prompt_for_contract = Mock(return_value=(
+            self.data["clients"][0].id,
+            self.data["commercials"][1].id,
+            8500.0, # Total amount
+            1526.35, # Bill left to pay
+            True # Contract signed
+            ))
+
+        contracts = test_session.query(Contract).filter(Contract.is_active == True).all()
+        nb = len(contracts)
+        self.assertEqual(nb, len(self.data["contracts"]))
+
+        runner.invoke(contract, ["create-contract"],
+                      obj={"session": test_session, "main_controller": test_controller})
+
+        output = buffer.getvalue()
+
+        contracts = test_session.query(Contract).filter(Contract.is_active == True).all()
+        self.assertEqual(len(contracts), nb + 1)
+
+        contract_created = (
+            test_session.query(Contract)
+            .filter(Contract.client_id == self.data["clients"][0].id)
+            .filter(Contract.commercial_id == self.data["commercials"][1].id)
+            .filter(Contract.total_amount == 8500.0)
+            .filter(Contract.bill_to_pay == 1526.35)
+            .filter(Contract.status == True)
+            .first()
+        )
+        self.assertTrue(contract_created.is_active)
+        self.assertIn("✅ The contract has been successfully created.", output)

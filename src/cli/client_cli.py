@@ -1,8 +1,7 @@
 import click
 
-from src.database import SessionLocal
-
 from src.controllers.main_controller import MainController
+from src.database import get_session, get_engine, DATABASE_URL
 
 
 @click.group()
@@ -14,7 +13,7 @@ def client(ctx):
 @click.pass_context
 def create_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -32,7 +31,7 @@ def create_client(ctx):
 @click.pass_context
 def update_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -51,7 +50,7 @@ def update_client(ctx):
 @click.pass_context
 def delete_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -69,7 +68,7 @@ def delete_client(ctx):
 @click.pass_context
 def filter_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -91,7 +90,7 @@ def filter_client(ctx):
 @click.pass_context
 def display_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or SessionLocal()
+    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)

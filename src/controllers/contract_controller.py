@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -25,6 +26,7 @@ class ContractController:
         Args:
             session (Session): session
         """
+
         clients = self.main_controller.user_controller.get_models(session=session,
                                                                   model_type="client")
 
@@ -38,6 +40,7 @@ class ContractController:
          status
          ) = self.main_controller.view.contract_view.prompt_for_contract(clients=clients,
                                                                          commercials=commercials)
+
         data ={
             "client_id": client_id,
             "commercial_id": commercial_id,
@@ -58,8 +61,7 @@ class ContractController:
         else:
             self.main_controller.view.display_something_wrong("creating")
 
-    @staticmethod
-    def create_contract(session: Session, data: dict) -> Contract:
+    def create_contract(self, session: Session, data: dict) -> Contract | None:
         """
         Method to create contract
         Args:
@@ -76,8 +78,15 @@ class ContractController:
                             status=data["status"])
 
         session.add(contract)
-        session.commit()
-        return contract
+
+        try:
+            session.commit()
+            return contract
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
+            return None
 
     def update_contract_with_view(self, session: Session) -> None:
         """
@@ -128,8 +137,7 @@ class ContractController:
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-    @staticmethod
-    def update_contract(session: Session, contract_id: int, data: dict) -> None:
+    def update_contract(self, session: Session, contract_id: int, data: dict) -> None:
         """
         Method to update contract with view
         Args:
@@ -138,7 +146,12 @@ class ContractController:
             data (dict): data
         """
         session.query(Contract).filter_by(is_active=True, id=contract_id).update(data)
-        session.commit()
+        try:
+            session.commit()
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
 
     def delete_contract(self, session: Session, contract_id: int) -> bool:
         """
@@ -158,8 +171,14 @@ class ContractController:
             return False
 
         session.query(Contract).filter_by(is_active=True, id=contract_id).update({"is_active": False})
-        session.commit()
-        return True
+        try:
+            session.commit()
+            return True
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
+            return False
 
     @staticmethod
     def get_contract(session: Session, model_id: int) -> Contract:

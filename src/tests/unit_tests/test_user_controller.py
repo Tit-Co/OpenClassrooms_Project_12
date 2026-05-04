@@ -1,9 +1,9 @@
 import sys
 import unittest
 from datetime import datetime
-from rich.console import Console
 from io import StringIO
 
+from rich.console import Console
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -15,7 +15,8 @@ from src.models.base import Base
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
-from src.models.user import Commercial, Technician, Manager
+from src.models.role import Role
+from src.models.user import Commercial, Manager, Technician
 
 
 class TestCollaboratorController(unittest.TestCase):
@@ -65,6 +66,20 @@ class TestCollaboratorController(unittest.TestCase):
         Returns:
         A dictionary with seed data
         """
+
+        role_manager = Role(
+            name="MANAGER",
+        )
+        role_commercial = Role(
+            name="COMMERCIAL",
+        )
+        role_technician = Role(
+            name="TECHNICIAN",
+        )
+        self.session.add(role_manager)
+        self.session.add(role_commercial)
+        self.session.add(role_technician)
+        self.session.commit()
 
         admin_credentials = {
             "name": "admin",

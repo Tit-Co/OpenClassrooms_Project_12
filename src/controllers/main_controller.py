@@ -1,12 +1,13 @@
 import sys
-import bcrypt
 
+import bcrypt
 from rich.console import Console
 from sqlalchemy import Engine
-from sqlalchemy.orm import InstrumentedAttribute, Session
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
-from src.database import engine
 from src.models.base import Base
+from src.database import get_engine, DATABASE_URL
 from src.models.role import Role
 from src.models.user import Commercial, Manager, Technician
 from src.seed import admin_credentials, roles
@@ -62,7 +63,7 @@ class MainController:
         return {
             "name": admin_credentials["name"],
             "email": admin_credentials["email"],
-            "password": self.hash_password(admin_credentials["password"]),
+            "password": self.hash_password(password=admin_credentials["password"]),
             "role": admin_credentials["role"]
         }
 
@@ -94,7 +95,12 @@ class MainController:
                 role_id=role.id
             ))
 
-        session.commit()
+        try:
+            session.commit()
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.view.display_database_error()
 
     def run(self, session: Session) -> None:
         """
@@ -108,7 +114,7 @@ class MainController:
             menu = self.view.prompt_for_menu(2)
 
             actions = {
-                1: lambda : self.login_2(session=session),
+                1: lambda : self.login_2(session=session), # authentication with interactive menu
                 2: self.goodbye
             }
 
@@ -137,26 +143,11 @@ class MainController:
 
             password = self.view.prompt_for_password()
 
-            self.init_db(session)
-
             success = self.authenticate(session=session, email=email, password=password)
 
             if success:
                 self.user_controller.collaborator_menu(session=session)
                 break
-
-    def login(self, session: Session, email: str, password: str) -> bool:
-        """
-        Method to launch login
-        Args:
-            session (Session): session
-            db_engine (Engine): database engine
-            email (str): email
-            password (str): password
-        """
-        self.init_db(engine, session)
-
-        return self.authenticate(session=session, email=email, password=password)
 
     def authenticate(self, session: Session, email: str, password: str) -> bool | None:
         """
@@ -181,7 +172,7 @@ class MainController:
             self.view.display_collaborator_not_exists()
             return None
 
-        if not self.check_password(password=password, user_password=user.password):
+        if not self.check_password(plain_password=password, stored_password=user.password):
             self.view.display_wrong_password()
             return False
 
@@ -194,27 +185,36 @@ class MainController:
         return True
 
     @staticmethod
-    def check_password(password: str, user_password: InstrumentedAttribute) -> bool:
+    def check_password(plain_password: str, stored_password: str) -> bool:
         """
         Method to check if password matches hashed password
         Args:
-            password (str): password
-            user_password (bytes): hashed password
+            plain_password (str): password
+            stored_password (bytes): hashed password
 
         Returns:
         A boolean indicating success or failure in checking password
         """
-        if isinstance(user_password, str):
-            user_password = user_password.encode("utf-8")
 
-        return bcrypt.checkpw(password=password.encode("utf-8"), hashed_password=user_password)
+        if isinstance(plain_password, str):
+            plain_password = plain_password.encode("utf-8")
+
+        if isinstance(stored_password, str):
+            stored_password = stored_password.encode("utf-8")
+
+        try:
+            result = bcrypt.checkpw(plain_password, stored_password)
+            return result
+
+        except ValueError:
+            return False
 
     @staticmethod
-    def hash_password(password: str | bytes) -> bytes:
+    def hash_password(password: str) -> bytes:
         """
         Method to hash and salt password
         Args:
-            password (str | bytes): password
+            password (str): password
 
         Returns:
         The hashed password
@@ -222,7 +222,8 @@ class MainController:
         if isinstance(password, str):
             password = password.encode("utf-8")
 
-        return  bcrypt.hashpw(password=password, salt=bcrypt.gensalt())
+        hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+        return  hashed
 
     def init_permissions(self, session: Session,
                          user: type[Commercial] | type[Manager] | type[Technician]) -> None:

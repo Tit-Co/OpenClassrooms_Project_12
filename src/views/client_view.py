@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import sys
-import click
-
 from typing import TYPE_CHECKING, Any
+
+import click
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt

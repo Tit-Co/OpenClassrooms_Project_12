@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 from io import StringIO
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from click.testing import CliRunner
 from rich.console import Console
@@ -133,13 +133,9 @@ class TestClientCLI(unittest.TestCase):
         }
 
     def test_create_client_ok(self):
-        user = self.data.get("managers")[0]
+        user = self.data.get("commercials")[0]
 
-        permissions = ["display:manager", "display:commercial", "display:technician",
-                           "display:contract", "display:client", "display:event",
-                           "create:client", "update:client", "delete:client", "update:contract",
-                           "filter:contract", "create:event", "filter:client",
-                           "filter:manager", "filter:commercial", "filter:technician"]
+        permissions = self.main_controller.role_permissions["COMMERCIAL"]
 
         runner = CliRunner()
 
@@ -167,13 +163,9 @@ class TestClientCLI(unittest.TestCase):
         self.assertIn("✅ The client has been successfully created.", output)
 
     def test_create_client_returns_already_exists(self):
-        user = self.data.get("managers")[0]
+        user = self.data.get("commercials")[0]
 
-        permissions = ["display:manager", "display:commercial", "display:technician",
-                       "display:contract", "display:client", "display:event",
-                       "create:client", "update:client", "delete:client", "update:contract",
-                       "filter:contract", "create:event", "filter:client",
-                       "filter:manager", "filter:commercial", "filter:technician"]
+        permissions = self.main_controller.role_permissions["COMMERCIAL"]
 
         runner = CliRunner()
 
@@ -199,3 +191,85 @@ class TestClientCLI(unittest.TestCase):
         output = buffer.getvalue()
 
         self.assertIn("❌ This client already exists.", output)
+
+    def test_delete_client_with_no_permission_fails(self):
+        runner = CliRunner()
+
+        test_session = self.session
+        test_controller = self.main_controller
+
+        user = self.data.get("managers")[0]
+
+        permissions = self.main_controller.role_permissions["MANAGER"]
+
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
+
+        test_controller.user_controller.get_current_user = Mock(return_value=user)
+        test_controller.user_controller.get_permissions = Mock(return_value=permissions)
+        test_controller.view.prompt_for_model_id = Mock(return_value=1)
+        test_controller.view.prompt_for_confirmation = Mock(return_value="y")
+
+        clients = test_session.query(Client).filter(Client.is_active == True).all()
+        nb = len(clients)
+        self.assertEqual(len(clients), nb)
+
+        runner.invoke(client,
+                      ["delete-client"],
+                      obj={"session": test_session, "main_controller": test_controller})
+
+        output = buffer.getvalue()
+
+        clients = test_session.query(Client).filter(Client.is_active == True).all()
+        self.assertEqual(len(clients), nb)
+        client_to_delete = (
+            test_session.query(Client)
+            .filter(Client.name == self.data["clients"][0].name)
+            .filter(Client.email == self.data["clients"][0].email)
+            .first()
+        )
+        self.assertTrue(client_to_delete.is_active)
+        self.assertIn("❌ You don't have the permission to delete a client.", output)
+
+    def test_delete_client_fails_due_to_contract_link(self):
+        runner = CliRunner()
+
+        test_session = self.session
+        test_controller = self.main_controller
+
+        user = self.data.get("commercials")[0]
+
+        permissions = self.main_controller.role_permissions["COMMERCIAL"]
+
+        buffer = StringIO()
+        test_console = Console(file=buffer, force_terminal=False)
+        self.main_controller.console = test_console
+        self.main_controller.view.console = test_console
+
+        test_controller.user_controller.get_current_user = Mock(return_value=user)
+        test_controller.user_controller.get_permissions = Mock(return_value=permissions)
+        test_controller.view.prompt_for_model_id = Mock(return_value=1)
+        test_controller.view.prompt_for_confirmation = Mock(return_value="y")
+
+        clients = test_session.query(Client).filter(Client.is_active == True).all()
+        nb = len(clients)
+        self.assertEqual(len(clients), 2)
+
+        runner.invoke(client,
+                      ["delete-client"],
+                      obj={"session": test_session, "main_controller": test_controller})
+
+        output = buffer.getvalue()
+
+        clients = test_session.query(Client).filter(Client.is_active == True).all()
+        self.assertEqual(len(clients), nb)
+        self.assertIn("⯀ CLIENTS TO DISPLAY", output)
+        client_deleted = (
+            test_session.query(Client)
+            .filter(Client.name == self.data["clients"][0].name)
+            .first()
+        )
+        self.assertTrue(client_deleted.is_active)
+        self.assertIn("❌ Cannot delete client : contract(s) linked.", output)

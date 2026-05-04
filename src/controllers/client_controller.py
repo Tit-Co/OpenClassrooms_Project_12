@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
@@ -55,8 +56,7 @@ class ClientController:
         else:
             self.main_controller.view.display_model_already_exist(model_type="client")
 
-    @staticmethod
-    def create_client(session: Session, data: dict) -> Client:
+    def create_client(self, session: Session, data: dict) -> Client | None:
         """
         Method to create client
         Args:
@@ -75,8 +75,15 @@ class ClientController:
                           last_update=data["last_update"])
 
         session.add(client)
-        session.commit()
-        return client
+
+        try:
+            session.commit()
+            return client
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
+            return None
 
     def update_client_with_view(self, session: Session) -> None:
         """
@@ -131,8 +138,7 @@ class ClientController:
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-    @staticmethod
-    def update_client(session: Session, client_id: int, data: dict) -> None:
+    def update_client(self, session: Session, client_id: int, data: dict) -> None:
         """
         Method to update client with view
         Args:
@@ -141,7 +147,12 @@ class ClientController:
             data (dict): data
         """
         session.query(Client).filter_by(is_active=True, id=client_id).update(data)
-        session.commit()
+        try:
+            session.commit()
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
 
     def delete_client(self, session: Session, client_id: int) -> bool:
         """
@@ -160,11 +171,19 @@ class ClientController:
             return False
 
         session.query(Client).filter_by(is_active=True, id=client_id).delete()
-        session.commit()
-        return True
+
+        try:
+            session.commit()
+            return True
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
+            return False
+
 
     @staticmethod
-    def get_client(session: Session, model_id: int) -> Client:
+    def get_client(session: Session, model_id: int) -> type[Client] | None:
         """
         Method to get client and add fields for extra data
         Args:
@@ -248,4 +267,5 @@ class ClientController:
                 .all()
             )
         results = [self.get_client(session=session, model_id=result.id) for result in results]
+
         return results

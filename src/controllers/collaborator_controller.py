@@ -3,16 +3,18 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
     from src.controllers.main_controller import MainController
 
+from src.database import get_engine, get_session, DATABASE_URL
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
 from src.models.role import Role
-from src.models.user import Collaborator, Commercial, Manager, Technician
+from src.models.user import Commercial, Manager, Technician
 
 
 class CollaboratorController:
@@ -47,15 +49,41 @@ class CollaboratorController:
         }
 
     def get_permissions(self, session: Session, user: type[Commercial] | type[Manager] | type[Technician]) -> list:
+        """
+        Method to get the user permissions
+        Args:
+            session (Session): The session object.
+            user (type[Commercial] | type[Manager] | type[Technician]): The collaborator object.
+
+        Returns:
+        A list with all permissions.
+        """
         role = session.query(Role).filter_by(id=user.role_id).first()
 
         return self.main_controller.role_permissions.get(role.name)
 
     def find_user(self, session, email) -> type[Commercial] | type[Manager] | type[Technician] | None:
-        user = self.get_collaborator_by_mail(session, email)
+        """
+        Method to get a collaborator by its e-mail.
+        Args:
+            session (Session): The session object.
+            email (str): The e-mail.
+
+        Returns:
+        The collaborator object.
+        """
+        user = self.get_collaborator_by_mail(session=session, email=email)
         return user
 
     def get_current_user(self, session):
+        """
+        Method to get the current connected collaborator from the 'current_user.txt' file.
+        Args:
+            session (Session): The session object.
+
+        Returns:
+        The connected collaborator object or None.
+        """
         with open("current_user.txt", 'r', encoding="utf-8") as f:
             email = f.read()
             if email:
@@ -65,10 +93,19 @@ class CollaboratorController:
 
     @staticmethod
     def save_current_user(email: str) -> None:
+        """
+        Method to save the current connected collaborator in the 'current_user.txt' file.
+        Args:
+            email (str): The e-mail.
+        """
         with open("current_user.txt", 'w', encoding="utf-8") as f:
             f.write(email)
 
     def reset_current_user(self) -> None:
+        """
+        Method to reset the current connected collaborator in the 'current_user.txt' file
+        by deleting the file content.
+        """
         self.save_current_user("")
 
     def collaborator_menu(self, session: Session) -> None:
@@ -245,7 +282,13 @@ class CollaboratorController:
             self.main_controller.view.display_action_successfully_done(action="reactivated",
                                                                        model_type=role)
             collaborator = self.get_collaborator_by_mail(session=session, email=email)
-            session.commit()
+
+            try:
+                session.commit()
+
+            except SQLAlchemyError:
+                session.rollback()
+                self.main_controller.view.display_database_error()
 
         else:
             collaborator = self.create_collaborator(session=session, data=data)
@@ -255,7 +298,7 @@ class CollaboratorController:
 
         self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
-    def create_collaborator(self, session: Session, data: dict) -> Manager | Commercial | Technician:
+    def create_collaborator(self, session: Session, data: dict) -> Manager | Commercial | Technician | None:
         """
         Method to create collaborator
         Args:
@@ -266,30 +309,41 @@ class CollaboratorController:
         The collaborator object.
         """
         collaborator = None
+        role_name = data["role"].upper()
+
+        role = session.query(Role).filter(Role.name == role_name).first()
+        role_id = role.id
+
         if data["role"] == "manager":
             collaborator = Manager(
                 name=data["name"],
                 email=data["email"],
-                password=self.main_controller.hash_password(password=data["password"]),
-                role_id=session.query(Role).filter_by(name=data["role"].upper()).first().id
+                password=self.main_controller.hash_password(password=data["password"]).decode(),
+                role_id=role_id
             )
         elif data["role"] == "commercial":
             collaborator = Commercial(
                 name=data["name"],
                 email=data["email"],
-                password=self.main_controller.hash_password(password=data["password"]),
-                role_id=session.query(Role).filter_by(name=data["role"].upper()).first().id
+                password=self.main_controller.hash_password(password=data["password"]).decode(),
+                role_id=role_id
             )
         elif data["role"] == "technician":
             collaborator = Technician(
                 name=data["name"],
                 email=data["email"],
-                password=self.main_controller.hash_password(password=data["password"]),
-                role_id=session.query(Role).filter_by(name=data["role"].upper()).first().id
+                password=self.main_controller.hash_password(password=data["password"]).decode(),
+                role_id=role_id
             )
 
         session.add(collaborator)
-        session.commit()
+
+        try:
+            session.commit()
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
 
         return collaborator
 
@@ -319,9 +373,6 @@ class CollaboratorController:
             session (Session): Session object.
             role (str): Role.
         """
-        print("UPDATE SESSION", id(session))
-        print(">>> ENTER update_action_with_view")
-        print(f"Role : {role}")
         models = self.get_models(session=session, model_type=role)
 
         self.main_controller.view.display_models(model_type=role, models=models)
@@ -333,8 +384,6 @@ class CollaboratorController:
             collaborator = self.get_collaborator_by_id(session=session,
                                                        collaborator_id=collaborator_id,
                                                        role=role)
-            print(f"Collaborator role ID: {collaborator.role_id}")
-            print(f"Collaborator : {collaborator}")
 
             self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
@@ -352,11 +401,9 @@ class CollaboratorController:
             }
             (new_role_id,
              new_role_name) = self.main_controller.view.prompt_for_collaborator_role()
-            print(f"New Collaborator Role ID: {new_role_id} - New Collaborator Role Name: {new_role_name}")
 
             current_role_id = collaborator.role_id
-            print("Current role id: ", current_role_id)
-            print("new_role_id : ", new_role_id)
+
             if new_role_id != current_role_id:
                 new_collaborator_data = {
                     "name": name,
@@ -369,13 +416,9 @@ class CollaboratorController:
                                                            current_role=role,
                                                            data=new_collaborator_data)
 
-                print("New Collaborator ID: ", new_id)
-                print("New role name : ", new_role_name)
-
                 collaborator = self.get_collaborator_by_id(session=session,
                                                            collaborator_id=new_id,
                                                            role=new_role_name)
-                print("RESULT : ", collaborator)
 
                 label = f"collaborator ({role} to {new_role_name})"
 
@@ -386,6 +429,7 @@ class CollaboratorController:
                     "password": password,
                     "role_id": current_role_id,
                 }
+
                 new_role_name = roles[current_role_id]
 
                 self.update_collaborator(session=session,
@@ -415,7 +459,6 @@ class CollaboratorController:
             collaborator_id (int): Collaborator id.
             data (dict): Collaborator data.
         """
-        print(">>> ENTER update_collaborator")
         role_id = data["role_id"]
         name = data["name"]
         email = data["email"]
@@ -426,7 +469,12 @@ class CollaboratorController:
                                                                   "email": email,
                                                                   "password": password,
                                                                   "role_id": role_id})
-        session.commit()
+        try:
+            session.commit()
+
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
 
     def change_role_for_collaborator(self, session: Session,
                                      collaborator_id: int,
@@ -443,7 +491,6 @@ class CollaboratorController:
         Returns:
         The collaborator id
         """
-        print(">>> ENTER change_role_for_collaborator")
         if current_role == "technician":
             (session.query(Event)
              .filter(Event.is_active == True, Event.technician_id == collaborator_id)
@@ -550,21 +597,40 @@ class CollaboratorController:
         except ValueError:
             return False
 
-    @staticmethod
-    def is_date(s: str) -> bool:
+    def is_date(self, s: str) -> bool:
+        """
+        Method to check if the input is a date
+        Args:
+            s (str): The input string
+
+        Returns:
+        A boolean that indicates if the input is a date or not
+        """
         try:
             s += ':00'
             datetime.strptime(s, "%d/%m/%y %H:%M:%S")
             return True
-        except ValueError:
+
+        except ValueError as e:
+            self.main_controller.view.display_date_format_error()
             return False
 
     @staticmethod
     def is_bool(s: str) -> bool | None:
+        """
+        Method to check if the input is a boolean.
+        Args:
+            s (str): The input string
+
+        Returns:
+        A boolean that indicates if the input is a boolean or not, or None otherwise.
+        """
         if str(s).lower() == "true" or (s.isdigit() and int(s) == 1):
             return True
+
         elif str(s).lower() == "false" or (s.isdigit() and int(s) == 0):
             return False
+
         else:
             return None
 
@@ -578,27 +644,32 @@ class CollaboratorController:
         Returns:
         The processed filter value.
         """
-        if filter_value is None:
+        try:
+            if filter_value is None:
+                return None
+
+            elif filter_value.isdigit():
+                return int(filter_value)
+
+            elif self.is_float(filter_value):
+                return float(filter_value)
+
+            elif self.is_date(filter_value):
+                return datetime.strptime(filter_value + ':00', '%d/%m/%y %H:%M:%S')
+
+            elif self.is_bool(filter_value):
+                return self.is_bool(filter_value)
+
+            elif filter_value == "" and my_filter == "creation-date":
+                filter_value = datetime.now()
+                return filter_value
+
+            else:
+                return filter_value
+
+        except ValueError as e:
+            self.main_controller.view.filtering_format_error()
             return None
-
-        elif str(filter_value).isdigit():
-            return int(filter_value)
-
-        elif self.is_float(str(filter_value)):
-            return float(filter_value)
-
-        elif self.is_date(str(filter_value)):
-            return datetime.strptime(filter_value + ':00', '%d/%m/%y %H:%M:%S')
-
-        elif self.is_bool(str(filter_value)):
-            return self.is_bool(filter_value)
-
-        elif filter_value == "" and my_filter == "creation-date":
-            filter_value = datetime.now()
-            return filter_value
-
-        else:
-            return filter_value
 
     def filter_action(self, session: Session,
                       model_type: str,
@@ -623,6 +694,7 @@ class CollaboratorController:
         results = []
 
         if model_type in self.COLLABORATORS.keys():
+
             results = self.filter_collaborator(session=session,
                                                model_type=model_type,
                                                my_filter=my_filter,
@@ -638,6 +710,7 @@ class CollaboratorController:
                 "event": self.main_controller.event_controller.filter_event
             }
             action = actions.get(model_type)
+
             results = action(session=session, my_filter=my_filter, filter_value=filter_value, class_name=class_name)
 
         return results
@@ -786,12 +859,15 @@ class CollaboratorController:
 
         return session.query(Technician).filter_by(is_active=True, email=email).first()
 
-    def get_collaborator_inactive_by_mail(self, session: Session, email: str, role: str) -> type[Collaborator]:
+    def get_collaborator_inactive_by_mail(self, session: Session, email: str, role: str) -> (type[Manager]
+                                                                                            | type[Commercial]
+                                                                                            | type[Technician]
+                                                                                            | None):
         """
         Method to get an inactive collaborator by its name
         Args:
             session (Session): Session object
-            collaborator_email (str): Collaborator e-mail.
+            email (str): Collaborator e-mail.
             role (str): Collaborator role.
 
         Returns:
@@ -803,7 +879,7 @@ class CollaboratorController:
         return collaborator
 
     @staticmethod
-    def get_admin(session: Session) -> type[Manager]:
+    def get_admin(session: Session) -> type[Manager] | None:
         """
         Method to get the admin
         Args:
@@ -883,23 +959,19 @@ class CollaboratorController:
         Returns:
         A boolean indicating whether deletion was successful.
         """
-        # if role == "commercial":
-        #     clients = session.query(Client).filter_by(commercial_id=collaborator_id).all()
-        #
-        #     if clients:
-        #         self.main_controller.view.display_cannot_delete(model_type=role,
-        #                                                         model_linked="client")
-        #         return False
 
+        (session.query(self.COLLABORATORS.get(role)).filter_by(is_active=True, id=collaborator_id)
+         .update({"is_active": False}))
         try:
-            session.query(self.COLLABORATORS.get(role)).filter_by(is_active=True, id=collaborator_id)\
-                .update({"is_active": False})
             session.commit()
             return True
 
-        except Exception:
+        except SQLAlchemyError:
+            session.rollback()
+            self.main_controller.view.display_database_error()
             self.main_controller.view.display_something_wrong("deleting")
             return False
+
 
     def model_exists(self, session: Session, model_type: str, value: str) -> bool:
         """

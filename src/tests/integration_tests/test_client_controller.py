@@ -2,9 +2,9 @@ import sys
 import unittest
 from datetime import datetime
 from io import StringIO
-from rich.console import Console
 from unittest.mock import Mock
 
+from rich.console import Console
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
