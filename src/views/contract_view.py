@@ -94,7 +94,7 @@ class ContractView:
         return Panel(table, border_style="bold red3", expand=False)
 
     def prompt_for_contract(self, clients: list, commercials: list) -> tuple[
-        int | None, int | None, float | None, float | None, bool]:
+        int | None, int | None, float | None, float | None, bool | None]:
         """
         Method that prompts the user to enter the contract data
         Args:

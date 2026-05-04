@@ -98,7 +98,7 @@ class ClientView:
 
             return None if answer == "" or int(answer) == 0 else int(answer)
 
-    def prompt_for_client_email(self) -> str:
+    def prompt_for_client_email(self) -> str | None:
         """
         Method that prompts the user to enter the client email
         Returns:

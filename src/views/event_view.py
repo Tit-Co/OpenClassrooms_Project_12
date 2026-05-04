@@ -63,7 +63,7 @@ class EventView:
         return Panel(table, border_style="bold spring_green3", expand=False)
 
     def prompt_for_event(self, contracts: list, technicians: list) -> tuple[
-        str, int, datetime | None, datetime | None, int | None, str | None, int | None, str | None]:
+        str, int | None, datetime | None, datetime | None, int | None, str | None, int | None, str | None]:
         """
         Method that prompts the user to enter the event data
         Args:
