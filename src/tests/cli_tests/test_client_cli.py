@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 from io import StringIO
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from click.testing import CliRunner
 from rich.console import Console

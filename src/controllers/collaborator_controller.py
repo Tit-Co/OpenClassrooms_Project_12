@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 if TYPE_CHECKING:
     from src.controllers.main_controller import MainController
 
-from src.database import get_engine, get_session, DATABASE_URL
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event

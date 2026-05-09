@@ -1,4 +1,3 @@
-import sys
 import unittest
 from datetime import datetime
 from io import StringIO
