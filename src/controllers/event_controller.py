@@ -103,6 +103,11 @@ class EventController:
         """
         events = self.main_controller.user_controller.get_models(session=session,
                                                                  model_type="event")
+
+        if not events:
+            self.main_controller.view.display_action_impossible(model_type="event", action="update")
+            return
+
         contracts = self.main_controller.user_controller.get_models(session=session,
                                                                     model_type="contract")
         technicians = self.main_controller.user_controller.get_models(session=session,

@@ -236,10 +236,12 @@ class MainView:
                 self.console.print(f"\n[bold red3] ⯀ {model_type.upper()}S TO DISPLAY : [/bold red3] \n")
 
             elif model_type == "client":
-                self.console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S TO DISPLAY : [/bold deep_sky_blue1] \n")
+                self.console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S TO DISPLAY : "
+                                   f"[/bold deep_sky_blue1] \n")
 
             elif model_type == "event":
-                self.console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S TO DISPLAY : [/bold spring_green3] \n")
+                self.console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S TO DISPLAY : "
+                                   f"[/bold spring_green3] \n")
 
             else:
                 self.console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S TO DISPLAY : [/bold grey85] \n")
@@ -401,13 +403,17 @@ class MainView:
                             style="white",
                             expand=False))
 
-    def display_action_impossible(self, action: str) -> None:
+    def display_action_impossible(self, model_type: str, action: str) -> None:
         """
         Method to display a message when the action is not possible.
+        Args
+            model_type (str): The model type.
+            action (str): The action.
         """
-        self.console.print(Panel(f"\n❌ No models to [bold]{action}[/bold].\n",
-                            border_style="bright_red",
-                            style="white",
+        self.console.print(Panel(f"\n❌ No {model_type} to [bold]{action}[/bold]. "
+                                 f"You need to create one before.\n",
+                            border_style="bold red3",
+                            style="bold bright_red",
                             expand=False))
 
     def display_cannot_delete_admin_manager_or_yourself(self) -> None:
@@ -535,7 +541,8 @@ class MainView:
             header = ""
             if (model_type.lower() == "manager" or model_type.lower() == "commercial"
                     or model_type.lower() == "technician"):
-                header = Panel(f"[bold grey85]  - {model_type.upper()} ❱ '{the_result.name}' : [/bold grey85]",
+                header = Panel(f"[bold grey85]  - {model_type.upper()} ❱ "
+                               f"'{the_result.name}' : [/bold grey85]",
                                border_style="",
                                expand=True)
 
@@ -547,13 +554,15 @@ class MainView:
                                expand=True)
 
             elif model_type.lower() == "client" :
-                header = Panel(f"[bold deep_sky_blue1]  - {model_type.upper()} ❱ n° {the_result.id} [/bold deep_sky_blue1]"
+                header = Panel(f"[bold deep_sky_blue1]  - {model_type.upper()} ❱ "
+                               f"n° {the_result.id} [/bold deep_sky_blue1]"
                                f"[deep_sky_blue1]- '{the_result.name}' [/deep_sky_blue1]",
                                border_style="bold deep_sky_blue1",
                                expand=True)
 
             elif model_type.lower() == "event" :
-                header = Panel(f"[bold spring_green3]  - {model_type.upper()} ❱ n° {the_result.id} [/bold spring_green3]"
+                header = Panel(f"[bold spring_green3]  - {model_type.upper()} ❱ "
+                               f"n° {the_result.id} [/bold spring_green3]"
                                f"[spring_green3]- '{the_result.name}' [/spring_green3]",
                                border_style="bold spring_green3",
                                expand=True)
@@ -661,6 +670,8 @@ class MainView:
         answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Type the value of '{my_filter}' filter for {model_type} "
                             f"or leave it blank if necessary [/bold light_goldenrod2]\n"
                             f"▶▶ ", default="")
+        answer = answer.replace('%', '').replace('_', '')
+
         return answer
 
     def prompt_for_date_filter_value(self, model_type: str, my_filter: str) -> datetime | str:
@@ -679,14 +690,15 @@ class MainView:
                                 f"or leave it blank if necessary[/bold light_goldenrod2]\n"
                                 f"▶▶ ",
                                 default="")
+            answer = answer.replace('%', '').replace('_', '')
+
             if answer:
                 try:
                     return datetime.strptime(answer, '%d/%m/%y')
 
                 except ValueError:
-                    self.console.print("❗ [bold bright_red]Please enter a valid date.[/bold bright_red]")
-
-            return ""
+                    self.console.print("❗ [bold bright_red]Please enter a valid date (dd/mm/yy).[/bold bright_red]")
+                    continue
 
     def prompt_for_integer(self, model_type: str, my_filter: str) -> int | None:
         """
@@ -719,9 +731,9 @@ class MainView:
         Returns:
         The choice
         """
-        while True:
-            models = models.get("contracts") if model_type == "contract" else models
+        models = models.get("contracts") if model_type == "contract" else models
 
+        while True:
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Which {model_type} "
                                 f"(from id {models[0].id} to id {models[-1].id}) do you want "
                                 f"to {action} ?[/bold light_goldenrod2] \n"
@@ -731,10 +743,11 @@ class MainView:
                 self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
-            coll = (str(i + 1) for i in range(len(models)))
+            coll = [i.id  for i in models]
 
-            if answer not in coll:
-                self.console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(models)}."
+            if int(answer) not in coll:
+                self.console.print(f"\n❗ [bold bright_red]Please choose an id "
+                                   f"between {models[0].id} and {models[-1].id}."
                                    f"\n[/bold bright_red]")
                 continue
 
@@ -750,9 +763,9 @@ class MainView:
         Returns:
         The choice
         """
-        while True:
-            models = models.get("contracts") if isinstance(models, dict) else models
+        models = models.get("contracts") if isinstance(models, dict) else models
 
+        while True:
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please choose a {model_type} "
                                 f"(from id {models[0].id} "
                                 f"to id {models[-1].id})[/bold light_goldenrod2]\n"
@@ -762,10 +775,11 @@ class MainView:
                 self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
-            coll = (str(i + 1) for i in range(len(models)))
+            coll = [i.id  for i in models]
 
-            if answer not in coll:
-                self.console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(models)}."
+            if int(answer) not in coll:
+                self.console.print(f"\n❗ [bold bright_red]Please choose an id "
+                                   f"between {models[0].id} and {models[-1].id}."
                                    f"\n[/bold bright_red]")
                 continue
 
@@ -795,6 +809,8 @@ class MainView:
             email = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Enter the e-mail address [/bold light_goldenrod2]\n"
                                f"▶▶ ")
 
+            email = email.replace('%', '').replace('_', '')
+
             if not re.fullmatch(r'[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', email):
                 self.console.print("❗ [bold bright_red]Invalid e-mail address.[/bold bright_red]")
                 continue
@@ -812,8 +828,7 @@ class MainView:
                             "▶▶ ")
         return answer
 
-    @staticmethod
-    def prompt_for_confirmation(action: str, model_type: str) -> bool:
+    def prompt_for_confirmation(self, action: str, model_type: str) -> bool:
         """
         Method to prompt the user to confirm the action.
         Args:
@@ -825,14 +840,15 @@ class MainView:
         """
         while True:
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Are you sure you want to {action} this "
-                                f"{model_type} (y/n) ?[/bold light_goldenrod2]\n"
+                                f"{model_type} ?[/bold light_goldenrod2]\n"
                                 f"▶▶ ",
-                                  default="n")
+                                default="n",
+                                choices=["y", "n"])
 
             if answer.lower() in ["y", "n"]:
                 return True if answer.lower() == "y" else False
 
-            click.echo(f"❗ [bold bright_red]Please enter either 'y' or 'n'.[/bold bright_red]")
+            self.console.print(f"❗ [bold bright_red]Please enter either 'y' or 'n'.[/bold bright_red]")
 
     @staticmethod
     def prompt_for_string(model_type: str, field: str) -> str:

@@ -7,7 +7,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.models.base import Base
-from src.database import get_engine, DATABASE_URL
 from src.models.role import Role
 from src.models.user import Commercial, Manager, Technician
 from src.seed import admin_credentials, roles

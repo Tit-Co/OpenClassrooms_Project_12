@@ -92,6 +92,11 @@ class ClientController:
             session (SessionLocal): Session instance
         """
         clients = self.main_controller.user_controller.get_models(session=session, model_type="client")
+
+        if not clients:
+            self.main_controller.view.display_action_impossible(model_type="client", action="update")
+            return
+
         commercials = self.main_controller.user_controller.get_models(session=session, model_type="commercial")
 
         self.main_controller.view.display_models(model_type="client", models=clients)

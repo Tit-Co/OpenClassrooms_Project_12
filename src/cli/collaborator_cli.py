@@ -13,7 +13,8 @@ def collaborator(ctx):
 @click.pass_context
 def create_collaborator(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -39,7 +40,8 @@ def create_collaborator(ctx):
 @click.pass_context
 def update_collaborator(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -65,7 +67,8 @@ def update_collaborator(ctx):
 @click.pass_context
 def delete_collaborator(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -91,7 +94,8 @@ def delete_collaborator(ctx):
 @click.pass_context
 def filter_collaborator(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -115,9 +119,10 @@ def filter_collaborator(ctx):
 
 @collaborator.command()
 @click.pass_context
-def display_collaborator(ctx, role):
+def display_collaborator(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -137,7 +142,8 @@ def display_collaborator(ctx, role):
 @click.pass_context
 def logout(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     main_controller.user_controller.logout(session)

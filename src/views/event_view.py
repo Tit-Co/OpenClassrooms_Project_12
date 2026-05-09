@@ -50,12 +50,12 @@ class EventView:
         table.add_row(f"[spring_green3]Id[/spring_green3] : {event.id}")
         table.add_row(f"[spring_green3]Name[/spring_green3] : {event.name}")
         table.add_row(f"[spring_green3]Contract id[/spring_green3] : {event.contract_id}")
-        table.add_row(f"[spring_green3]Client name[/spring_green3] : {event.client_name if event.client_name else "[unknown]"}")
-        table.add_row(f"[spring_green3]Client phone[/spring_green3] : {event.client_phone if event.client_phone else "[unknown]"}")
-        table.add_row(f"[spring_green3]Client e-mail[/spring_green3] : {event.client_email if event.client_email else "[unknown]"}")
+        table.add_row(f"[spring_green3]Client name[/spring_green3] : {event.client_name if event.client_name else "(unknown)"}")
+        table.add_row(f"[spring_green3]Client phone[/spring_green3] : {event.client_phone if event.client_phone else "(unknown)"}")
+        table.add_row(f"[spring_green3]Client e-mail[/spring_green3] : {event.client_email if event.client_email else "(unknown)"}")
         table.add_row(f"[spring_green3]Start date[/spring_green3] : {event.start_date if event.start_date else ""}")
         table.add_row(f"[spring_green3]End date[/spring_green3] : {event.end_date if event.end_date else ""}")
-        table.add_row(f"[spring_green3]Technician name[/spring_green3] : {event.technician_name if event.technician_name else "[unknown]"}")
+        table.add_row(f"[spring_green3]Technician name[/spring_green3] : {event.technician_name if event.technician_name else "(unknown)"}")
         table.add_row(f"[spring_green3]Location[/spring_green3] : {event.location if event.location else ""}")
         table.add_row(f"[spring_green3]Attendees[/spring_green3] : {event.attendees if event.attendees else ""}")
         table.add_row(f"[spring_green3]Notes[/spring_green3] : {event.notes if event.notes else ""}\n")
@@ -106,8 +106,8 @@ class EventView:
         while True:
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please select a {model_type} for the event if possible"
                                 f"[/bold light_goldenrod2]\n"
-                                f"[dark_turquoise]▶▶[/dark_turquoise] ",
-                                default=1).strip()
+                                f"▶▶ ",
+                                default="1").strip()
 
             if not answer.isdigit():
                 self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
@@ -130,10 +130,10 @@ class EventView:
         while True:
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please enter the number of attendees if known"
                                 f"[/bold light_goldenrod2]\n"
-                                f"[dark_turquoise]▶▶[/dark_turquoise] ").strip()
+                                f"▶▶ ").strip()
 
-            if not answer.isdigit():
+            if not answer.isdigit() and answer != "":
                 self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
                 continue
 
-            return int(answer)
+            return int(answer) if answer.isdigit() else None

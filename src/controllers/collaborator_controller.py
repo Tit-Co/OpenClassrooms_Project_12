@@ -375,6 +375,10 @@ class CollaboratorController:
         """
         models = self.get_models(session=session, model_type=role)
 
+        if not models:
+            self.main_controller.view.display_action_impossible(model_type=role, action="display")
+            return
+
         self.main_controller.view.display_models(model_type=role, models=models)
 
         if models:
@@ -546,23 +550,30 @@ class CollaboratorController:
 
         my_filter = self.FILTERS.get(model_type.lower())[my_filter_id - 1]
 
-        if '-id' in my_filter or '-max' in my_filter:
-            filter_value = self.main_controller.view.prompt_for_integer(model_type=model_type, my_filter=my_filter)
+        try:
+            if '-id' in my_filter or '-max' in my_filter:
+                filter_value = self.main_controller.view.prompt_for_integer(model_type=model_type,
+                                                                            my_filter=my_filter)
 
-        elif '-date' in my_filter:
-            filter_value = self.main_controller.view.prompt_for_date_filter_value(model_type=model_type, my_filter=my_filter)
+            elif '-date' in my_filter:
+                filter_value = self.main_controller.view.prompt_for_date_filter_value(model_type=model_type,
+                                                                                      my_filter=my_filter)
 
-        elif 'no-' in my_filter:
-            filter_value=None
+            elif 'no-' in my_filter:
+                filter_value=None
 
-        elif my_filter == 'status':
-            filter_value = self.main_controller.view.contract_view.prompt_for_contract_boolean()
+            elif my_filter == 'status':
+                filter_value = self.main_controller.view.contract_view.prompt_for_contract_boolean()
 
-        elif my_filter == 'bill-to-pay':
+            elif my_filter == 'bill-to-pay':
+                filter_value = None
+
+            else:
+                filter_value = self.main_controller.view.prompt_for_filter_value(model_type=model_type,
+                                                                                 my_filter=my_filter)
+        except ValueError as e:
+            self.main_controller.view.filtering_format_error()
             filter_value = None
-
-        else:
-            filter_value = self.main_controller.view.prompt_for_filter_value(model_type=model_type, my_filter=my_filter)
 
         results = self.filter_action(session=session,
                                      model_type=model_type,
@@ -634,43 +645,6 @@ class CollaboratorController:
         else:
             return None
 
-    def process_filter_value(self, my_filter: str, filter_value: str) -> str | int | float | datetime | None:
-        """
-        Method to process filter value. The method change the type of the filter according to the str input.
-        Args:
-            my_filter (str): The filter.
-            filter_value (str): Filter value.
-
-        Returns:
-        The processed filter value.
-        """
-        try:
-            if filter_value is None:
-                return None
-
-            elif filter_value.isdigit():
-                return int(filter_value)
-
-            elif self.is_float(filter_value):
-                return float(filter_value)
-
-            elif self.is_date(filter_value):
-                return datetime.strptime(filter_value + ':00', '%d/%m/%y %H:%M:%S')
-
-            elif self.is_bool(filter_value):
-                return self.is_bool(filter_value)
-
-            elif filter_value == "" and my_filter == "creation-date":
-                filter_value = datetime.now()
-                return filter_value
-
-            else:
-                return filter_value
-
-        except ValueError as e:
-            self.main_controller.view.filtering_format_error()
-            return None
-
     def filter_action(self, session: Session,
                       model_type: str,
                       my_filter: str,
@@ -688,8 +662,6 @@ class CollaboratorController:
         """
         class_name = self.MODELS.get(model_type) if self.MODELS.get(model_type) \
             else self.COLLABORATORS.get(model_type)
-
-        filter_value = self.process_filter_value(my_filter=my_filter, filter_value=filter_value)
 
         results = []
 
@@ -798,7 +770,8 @@ class CollaboratorController:
 
     def get_model(self, session: Session,
                   model_type: str,
-                  model_id: int) -> (type[Client | Event | Contract | Commercial | Manager | Technician]):
+                  model_id: int) -> type[Client] | type[Event] | type[Contract] | None | type[Manager] | type[
+        Commercial] | type[Technician]:
         """
         Method to get a model by its id and type
         Args:
@@ -903,7 +876,7 @@ class CollaboratorController:
         models = self.main_controller.user_controller.get_models(session=session,
                                                                  model_type=model_type)
 
-        if models:
+        if (isinstance(models, list) and models) or (isinstance(models, dict) and models.get("contracts")):
             self.main_controller.view.display_models(model_type=model_type, models=models)
 
             model_id = self.main_controller.view.prompt_for_model_id(model_type=model_type,
@@ -946,7 +919,7 @@ class CollaboratorController:
                 self.main_controller.view.display_action_successfully_done(action="deleted",
                                                                            model_type=model_type)
         else:
-            self.main_controller.view.display_action_impossible(action="delete")
+            self.main_controller.view.display_action_impossible(model_type=model_type, action="delete")
 
     def delete_collaborator(self, session: Session, collaborator_id: int, role: str) -> bool:
         """

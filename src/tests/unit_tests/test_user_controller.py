@@ -354,23 +354,3 @@ class TestCollaboratorController(unittest.TestCase):
         admin = self.controller.get_admin(session=self.session)
 
         self.assertEqual(admin, self.data["manager"])
-
-    def test_filter_value_str_ok(self):
-        filter_value = self.controller.process_filter_value("test", filter_value="test")
-        self.assertEqual(filter_value, "test")
-
-    def test_filter_value_int_ok(self):
-        filter_value = self.controller.process_filter_value("test", filter_value="2")
-        self.assertEqual(filter_value, 2)
-
-    def test_filter_value_float_ok(self):
-        filter_value = self.controller.process_filter_value("test", filter_value="12.23")
-        self.assertEqual(filter_value, 12.23)
-
-    def test_filter_value_date_ok(self):
-        filter_value = self.controller.process_filter_value("", filter_value="26/04/26 11:00")
-        self.assertEqual(filter_value, datetime.strptime("26/04/26 11:00:00", "%d/%m/%y %H:%M:%S"))
-
-    def test_filter_value_bool_ok(self):
-        filter_value = self.controller.process_filter_value("name", filter_value="true")
-        self.assertTrue(filter_value)

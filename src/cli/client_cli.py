@@ -13,7 +13,8 @@ def client(ctx):
 @click.pass_context
 def create_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -31,7 +32,8 @@ def create_client(ctx):
 @click.pass_context
 def update_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -50,7 +52,8 @@ def update_client(ctx):
 @click.pass_context
 def delete_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -68,7 +71,8 @@ def delete_client(ctx):
 @click.pass_context
 def filter_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)
@@ -90,7 +94,8 @@ def filter_client(ctx):
 @click.pass_context
 def display_client(ctx):
     ctx.ensure_object(dict)
-    session = ctx.obj.get("session") or get_session(get_engine(database_url=DATABASE_URL))
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
     main_controller = ctx.obj.get("main_controller") or MainController()
 
     user = main_controller.user_controller.get_current_user(session=session)

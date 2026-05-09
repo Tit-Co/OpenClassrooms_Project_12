@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import sys
 from typing import TYPE_CHECKING
 
-import click
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
@@ -41,33 +39,36 @@ class ContractView:
 
     @staticmethod
     def is_bool(s: str) -> bool | None:
-        if str(s).lower() == "true" or (s.isdigit() and int(s) == 1):
+        if str(s) == "true" or (s.isdigit() and int(s) == 1) or str(s) == "false" or (s.isdigit() and int(s) == 0):
             return True
-        elif str(s).lower() == "false" or (s.isdigit() and int(s) == 0):
-            return False
         else:
-            return None
+            return False
 
     def display_contracts(self, models: dict) -> None:
         """
         Method to display the list of contracts
         Args:
-            models ():
+            models (dict): A dictionary that contains all contracts, clients and commercials
         """
         clients = models.get("clients")
         commercials = models.get("commercials")
         contracts = models.get("contracts")
+
         for contract in contracts:
             client_id = contract.client_id
             commercial_id = contract.commercial_id
-            client = next((c for c in clients if c.id == client_id), None)
-            commercial = next((c for c in commercials if c.id == commercial_id), None)
 
-            self.console.print(Panel(f"  [red3]- [bold]{contract.id}.[/bold] Contract between "
-                                f"the client [bold]{client.name if client else '[unknown]'}[/bold] "
-                                f"and the commercial [bold]{commercial.name if commercial else '[unknown]'}[/bold]"
-                                f"[/red3]",
-                                border_style="bold red3", expand=False))
+            client = next((c for c in clients if c.id == client_id), None)
+            client_name = client.name if client and client.name else "(unknown)"
+
+            commercial = next((c for c in commercials if c.id == commercial_id), None)
+            commercial_name = commercial.name if commercial and commercial.name else "(unknown)"
+
+            self.console.print(Panel(f"  - {contract.id}. Contract between the client {client_name} "
+                                     f"and the commercial {commercial_name}",
+                                border_style="bold red3",
+                                style="red3",
+                                expand=False))
 
     @staticmethod
     def display_contract(contract: type[Contract]) -> Panel:
@@ -91,7 +92,7 @@ class ContractView:
         table.add_row(f"[bold red3]Creation date[/bold red3] : {contract.creation_date}")
         table.add_row(f"[bold red3]Contract signed[/bold red3] : {'✅' if contract.status else '❌'}\n")
 
-        return Panel(table, border_style="bold red3", expand=False)
+        return Panel(table, border_style="bold bright_red", expand=False)
 
     def prompt_for_contract(self, clients: list, commercials: list) -> tuple[
         int | None, int | None, float | None, float | None, bool | None]:
@@ -107,19 +108,13 @@ class ContractView:
 
         self.main_view.display_models(model_type="client", models=clients)
 
-        try:
-            client_id = self.prompt_for_id(model_type="client")
-        except EOFError:
-            client_id = None
+        client_id = self.prompt_for_id(model_type="client")
 
         self.console.print(client_id)
 
         self.main_view.display_models(model_type="commercial", models=commercials)
 
-        try:
-            commercial_id = self.prompt_for_id(model_type="commercial")
-        except EOFError:
-            commercial_id = None
+        commercial_id = self.prompt_for_id(model_type="commercial")
 
         self.console.print(commercial_id)
 
@@ -143,7 +138,7 @@ class ContractView:
         while True:
             choice = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please select a {model_type} for the contract if possible"
                                 f"[/bold light_goldenrod2]\n"
-                                f"[dark_turquoise]▶▶[/dark_turquoise] ")
+                                f"▶▶ ")
 
             if not choice.isdigit() and choice != "":
                 self.console.print("\n❗ [bold red]Please enter a number or leave blank.\n[/bold red]")
@@ -164,11 +159,11 @@ class ContractView:
             if amount_type == "total_amount":
                 answer = Prompt.ask("\n[bold light_goldenrod2]▶ Please type the contract total amount if possible"
                                     "[bold light_goldenrod2]\n"
-                                    "[dark_turquoise]▶▶[/dark_turquoise] ")
+                                    "▶▶ ")
             else:
                 answer = Prompt.ask("\n[bold light_goldenrod2]▶ Please type the amount left to pay if existing"
                                     "[/bold light_goldenrod2]\n"
-                                    "[dark_turquoise]▶▶[/dark_turquoise] ")
+                                    "▶▶ ")
 
             if not self.is_float(answer):
                 self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
@@ -184,11 +179,11 @@ class ContractView:
 
         """
         while True:
-            answer = Prompt.ask("\n[bold light_goldenrod2]▶ Is the contract signed [/bold light_goldenrod2]\n"
-                                "[dark_turquoise]▶▶[/dark_turquoise] ",
-                                default="False")
+            answer = Prompt.ask("\n[bold light_goldenrod2]▶ Is the contract signed "
+                                "(true/false | 1/0) ?[/bold light_goldenrod2]\n"
+                                "▶▶ ", default="false")
 
-            if not self.is_bool(answer):
+            if not self.is_bool(answer.lower().strip()):
                 self.console.print("\n❗ [bold red]Please enter a boolean (true/false | 1/0).\n[/bold red]")
                 continue
 

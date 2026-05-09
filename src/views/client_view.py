@@ -53,18 +53,19 @@ class ClientView:
         table.add_row(f"[bold deep_sky_blue1]Company[/bold deep_sky_blue1] : {client.company}")
         table.add_row(f"[bold deep_sky_blue1]Creation date[/bold deep_sky_blue1] : {client.creation_date}")
         table.add_row(f"[bold deep_sky_blue1]Last update[/bold deep_sky_blue1] : {client.last_update}")
-        table.add_row(f"[bold deep_sky_blue1]Commercial name[/bold deep_sky_blue1] : {client.commercial_name or ''}\n")
+        table.add_row(f"[bold deep_sky_blue1]Commercial name[/bold deep_sky_blue1] : "
+                      f"{client.commercial_name if client.commercial_name else '(unknown)'}\n")
 
         return Panel(table, border_style="bold deep_sky_blue1", expand=False)
 
-    def prompt_for_client(self, commercials: list) -> tuple[int | None, Any, str, Any, Any]:
+    def prompt_for_client(self, commercials: list) -> tuple[int | None, str, str | None, str | None, str | None]:
         """
         Method that prompts the user to enter the client data and choose a commercial
         Args:
             commercials (list): List of commercials
 
         Returns:
-
+            A tuple with client id, the client name, email, phone and company name or None.
         """
         self.main_view.display_models("commercial", commercials)
         client_id = self.prompt_for_id(model_type="commercial")
@@ -86,7 +87,7 @@ class ClientView:
             model_type (str): Type of model
 
         Returns:
-        The id or None
+            The id or None
         """
         while True:
             answer = Prompt.ask(f"\n▶ Please select a {model_type} for the client if possible\n"
@@ -102,6 +103,7 @@ class ClientView:
         """
         Method that prompts the user to enter the client email
         Returns:
-        The email
+            The email or None.
         """
-        return self.main_view.prompt_for_email()
+        email = self.main_view.prompt_for_email()
+        return email

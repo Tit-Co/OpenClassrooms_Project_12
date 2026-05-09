@@ -25,9 +25,9 @@ cli.add_command(event)
 def login(ctx, email, password):
     ctx.ensure_object(dict)
 
-    db_engine = ctx.obj["db_engine"] or get_engine(database_url=DATABASE_URL)
-    session = ctx.obj["session"] or get_session(db_engine)()
-    main_controller = ctx.obj["main_controller"] or MainController()
+    db_engine = ctx.obj.get("db_engine") or get_engine(database_url=DATABASE_URL)
+    session = ctx.obj.get("session") or get_session(db_engine)()
+    main_controller = ctx.obj.get("main_controller") or MainController()
 
     main_controller.init_db(db_engine, session)
 

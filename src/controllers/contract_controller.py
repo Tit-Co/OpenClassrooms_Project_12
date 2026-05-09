@@ -94,14 +94,18 @@ class ContractController:
         Args:
             session (Session): session
         """
-        models = self.main_controller.user_controller.get_models(session=session,
+        contracts = self.main_controller.user_controller.get_models(session=session,
                                                                  model_type="contract")
 
-        self.main_controller.view.display_models(model_type="contract", models=models)
+        if not contracts:
+            self.main_controller.view.display_action_impossible(model_type="contract", action="update")
+            return
 
-        if models.get("contracts"):
+        self.main_controller.view.display_models(model_type="contract", models=contracts)
+
+        if contracts.get("contracts"):
             contract_id = self.main_controller.view.prompt_for_model_id(model_type="contract",
-                                                                        models=models.get("contracts"))
+                                                                        models=contracts.get("contracts"))
 
             contract = self.get_contract(session=session, model_id=contract_id)
             self.main_controller.view.contract_view.display_contract(contract=contract,)
@@ -114,8 +118,8 @@ class ContractController:
              total_amount,
              bill_to_pay,
              status
-             ) = self.main_controller.view.contract_view.prompt_for_contract(clients=models.get("clients"),
-                                                                             commercials=models.get("commercials"))
+             ) = self.main_controller.view.contract_view.prompt_for_contract(clients=contracts.get("clients"),
+                                                                             commercials=contracts.get("commercials"))
 
             new_contract_data = {
                     "client_id": client_id,
