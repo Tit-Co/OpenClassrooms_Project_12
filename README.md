@@ -10,11 +10,14 @@ This project was completed as part of the "Python Developer" path at OpenClassro
 
 The goal was to develop a secured back-end architecture, capable of:
 
-- 
+- storing data in SQL database
+- realizing CRUD operations on all the differents objects : Contract, Client, Event and Collaborator
+- communicating with the user by CLI interface
+- providing permission according to the user role
 
 The application must:
 
--
+- allow the user to create, update, delete, display and filter objects according to his permission
 
 ---
 
@@ -87,31 +90,71 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 - Open a terminal
 - Go to project folder - example : `cd epic_events`
 - Activate the virtual environment as described previously
-- 
-- Finally, launch the app : ``
+- Create environment variables (to avoid to add raw DB details in the code)
+  - With Power Shell :
+    ```
+    $env:DB_USERNAME = "epic_events_user"
+    $env:DB_PASSWORD = "tgl_Prn_C1"
+    $env:DATABASE = "epic_events"
+    $env:HOST = "127.0.0.1"
+    $env:PORT = "3307"
+    ```
+  - With Git Bash :
+    ```
+    export DB_USERNAME="epic_events_user"
+    export DB_PASSWORD="tgl_Prn_C1"
+    export DATABASE="epic_events"
+    export HOST="127.0.0.1"
+    export PORT="3307"
+    ```
 
 ### Launching the APP
-- 
+- Finally, launch the CLI app by typing commands : 
+  - Examples
+    - `python -m src.cli.main login`
+    - `python -m src.cli.main collaborator create-collaborator`
+    - `python -m src.cli.main event display-event`
+    - `python -m src.cli.main client filter-client`
+    - `python -m src.cli.main contract delete-contract`
 
 ---
 
 ## EXPLANATIONS OF WHAT THE APP DOES
 
-### <u></u>
-- 
+### <u>Initialization</u>
+- First the database is initialized and an admin manager is created. Only this first account can create the first collaborators.
 
-### <u></u>
-- 
+### <u>Authentication</u>
+- The user can log in the CLI by typing his e-mail and password
 
-### <u></u>
-- 
+### <u>Creation</u>
+- The user can create objects (Contract, Client, Event, Collaborator) by typing the proper command and according to his permission.
+- Only managers can create some new collaborators and some new contracts.
+- Only commercials can create some new clients or some new events.
 
-### <u></u>
-- 
+### <u>Display</u>
+- All user can display objects of any type.
+
+### <u>Update</u>
+- The user can update objects (Contract, Client, Event, Collaborator) by typing the proper command and according to his permission.
+- Only technicians can update events.
+- Only commercials can update clients.
+- Only managers can update contracts and collaborators details
+
+### <u>Deletion</u>
+- The user can delete objects (Contract, Client, Event, Collaborator) by typing the proper command and according to his permission.
+- Only managers can delete contracts, events and collaborators profile.
+- Only commercials can delete clients.
+
+### <u>Filtering</u>
+- The user can filter objects (Contract, Client, Event, Collaborator) by typing the proper command and according to his permission.
+- Only managers and technicians can filter events.
+- Only commercials can filter contracts.
+- All users can filter clients.
 
 ---
 
-## TEMPLATES EXAMPLES
+## CLI VIEWS EXAMPLES
 
 - 
 <p align="center">
@@ -138,7 +181,6 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 - Coverage report
 <p align="center">
     <img src="docs/cov_report.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
-    <img src="docs/cov_report_functions.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
 </p>
 
 - **Type the lines below in the terminal to generate another coverage report with pytest**
