@@ -10,6 +10,7 @@ from sqlalchemy import Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from src.config import APP_ENV, SENTRY_KEY
 from src.models.base import Base
 from src.models.role import Role
 from src.models.user import Commercial, Manager, Technician
@@ -79,17 +80,18 @@ class MainController:
             event_level=logging.ERROR,
         )
 
-        sentry_sdk.init(
-            dsn=os.getenv("SENTRY_KEY"),
-            # Add request headers and IP for users,
-            # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
-            send_default_pii=True,
+        if APP_ENV != "test":
+            sentry_sdk.init(
+                dsn=SENTRY_KEY,
+                # Add request headers and IP for users,
+                # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+                send_default_pii=True,
 
-            # Enable logs to be sent to Sentry
-            enable_logs=True,
+                # Enable logs to be sent to Sentry
+                enable_logs=True,
 
-            integrations=[sentry_logging]
-        )
+                integrations=[sentry_logging]
+            )
 
     def init_db(self, db_engine: Engine, session: Session) -> None:
         """

@@ -1,3 +1,7 @@
+import logging
+import os
+os.environ["APP_ENV"] = "test"
+
 import unittest
 from datetime import datetime
 from io import StringIO
@@ -48,11 +52,17 @@ class TestContractCLI(unittest.TestCase):
         self.session = self.session_test()
         self.data = self.seed_data()
 
+        self.main_controller.init_db(self.db_engine, self.session)
+
+        logging.disable(logging.CRITICAL)
+
     def tearDown(self) -> None:
         """
         Method called after every test case
         """
         self.session.close()
+
+        logging.disable(logging.NOTSET)
 
     def seed_data(self) -> dict:
         """

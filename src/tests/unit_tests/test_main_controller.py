@@ -1,6 +1,8 @@
-import unittest
-
 import bcrypt
+import os
+os.environ["APP_ENV"] = "test"
+
+import unittest
 
 from src.controllers.main_controller import MainController
 

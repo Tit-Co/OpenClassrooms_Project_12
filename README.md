@@ -11,7 +11,7 @@ This project was completed as part of the "Python Developer" path at OpenClassro
 The goal was to develop a secured back-end architecture, capable of:
 
 - storing data in SQL database
-- realizing CRUD operations on all the differents objects : Contract, Client, Event and Collaborator
+- executing CRUD operations on all the differents objects : Contract, Client, Event and Collaborator
 - communicating with the user by CLI interface
 - providing permission according to the user role
 
@@ -194,6 +194,7 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 
 ![Python](https://img.shields.io/badge/python-3.14-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Coverage](https://img.shields.io/badge/coverage-73%25-red)
 
 ---
 

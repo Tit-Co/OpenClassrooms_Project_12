@@ -1,3 +1,7 @@
+import logging
+import os
+os.environ["APP_ENV"] = "test"
+
 import unittest
 from io import StringIO
 from unittest.mock import Mock
@@ -46,11 +50,15 @@ class TestMainController(unittest.TestCase):
         self.session = self.session_test()
         self.controller.init_db(self.db_engine, self.session)
 
+        logging.disable(logging.CRITICAL)
+
     def tearDown(self) -> None:
         """
         Method called after every test case
         """
         self.session.close()
+
+        logging.disable(logging.NOTSET)
 
     def test_init_db_ok(self) -> None:
         """
