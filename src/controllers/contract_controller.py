@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sentry_sdk
-
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -58,15 +56,10 @@ class ContractController:
             self.main_controller.view.display_action_successfully_done(action="created",
                                                                        model_type="contract")
 
-            sentry_sdk.logger.info(f'Created contract between {contract.commercial_name} '
-                                   f'and {contract.client_name} successfully.')
-
             self.main_controller.view.contract_view.display_contract(contract=contract)
 
         else:
             self.main_controller.view.display_something_wrong("creating")
-
-            sentry_sdk.logger.error(f'Failed to create contract. Something wrong.', attributes=data)
 
     def create_contract(self, session: Session, data: dict) -> Contract | None:
         """
@@ -90,10 +83,9 @@ class ContractController:
             session.commit()
             return contract
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
             return None
 
     def update_contract_with_view(self, session: Session) -> None:
@@ -146,13 +138,8 @@ class ContractController:
 
                 self.main_controller.view.contract_view.display_contract(contract=contract)
 
-                sentry_sdk.logger.info(f'Updated contract between {contract.commercial_name} '
-                                       f'and {contract.client_name} successfully.')
-
             else:
                 self.main_controller.view.display_something_wrong("updating")
-
-                sentry_sdk.logger.error(f'Failed to update contract. Something wrong.', attributes=new_contract_data)
 
     def update_contract(self, session: Session, contract_id: int, data: dict) -> None:
         """
@@ -166,10 +153,9 @@ class ContractController:
         try:
             session.commit()
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
 
     def delete_contract(self, session: Session, contract_id: int) -> bool:
         """
@@ -193,10 +179,9 @@ class ContractController:
             session.commit()
             return True
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
             return False
 
     @staticmethod

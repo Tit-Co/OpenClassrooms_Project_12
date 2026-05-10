@@ -1,5 +1,4 @@
 import click
-import sentry_sdk
 
 from src.cli.client_cli import client
 from src.cli.collaborator_cli import collaborator
@@ -44,8 +43,6 @@ def login(ctx, email, password):
                                               password=password)
     except Exception as e:
         main_controller.view.display_error_while_logging_in()
-
-        sentry_sdk.logger.error(f'Failed to log in. Something wrong.')
 
     session.close()
 

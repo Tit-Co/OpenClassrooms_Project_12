@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sentry_sdk
-
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -287,27 +285,17 @@ class CollaboratorController:
             try:
                 session.commit()
 
-            except SQLAlchemyError as e:
+            except SQLAlchemyError:
                 session.rollback()
                 self.main_controller.view.display_database_error()
-                sentry_sdk.capture_exception(e)
 
         else:
             collaborator = self.create_collaborator(session=session, data=data)
 
-        if collaborator or (isinstance(collaborator, list) and (None,) not in collaborator):
             self.main_controller.view.display_action_successfully_done(action="created",
                                                                        model_type=role)
 
-            sentry_sdk.logger.info(f'Created {role} {collaborator.name} successfully.')
-
-            self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
-
-        else:
-            self.main_controller.view.display_something_wrong("creating collaborator")
-
-            sentry_sdk.logger.error(f'Failed to create/reactivate collaborator. Something wrong.',
-                                    attributes=data)
+        self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
     def create_collaborator(self, session: Session, data: dict) -> Manager | Commercial | Technician | None:
         """
@@ -352,10 +340,9 @@ class CollaboratorController:
         try:
             session.commit()
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
 
         return collaborator
 
@@ -461,16 +448,11 @@ class CollaboratorController:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type=label)
 
-                sentry_sdk.logger.info(f'Updated collaborator {collaborator.name} successfully.')
-
                 self.main_controller.view.display_collaborator(collaborator=collaborator,
                                                                role=new_role_name)
 
             else:
                 self.main_controller.view.display_something_wrong("updating")
-
-                sentry_sdk.logger.error(f'Failed to update collaborator. Something wrong.',
-                                        attributes=new_collaborator_data)
 
     def update_collaborator(self, session: Session, collaborator_id: int, data: dict):
         """
@@ -493,10 +475,9 @@ class CollaboratorController:
         try:
             session.commit()
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
 
     def change_role_for_collaborator(self, session: Session,
                                      collaborator_id: int,
@@ -592,7 +573,6 @@ class CollaboratorController:
         except ValueError as e:
             self.main_controller.view.filtering_format_error()
             filter_value = None
-            sentry_sdk.capture_exception(e)
 
         results = self.filter_action(session=session,
                                      model_type=model_type,
@@ -958,11 +938,10 @@ class CollaboratorController:
             session.commit()
             return True
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
             self.main_controller.view.display_something_wrong("deleting")
-            sentry_sdk.capture_exception(e)
             return False
 
 

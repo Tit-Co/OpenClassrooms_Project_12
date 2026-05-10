@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import sentry_sdk
-
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -61,24 +59,12 @@ class EventController:
             event = self.create_event(session=session, data=data)
             event = self.get_event(session=session, model_id=event.id)
 
-            if event or (isinstance(event, list) and (None,) not in event):
+            self.main_controller.view.display_action_successfully_done(action="created",
+                                                                       model_type="event")
 
-                self.main_controller.view.display_action_successfully_done(action="created",
-                                                                           model_type="event")
-
-                sentry_sdk.logger.info(f'Created event {event.name} successfully.')
-
-                self.main_controller.view.event_view.display_event(event=event)
-
-            else:
-                self.main_controller.view.display_something_wrong("creating")
-
-                sentry_sdk.logger.error(f'Failed to create event.', attributes=data)
-
+            self.main_controller.view.event_view.display_event(event=event)
         else:
             self.main_controller.view.display_model_already_exist(model_type="event")
-
-            sentry_sdk.logger.error(f'Failed to create event : {name} already exists.')
 
     def create_event(self, session: Session, data: dict) -> Event | None:
         """
@@ -104,10 +90,9 @@ class EventController:
             session.commit()
             return event
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
             return None
 
     def update_event_with_view(self, session: Session) -> None:
@@ -151,7 +136,7 @@ class EventController:
              ) = self.main_controller.view.event_view.prompt_for_event(contracts=contracts,
                                                                        technicians=technicians)
 
-            new_event_data = {
+            new_contract_data = {
                 "name": name,
                 "contract_id": contract_id,
                 "start_date": start_date,
@@ -161,7 +146,7 @@ class EventController:
                 "attendees": attendees,
                 "notes": notes
             }
-            self.update_event(session=session, event_id=event_id, data=new_event_data)
+            self.update_event(session=session, event_id=event_id, data=new_contract_data)
 
             event = self.get_event(session=session, model_id=event_id)
 
@@ -169,14 +154,10 @@ class EventController:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type="event")
 
-                sentry_sdk.logger.info(f'Updated event {event.name} successfully.')
-
                 self.main_controller.view.event_view.display_event(event=event)
 
             else:
                 self.main_controller.view.display_something_wrong("updating")
-
-                sentry_sdk.logger.error(f'Failed to update event. Something wrong.', attributes=new_event_data)
 
     def update_event(self, session: Session, event_id: int, data: dict) -> None:
         """
@@ -190,10 +171,9 @@ class EventController:
         try:
             session.commit()
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
 
     def delete_event(self, session: Session, event_id: int) -> bool:
         """
@@ -211,10 +191,9 @@ class EventController:
             session.commit()
             return True
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
             return False
 
     @staticmethod

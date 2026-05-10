@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sentry_sdk
-
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -50,24 +48,13 @@ class ClientController:
             }
             client = self.create_client(session=session, data=data)
 
-            if client or (isinstance(client, list) and (None,) not in client):
-                self.main_controller.view.display_action_successfully_done(action="created",
-                                                                           model_type="client")
+            self.main_controller.view.display_action_successfully_done(action="created",
+                                                                       model_type="client")
 
-                client = self.get_client(session=session, model_id=client.id)
-
-                sentry_sdk.logger.info(f'Created client {client.name} successfully.')
-
-                self.main_controller.view.client_view.display_client(client=client)
-
-            else:
-                self.main_controller.view.display_something_wrong("creating")
-
-                sentry_sdk.logger.error(f'Failed to create client. Something wrong.', attributes=data)
+            client = self.get_client(session=session, model_id=client.id)
+            self.main_controller.view.client_view.display_client(client=client)
         else:
             self.main_controller.view.display_model_already_exist(model_type="client")
-
-            sentry_sdk.logger.warning(f'Cannot create client : {name}/{email} already exists.')
 
     def create_client(self, session: Session, data: dict) -> Client | None:
         """
@@ -93,10 +80,9 @@ class ClientController:
             session.commit()
             return client
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
             return None
 
     def update_client_with_view(self, session: Session) -> None:
@@ -134,7 +120,7 @@ class ClientController:
              company,
              ) = self.main_controller.view.client_view.prompt_for_client(commercials=commercials)
 
-            new_client_data = {
+            new_contract_data = {
                 "commercial_id": commercial_id,
                 "name": name,
                 "email": email,
@@ -144,21 +130,18 @@ class ClientController:
                 "last_update": datetime.now(),
             }
 
-            self.update_client(session=session, client_id=client_id, data=new_client_data)
+            self.update_client(session=session, client_id=client_id, data=new_contract_data)
 
             client = self.get_client(session=session, model_id=client_id)
 
             if client:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type="client")
-                sentry_sdk.logger.info(f'Updated client {client.name} successfully.')
 
 
                 self.main_controller.view.client_view.display_client(client=client)
             else:
                 self.main_controller.view.display_something_wrong("updating")
-
-                sentry_sdk.logger.error(f'Failed to update client. Something wrong.', attributes=new_client_data)
 
     def update_client(self, session: Session, client_id: int, data: dict) -> None:
         """
@@ -198,10 +181,9 @@ class ClientController:
             session.commit()
             return True
 
-        except SQLAlchemyError as e:
+        except SQLAlchemyError:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
             return False
 
 
