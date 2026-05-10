@@ -1,7 +1,11 @@
+import logging
+import os
 import sys
-
 import bcrypt
+import sentry_sdk
+
 from rich.console import Console
+from sentry_sdk.integrations.logging import LoggingIntegration
 from sqlalchemy import Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -66,6 +70,27 @@ class MainController:
             "role": admin_credentials["role"]
         }
 
+    @staticmethod
+    def init_sentry():
+        logging.basicConfig(level=logging.INFO)
+
+        sentry_logging = LoggingIntegration(
+            level=logging.INFO,
+            event_level=logging.ERROR,
+        )
+
+        sentry_sdk.init(
+            dsn=os.getenv("SENTRY_KEY"),
+            # Add request headers and IP for users,
+            # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+            send_default_pii=True,
+
+            # Enable logs to be sent to Sentry
+            enable_logs=True,
+
+            integrations=[sentry_logging]
+        )
+
     def init_db(self, db_engine: Engine, session: Session) -> None:
         """
         Method to initialize database
@@ -73,6 +98,8 @@ class MainController:
             db_engine (Engine): database engine
             session (Session): session
         """
+        self.init_sentry()
+
         Base.metadata.create_all(bind=db_engine)
 
         for role in roles:
@@ -97,9 +124,10 @@ class MainController:
         try:
             session.commit()
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             session.rollback()
             self.view.display_database_error()
+            sentry_sdk.capture_exception(e)
 
     def run(self, session: Session) -> None:
         """
@@ -205,7 +233,8 @@ class MainController:
             result = bcrypt.checkpw(plain_password, stored_password)
             return result
 
-        except ValueError:
+        except ValueError as e:
+            sentry_sdk.capture_exception(e)
             return False
 
     @staticmethod

@@ -93,19 +93,21 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 - Create environment variables (to avoid to add raw DB details in the code)
   - With Power Shell :
     ```
-    $env:DB_USERNAME = "epic_events_user"
-    $env:DB_PASSWORD = "tgl_Prn_C1"
+    $env:DB_USERNAME = "user"
+    $env:DB_PASSWORD = "password"
     $env:DATABASE = "epic_events"
     $env:HOST = "127.0.0.1"
     $env:PORT = "3307"
+    $env:SENTRY_KEY = "my_key"
     ```
   - With Git Bash :
     ```
-    export DB_USERNAME="epic_events_user"
-    export DB_PASSWORD="tgl_Prn_C1"
+    export DB_USERNAME="user"
+    export DB_PASSWORD="pasword"
     export DATABASE="epic_events"
     export HOST="127.0.0.1"
     export PORT="3307"
+    export SENTRY_KEY = "my_key"
     ```
 
 ### Launching the APP

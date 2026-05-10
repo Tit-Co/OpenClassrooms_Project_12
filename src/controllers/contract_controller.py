@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import logging
+import sentry_sdk
+
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -14,6 +17,9 @@ from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
 from src.models.user import Commercial
+
+
+logger = logging.getLogger(__name__)
 
 
 class ContractController:
@@ -56,10 +62,15 @@ class ContractController:
             self.main_controller.view.display_action_successfully_done(action="created",
                                                                        model_type="contract")
 
+            logger.info(f'Created contract between {contract.commercial_name} '
+                                   f'and {contract.client_name} successfully.')
+
             self.main_controller.view.contract_view.display_contract(contract=contract)
 
         else:
             self.main_controller.view.display_something_wrong("creating")
+
+            logger.error(f'Failed to create contract. Something wrong.', attributes=data)
 
     def create_contract(self, session: Session, data: dict) -> Contract | None:
         """
@@ -83,9 +94,10 @@ class ContractController:
             session.commit()
             return contract
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
+            sentry_sdk.capture_exception(e)
             return None
 
     def update_contract_with_view(self, session: Session) -> None:
@@ -138,8 +150,13 @@ class ContractController:
 
                 self.main_controller.view.contract_view.display_contract(contract=contract)
 
+                logger.info(f'Updated contract between {contract.commercial_name} '
+                                       f'and {contract.client_name} successfully.')
+
             else:
                 self.main_controller.view.display_something_wrong("updating")
+
+                logger.error(f'Failed to update contract. Something wrong.', attributes=new_contract_data)
 
     def update_contract(self, session: Session, contract_id: int, data: dict) -> None:
         """
@@ -153,9 +170,10 @@ class ContractController:
         try:
             session.commit()
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
+            sentry_sdk.capture_exception(e)
 
     def delete_contract(self, session: Session, contract_id: int) -> bool:
         """
@@ -179,9 +197,10 @@ class ContractController:
             session.commit()
             return True
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
+            sentry_sdk.capture_exception(e)
             return False
 
     @staticmethod
