@@ -1,5 +1,6 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
@@ -148,8 +149,8 @@ class TestCollaboratorCLI(unittest.TestCase):
         commercial = self.session.query(Commercial).filter(Commercial.name == "Commercial New Name").first()
         self.assertEqual(commercial.role_id, 2)
 
-        self.assertIn(f"Name : Commercial New Name", output)
-        self.assertIn(f"E-mail : new.commercial.test@epicevents.url", output)
+        self.assertIn("Name : Commercial New Name", output)
+        self.assertIn("E-mail : new.commercial.test@epicevents.url", output)
 
     def test_update_collaborator_in_another_role_ok(self):
         runner = CliRunner()
@@ -164,7 +165,6 @@ class TestCollaboratorCLI(unittest.TestCase):
         buffer = StringIO()
         test_console = Console(file=buffer, force_terminal=False)
         self.main_controller.view.console = test_console
-
 
         test_controller.user_controller.get_current_user = Mock(return_value=user)
         test_controller.user_controller.get_permissions = Mock(return_value=permissions)
@@ -190,9 +190,9 @@ class TestCollaboratorCLI(unittest.TestCase):
         manager = self.session.query(Manager).filter(Manager.name == "Manager New Name").first()
         self.assertEqual(manager.role_id, 1)
 
-        self.assertIn(f"Name : Manager New Name", output)
-        self.assertIn(f"E-mail : new.manager.test@epicevents.url", output)
-        self.assertIn(f"Role : manager", output)
+        self.assertIn("Name : Manager New Name", output)
+        self.assertIn("E-mail : new.manager.test@epicevents.url", output)
+        self.assertIn("Role : manager", output)
 
     def test_delete_collaborator_ok(self):
         runner = CliRunner()
@@ -215,7 +215,7 @@ class TestCollaboratorCLI(unittest.TestCase):
         test_controller.view.prompt_for_model_id = Mock(return_value=1)
         test_controller.view.prompt_for_confirmation = Mock(return_value="y")
 
-        commercials = test_session.query(Commercial).filter(Commercial.is_active == True).all()
+        commercials = test_session.query(Commercial).filter(Commercial.is_active).all()
         self.assertEqual(len(commercials), len(self.data["commercials"]))
 
         runner.invoke(collaborator,
@@ -224,13 +224,12 @@ class TestCollaboratorCLI(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        commercials = test_session.query(Commercial).filter(Commercial.is_active == True).all()
+        commercials = test_session.query(Commercial).filter(Commercial.is_active).all()
         self.assertEqual(len(commercials), len(self.data["commercials"]) - 1)
         self.assertIn("⯀ COMMERCIALS TO DISPLAY", output)
-        commercial_deleted = (
-            test_session.query(Commercial)
-            .filter(Commercial.name == self.data["commercials"][0].name)
-            .first()
-            )
+        commercial_deleted = (test_session.query(Commercial)
+                              .filter(Commercial.name == self.data["commercials"][0].name)
+                              .first()
+                              )
         self.assertFalse(commercial_deleted.is_active)
         self.assertIn("✅ The commercial has been successfully deleted.", output)

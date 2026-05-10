@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-import click
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
@@ -31,10 +29,10 @@ class ClientView:
         """
         clients = models
         for client in clients:
-            self.console.print(Panel(f"  [deep_sky_blue1]- [bold]{client.id}.[/bold] {client.name}"
-                                f"[/deep_sky_blue1]",
-                                border_style="bold deep_sky_blue1",
-                                expand=False))
+            self.console.print(Panel(renderable="  [deep_sky_blue1]- [bold]{client.id}.[/bold] {client.name}"
+                                                "[/deep_sky_blue1]",
+                                     border_style="bold deep_sky_blue1",
+                                     expand=False))
 
     @staticmethod
     def display_client(client: type[Client]) -> Panel:
@@ -76,7 +74,7 @@ class ClientView:
 
         phone = self.main_view.prompt_for_string_if_known(model_type="client", field="phone")
 
-        company =  self.main_view.prompt_for_string_if_known(model_type="client", field="company")
+        company = self.main_view.prompt_for_string_if_known(model_type="client", field="company")
 
         return client_id, name, email, phone, company
 

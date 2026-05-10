@@ -1,5 +1,6 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
@@ -26,7 +27,6 @@ class TestCollaboratorController(unittest.TestCase):
     main_controller = MainController()
     controller = CollaboratorController(main_controller)
     contract_controller = ContractController(main_controller)
-
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -105,9 +105,9 @@ class TestCollaboratorController(unittest.TestCase):
                                 role_id=2)
 
         commercial_2 = Commercial(name="Commercial name 2",
-                                email="commercial2.test@epicevents.url.com",
-                                password="pw_test",
-                                role_id=2)
+                                  email="commercial2.test@epicevents.url.com",
+                                  password="pw_test",
+                                  role_id=2)
 
         self.session.add(commercial)
         self.session.add(commercial_2)
@@ -132,11 +132,11 @@ class TestCollaboratorController(unittest.TestCase):
                             status=True)
 
         contract_2 = Contract(client_id=client.id,
-                            commercial_id=commercial.id,
-                            total_amount=1000,
-                            bill_to_pay=500,
-                            creation_date=datetime.now(),
-                            status=True)
+                              commercial_id=commercial.id,
+                              total_amount=1000,
+                              bill_to_pay=500,
+                              creation_date=datetime.now(),
+                              status=True)
 
         self.session.add(contract)
         self.session.add(contract_2)
@@ -163,7 +163,6 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.add(event)
         self.session.commit()
 
-
         return {
             "managers": [manager],
             "commercials": [commercial, commercial_2],
@@ -189,11 +188,11 @@ class TestCollaboratorController(unittest.TestCase):
         self.controller.get_models = Mock(side_effect=mock_get_models)
 
         self.main_controller.view.contract_view.prompt_for_contract = Mock(return_value=[
-            1, # client_id
-            1, # commercial_id
-            1200, # total_amount
-            500, # bill to pay
-            True # contract signed
+            1,  # client_id
+            1,  # commercial_id
+            1200,  # total_amount
+            500,  # bill to pay
+            True  # contract signed
         ])
 
         buffer = StringIO()
@@ -246,11 +245,11 @@ class TestCollaboratorController(unittest.TestCase):
         self.main_controller.view.prompt_for_model_id = Mock(return_value=1)
 
         self.main_controller.view.contract_view.prompt_for_contract = Mock(return_value=[
-            1, # client_id
-            2, # commercial_id
-            15000, # total_amount
-            5000, # bill to pay
-            True # contract signed
+            1,  # client_id
+            2,  # commercial_id
+            15000,  # total_amount
+            5000,  # bill to pay
+            True  # contract signed
         ])
 
         buffer = StringIO()
@@ -280,7 +279,7 @@ class TestCollaboratorController(unittest.TestCase):
             "status": True
         }
 
-        self.contract_controller.update_contract(session=self.session, contract_id=1, data=new_data)
+        self.contract_controller.update_contract(session=self.session, model_id=1, data=new_data)
         contract = self.session.query(Contract).filter_by(is_active=True, id=1).first()
 
         self.assertEqual(contract.total_amount, 10000)
@@ -289,7 +288,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that deletes contract in success case
         """
-        self.contract_controller.delete_contract(session=self.session, contract_id=2)
+        self.contract_controller.delete_contract(session=self.session, model_id=2)
 
         contract = self.session.query(Contract).filter_by(is_active=True, id=2).first()
 
@@ -299,7 +298,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that deletes contract in failure case
         """
-        self.contract_controller.delete_contract(session=self.session, contract_id=1)
+        self.contract_controller.delete_contract(session=self.session, model_id=1)
 
         contract = self.session.query(Contract).filter_by(is_active=True, id=1).first()
 

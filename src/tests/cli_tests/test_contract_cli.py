@@ -1,11 +1,12 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
 from datetime import datetime
 from io import StringIO
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from click.testing import CliRunner
 from rich.console import Console
@@ -180,7 +181,7 @@ class TestContractCLI(unittest.TestCase):
         test_controller.view.prompt_for_model_id = Mock(return_value=1)
         test_controller.view.prompt_for_confirmation = Mock(return_value="y")
 
-        contracts = test_session.query(Contract).filter(Contract.is_active == True).all()
+        contracts = test_session.query(Contract).filter(Contract.is_active).all()
         nb = len(contracts)
         self.assertEqual(len(contracts), nb)
 
@@ -190,7 +191,7 @@ class TestContractCLI(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        contracts = test_session.query(Contract).filter(Contract.is_active == True).all()
+        contracts = test_session.query(Contract).filter(Contract.is_active).all()
         self.assertEqual(len(contracts), nb)
         contract_to_delete = (
             test_session.query(Contract)
@@ -224,12 +225,12 @@ class TestContractCLI(unittest.TestCase):
         test_controller.view.contract_view.prompt_for_contract = Mock(return_value=(
             self.data["clients"][0].id,
             self.data["commercials"][1].id,
-            8500.0, # Total amount
-            1526.35, # Bill left to pay
-            True # Contract signed
-            ))
+            8500.0,  # Total amount
+            1526.35,  # Bill left to pay
+            True  # Contract signed
+        ))
 
-        contracts = test_session.query(Contract).filter(Contract.is_active == True).all()
+        contracts = test_session.query(Contract).filter(Contract.is_active).all()
         nb = len(contracts)
         self.assertEqual(nb, len(self.data["contracts"]))
 
@@ -238,7 +239,7 @@ class TestContractCLI(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        contracts = test_session.query(Contract).filter(Contract.is_active == True).all()
+        contracts = test_session.query(Contract).filter(Contract.is_active).all()
         self.assertEqual(len(contracts), nb + 1)
 
         contract_created = (
@@ -247,7 +248,7 @@ class TestContractCLI(unittest.TestCase):
             .filter(Contract.commercial_id == self.data["commercials"][1].id)
             .filter(Contract.total_amount == 8500.0)
             .filter(Contract.bill_to_pay == 1526.35)
-            .filter(Contract.status == True)
+            .filter(Contract.status)
             .first()
         )
         self.assertTrue(contract_created.is_active)

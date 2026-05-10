@@ -1,26 +1,21 @@
-import logging
-import os
 import sys
-import bcrypt
-import sentry_sdk
 
+import bcrypt
 from rich.console import Console
-from sentry_sdk.integrations.logging import LoggingIntegration
 from sqlalchemy import Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.config import APP_ENV, SENTRY_KEY
+from src.controllers.client_controller import ClientController
+from src.controllers.collaborator_controller import CollaboratorController
+from src.controllers.contract_controller import ContractController
+from src.controllers.event_controller import EventController
+from src.core.monitoring import init_sentry, sentry_capture_exception
 from src.models.base import Base
 from src.models.role import Role
 from src.models.user import Commercial, Manager, Technician
 from src.seed import admin_credentials, roles
 from src.views.main_view import MainView
-
-from .client_controller import ClientController
-from .collaborator_controller import CollaboratorController
-from .contract_controller import ContractController
-from .event_controller import EventController
 
 
 class MainController:
@@ -71,28 +66,6 @@ class MainController:
             "role": admin_credentials["role"]
         }
 
-    @staticmethod
-    def init_sentry():
-        logging.basicConfig(level=logging.INFO)
-
-        sentry_logging = LoggingIntegration(
-            level=logging.INFO,
-            event_level=logging.ERROR,
-        )
-
-        if APP_ENV != "test":
-            sentry_sdk.init(
-                dsn=SENTRY_KEY,
-                # Add request headers and IP for users,
-                # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
-                send_default_pii=True,
-
-                # Enable logs to be sent to Sentry
-                enable_logs=True,
-
-                integrations=[sentry_logging]
-            )
-
     def init_db(self, db_engine: Engine, session: Session) -> None:
         """
         Method to initialize database
@@ -100,7 +73,7 @@ class MainController:
             db_engine (Engine): database engine
             session (Session): session
         """
-        self.init_sentry()
+        init_sentry()
 
         Base.metadata.create_all(bind=db_engine)
 
@@ -129,7 +102,7 @@ class MainController:
         except SQLAlchemyError as e:
             session.rollback()
             self.view.display_database_error()
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
 
     def run(self, session: Session) -> None:
         """
@@ -143,7 +116,7 @@ class MainController:
             menu = self.view.prompt_for_menu(2)
 
             actions = {
-                1: lambda : self.login_2(session=session), # authentication with interactive menu
+                1: lambda: self.login_2(session=session),  # authentication with interactive menu
                 2: self.goodbye
             }
 
@@ -165,7 +138,7 @@ class MainController:
             self.view.display_login_submenu()
             menu = self.view.prompt_for_continuing()
 
-            if menu == 'q':
+            if menu == "q":
                 break
 
             email = self.view.prompt_for_email()
@@ -209,7 +182,7 @@ class MainController:
 
         self.user_controller.save_current_user(email=email)
 
-        self.view.display_successfully_logged_in(name = user.name.capitalize())
+        self.view.display_successfully_logged_in(name=user.name.capitalize())
 
         return True
 
@@ -236,7 +209,7 @@ class MainController:
             return result
 
         except ValueError as e:
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
             return False
 
     @staticmethod
@@ -253,7 +226,7 @@ class MainController:
             password = password.encode("utf-8")
 
         hashed = bcrypt.hashpw(password, bcrypt.gensalt())
-        return  hashed
+        return hashed
 
     def init_permissions(self, session: Session,
                          user: type[Commercial] | type[Manager] | type[Technician]) -> None:

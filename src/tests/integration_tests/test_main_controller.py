@@ -1,5 +1,6 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
@@ -117,21 +118,15 @@ class TestMainController(unittest.TestCase):
         """
         Test for checking the method that initializes the user permissions
         """
-        buffer = StringIO()
-        test_console = Console(file=buffer, force_terminal=False)
-        self.controller.view.console = test_console
-
         user = self.session.query(Manager).filter_by(is_active=True, email=self.credentials['email']).first()
 
         self.controller.init_permissions(self.session, user)
 
-        output = buffer.getvalue()
-
         permissions = ["display:manager", "display:commercial", "display:technician",
-                        "create:collaborator", "update:collaborator", "delete:collaborator",
-                        "display:contract", "display:client", "display:event",
-                        "create:contract", "update:contract", "delete:contract",
-                        "update:event", "delete:event", "filter:event", "filter:client",
-                        "filter:manager", "filter:commercial", "filter:technician"]
+                       "create:collaborator", "update:collaborator", "delete:collaborator",
+                       "display:contract", "display:client", "display:event",
+                       "create:contract", "update:contract", "delete:contract",
+                       "update:event", "delete:event", "filter:event", "filter:client",
+                       "filter:manager", "filter:commercial", "filter:technician"]
 
         self.assertEqual(self.controller.user_controller.permissions, permissions)

@@ -1,5 +1,7 @@
-import bcrypt
 import os
+
+import bcrypt
+
 os.environ["APP_ENV"] = "test"
 
 import unittest

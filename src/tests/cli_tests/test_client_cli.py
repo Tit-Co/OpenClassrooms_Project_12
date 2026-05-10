@@ -1,9 +1,9 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
-
 from datetime import datetime
 from io import StringIO
 from unittest.mock import Mock
@@ -91,8 +91,8 @@ class TestClientCLI(unittest.TestCase):
         manager = Manager(name=admin_credentials["name"],
                           email=admin_credentials["email"],
                           password=admin_credentials["password"],
-                          role_id=1
-        )
+                          role_id=1)
+
         self.session.add(manager)
         self.session.commit()
 
@@ -113,12 +113,12 @@ class TestClientCLI(unittest.TestCase):
                         commercial_id=commercial.id)
 
         client_2 = Client(name="Another Client Test",
-                        email="client2@clienttest.com",
-                        phone="5551248966",
-                        company="Company Test 2",
-                        creation_date=datetime.now(),
-                        last_update=datetime.now(),
-                        commercial_id=commercial.id)
+                          email="client2@clienttest.com",
+                          phone="5551248966",
+                          company="Company Test 2",
+                          creation_date=datetime.now(),
+                          last_update=datetime.now(),
+                          commercial_id=commercial.id)
 
         self.session.add(client)
         self.session.add(client_2)
@@ -134,7 +134,6 @@ class TestClientCLI(unittest.TestCase):
         self.session.add(contract)
 
         self.session.commit()
-
 
         return {
             "managers": [manager],
@@ -223,7 +222,7 @@ class TestClientCLI(unittest.TestCase):
         test_controller.view.prompt_for_model_id = Mock(return_value=1)
         test_controller.view.prompt_for_confirmation = Mock(return_value="y")
 
-        clients = test_session.query(Client).filter(Client.is_active == True).all()
+        clients = test_session.query(Client).filter(Client.is_active).all()
         nb = len(clients)
         self.assertEqual(len(clients), nb)
 
@@ -233,7 +232,7 @@ class TestClientCLI(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        clients = test_session.query(Client).filter(Client.is_active == True).all()
+        clients = test_session.query(Client).filter(Client.is_active).all()
         self.assertEqual(len(clients), nb)
         client_to_delete = (
             test_session.query(Client)
@@ -264,7 +263,7 @@ class TestClientCLI(unittest.TestCase):
         test_controller.view.prompt_for_model_id = Mock(return_value=1)
         test_controller.view.prompt_for_confirmation = Mock(return_value="y")
 
-        clients = test_session.query(Client).filter(Client.is_active == True).all()
+        clients = test_session.query(Client).filter(Client.is_active).all()
         nb = len(clients)
         self.assertEqual(len(clients), 2)
 
@@ -274,7 +273,7 @@ class TestClientCLI(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        clients = test_session.query(Client).filter(Client.is_active == True).all()
+        clients = test_session.query(Client).filter(Client.is_active).all()
         self.assertEqual(len(clients), nb)
         self.assertIn("⯀ CLIENTS TO DISPLAY", output)
         client_deleted = (

@@ -1,11 +1,12 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
 from datetime import datetime
 from io import StringIO
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from click.testing import CliRunner
 from rich.console import Console
@@ -246,7 +247,7 @@ class TestEventCLI(unittest.TestCase):
         test_controller.view.prompt_for_model_id = Mock(return_value=1)
         test_controller.view.prompt_for_confirmation = Mock(return_value="y")
 
-        events = test_session.query(Event).filter(Event.is_active == True).all()
+        events = test_session.query(Event).filter(Event.is_active).all()
         self.assertEqual(len(events), len(self.data["events"]))
 
         runner.invoke(event,
@@ -255,7 +256,7 @@ class TestEventCLI(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        events = test_session.query(Event).filter(Event.is_active == True).all()
+        events = test_session.query(Event).filter(Event.is_active).all()
         self.assertEqual(len(events), len(self.data["events"]) - 1)
         self.assertIn("⯀ EVENTS TO DISPLAY", output)
         event_deleted = test_session.query(Event).filter(Event.name == self.data["events"][0].name).first()
@@ -281,7 +282,7 @@ class TestEventCLI(unittest.TestCase):
         test_controller.user_controller.get_permissions = Mock(return_value=permissions)
         test_controller.view.prompt_for_model_id = Mock(return_value=3)
 
-        events = test_session.query(Event).filter(Event.is_active == True).all()
+        events = test_session.query(Event).filter(Event.is_active).all()
         self.assertEqual(len(events), len(self.data["events"]))
 
         runner.invoke(event,
@@ -290,7 +291,8 @@ class TestEventCLI(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        events = test_session.query(Event).filter(Event.is_active == True).all()
+        events = test_session.query(Event).filter(Event.is_active).all()
+
         self.assertEqual(len(events), len(self.data["events"]))
 
         self.assertIn("⯀ EVENTS TO DISPLAY", output)

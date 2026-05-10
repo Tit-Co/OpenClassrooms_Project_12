@@ -1,13 +1,14 @@
 import click
 
 from src.controllers.main_controller import MainController
-from src.database import get_session, get_engine, DATABASE_URL
+from src.database import DATABASE_URL, get_engine, get_session
 
 
 @click.group()
 @click.pass_context
 def contract(ctx):
     ctx.ensure_object(dict)
+
 
 @contract.command()
 @click.pass_context
@@ -27,6 +28,7 @@ def create_contract(ctx):
 
     else:
         main_controller.view.display_permission_denied(action="create", model_type="contract")
+
 
 @contract.command()
 @click.pass_context
@@ -67,6 +69,7 @@ def delete_contract(ctx):
     else:
         main_controller.view.display_permission_denied(action="delete", model_type="contract")
 
+
 @contract.command()
 @click.pass_context
 def filter_contract(ctx):
@@ -89,6 +92,7 @@ def filter_contract(ctx):
 
     else:
         main_controller.view.display_permission_denied(action="filter", model_type="contract")
+
 
 @contract.command()
 @click.pass_context

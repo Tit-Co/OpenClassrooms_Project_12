@@ -1,17 +1,11 @@
 from __future__ import annotations
 
-import logging
-import sentry_sdk
-
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-if TYPE_CHECKING:
-    from src.controllers.main_controller import MainController
-
+from src.core.monitoring import sentry_capture_exception, logger
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
@@ -19,11 +13,13 @@ from src.models.role import Role
 from src.models.user import Commercial, Manager, Technician
 
 
-logger = logging.getLogger(__name__)
+type ContractDict = dict[str, list[type[Contract | Client | Commercial]]]
+type ObjectList = list[type[Client | Contract | Event]]
+type CollaboratorList = list[type[Commercial | Manager | Technician]]
 
 
 class CollaboratorController:
-    def __init__(self, main_controller: MainController):
+    def __init__(self, main_controller: "MainController"):
         self.main_controller = main_controller
         self.permissions = None
         self.current_collaborator = None
@@ -89,7 +85,7 @@ class CollaboratorController:
         Returns:
         The connected collaborator object or None.
         """
-        with open("current_user.txt", 'r', encoding="utf-8") as f:
+        with open("current_user.txt", "r", encoding="utf-8") as f:
             email = f.read()
             if email:
                 return self.get_collaborator_by_mail(session, email)
@@ -103,7 +99,7 @@ class CollaboratorController:
         Args:
             email (str): The e-mail.
         """
-        with open("current_user.txt", 'w', encoding="utf-8") as f:
+        with open("current_user.txt", "w", encoding="utf-8") as f:
             f.write(email)
 
     def reset_current_user(self) -> None:
@@ -128,7 +124,7 @@ class CollaboratorController:
                 break
 
             actions = {
-                1: lambda : self.collaborator_submenu(session=session),
+                1: lambda: self.collaborator_submenu(session=session),
                 2: lambda: self.action_submenu(session=session, model_type="Contract", nb=6),
                 3: lambda: self.action_submenu(session=session, model_type="Client", nb=6),
                 4: lambda: self.action_submenu(session=session, model_type="Event", nb=6)
@@ -246,15 +242,20 @@ class CollaboratorController:
             model_type (str): Model type.
         """
         actions = {
-            "contract": lambda: self.main_controller.contract_controller.create_contract_with_view(session=session),
-            "client": lambda: self.main_controller.client_controller.create_client_with_view(session=session),
-            "event": lambda: self.main_controller.event_controller.create_event_with_view(session=session),
-            "manager": lambda: self.create_collaborator_with_view(session=session, role=model_type),
-            "commercial": lambda: self.create_collaborator_with_view(session=session, role=model_type),
-            "technician": lambda: self.create_collaborator_with_view(session=session, role=model_type)
+            "contract": self.main_controller.contract_controller.create_contract_with_view,
+            "client": self.main_controller.client_controller.create_client_with_view,
+            "event": self.main_controller.event_controller.create_event_with_view,
         }
-        action = actions.get(model_type)
-        action()
+
+        if model_type in ["manager", "commercial", "technician"]:
+            self.create_collaborator_with_view(
+                session=session,
+                role=model_type
+            )
+        else:
+            actions[model_type](
+                session=session
+            )
 
     def create_collaborator_with_view(self, session: Session, role: str) -> None:
         """
@@ -282,7 +283,10 @@ class CollaboratorController:
             return
 
         if inactive:
-            session.query(collaborator_class).filter_by(is_active=False, email=email).update({"is_active": True})
+            (session.query(collaborator_class)
+             .filter_by(is_active=False, email=email)
+             .update({"is_active": True})
+             )
             self.main_controller.view.display_collaborator_already_exists_but_inactive(collaborator=inactive)
             self.main_controller.view.display_action_successfully_done(action="reactivated",
                                                                        model_type=role)
@@ -294,7 +298,7 @@ class CollaboratorController:
             except SQLAlchemyError as e:
                 session.rollback()
                 self.main_controller.view.display_database_error()
-                sentry_sdk.capture_exception(e)
+                sentry_capture_exception(e)
 
         else:
             collaborator = self.create_collaborator(session=session, data=data)
@@ -303,15 +307,15 @@ class CollaboratorController:
             self.main_controller.view.display_action_successfully_done(action="created",
                                                                        model_type=role)
 
-            logger.info(f'Created {role} {collaborator.name} successfully.')
+            logger.info(f"Created {role} {collaborator.name} successfully.")
 
             self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
         else:
             self.main_controller.view.display_something_wrong("creating collaborator")
 
-            logger.error(f'Failed to create/reactivate collaborator. Something wrong.',
-                                    attributes=data)
+            logger.error("Failed to create/reactivate collaborator. Something wrong.",
+                         attributes=data)
 
     def create_collaborator(self, session: Session, data: dict) -> Manager | Commercial | Technician | None:
         """
@@ -329,27 +333,31 @@ class CollaboratorController:
         role = session.query(Role).filter(Role.name == role_name).first()
         role_id = role.id
 
-        if data["role"] == "manager":
-            collaborator = Manager(
-                name=data["name"],
-                email=data["email"],
-                password=self.main_controller.hash_password(password=data["password"]).decode(),
-                role_id=role_id
-            )
-        elif data["role"] == "commercial":
-            collaborator = Commercial(
-                name=data["name"],
-                email=data["email"],
-                password=self.main_controller.hash_password(password=data["password"]).decode(),
-                role_id=role_id
-            )
-        elif data["role"] == "technician":
-            collaborator = Technician(
-                name=data["name"],
-                email=data["email"],
-                password=self.main_controller.hash_password(password=data["password"]).decode(),
-                role_id=role_id
-            )
+        match data["role"]:
+
+            case "manager":
+                collaborator = Manager(
+                    name=data["name"],
+                    email=data["email"],
+                    password=self.main_controller.hash_password(password=data["password"]).decode(),
+                    role_id=role_id
+                )
+
+            case "commercial":
+                collaborator = Commercial(
+                    name=data["name"],
+                    email=data["email"],
+                    password=self.main_controller.hash_password(password=data["password"]).decode(),
+                    role_id=role_id
+                )
+
+            case "technician":
+                collaborator = Technician(
+                    name=data["name"],
+                    email=data["email"],
+                    password=self.main_controller.hash_password(password=data["password"]).decode(),
+                    role_id=role_id
+                )
 
         session.add(collaborator)
 
@@ -359,7 +367,7 @@ class CollaboratorController:
         except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
 
         return collaborator
 
@@ -370,17 +378,17 @@ class CollaboratorController:
             session (Session): Session object.
             model_type (str): Model type.
         """
-        actions = {
-            "contract": lambda: self.main_controller.contract_controller.update_contract_with_view(session=session),
-            "client": lambda: self.main_controller.client_controller.update_client_with_view(session=session),
-            "event": lambda: self.main_controller.event_controller.update_event_with_view(session=session),
-            "manager": lambda: self.update_collaborator_with_view(session=session, role="manager"),
-            "commercial": lambda: self.update_collaborator_with_view(session=session, role="commercial"),
-            "technician": lambda: self.update_collaborator_with_view(session=session, role="technician"),
+        update_actions = {
+            "contract": self.main_controller.contract_controller.update_contract_with_view,
+            "client": self.main_controller.client_controller.update_client_with_view,
+            "event": self.main_controller.event_controller.update_event_with_view,
         }
-        action = actions.get(model_type)
-        action()
 
+        if model_type in ["manager", "commercial", "technician"]:
+            self.update_collaborator_with_view(session=session, role=model_type)
+
+        else:
+            update_actions[model_type](session=session)
 
     def update_collaborator_with_view(self, session: Session, role: str) -> None:
         """
@@ -465,7 +473,7 @@ class CollaboratorController:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type=label)
 
-                logger.info(f'Updated collaborator {collaborator.name} successfully.')
+                logger.info(f"Updated collaborator {collaborator.name} successfully.")
 
                 self.main_controller.view.display_collaborator(collaborator=collaborator,
                                                                role=new_role_name)
@@ -473,8 +481,8 @@ class CollaboratorController:
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-                logger.error(f'Failed to update collaborator. Something wrong.',
-                                        attributes=new_collaborator_data)
+                logger.error("Failed to update collaborator. Something wrong.",
+                             attributes=new_collaborator_data)
 
     def update_collaborator(self, session: Session, collaborator_id: int, data: dict):
         """
@@ -490,17 +498,20 @@ class CollaboratorController:
         password = data["password"]
         role = self.ROLES_ID.get(role_id)
 
-        session.query(role).filter_by(id=collaborator_id).update({"name": name,
-                                                                  "email": email,
-                                                                  "password": password,
-                                                                  "role_id": role_id})
+        (session.query(role)
+         .filter_by(id=collaborator_id)
+         .update({"name": name,
+                  "email": email,
+                  "password": password,
+                  "role_id": role_id})
+         )
         try:
             session.commit()
 
         except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
 
     def change_role_for_collaborator(self, session: Session,
                                      collaborator_id: int,
@@ -519,18 +530,18 @@ class CollaboratorController:
         """
         if current_role == "technician":
             (session.query(Event)
-             .filter(Event.is_active == True, Event.technician_id == collaborator_id)
+             .filter(Event.is_active, Event.technician_id == collaborator_id)
              .update({"technician_id": None}, synchronize_session=False)
              )
 
         elif current_role == "commercial":
             (session.query(Contract)
-             .filter(Contract.is_active == True, Contract.commercial_id == collaborator_id)
+             .filter(Contract.is_active, Contract.commercial_id == collaborator_id)
              .update({"commercial_id": None}, synchronize_session=False)
              )
 
             (session.query(Client)
-             .filter(Client.is_active == True, Client.commercial_id == collaborator_id)
+             .filter(Client.is_active, Client.commercial_id == collaborator_id)
              .update({"commercial_id": None}, synchronize_session=False)
              )
         else:
@@ -572,31 +583,44 @@ class CollaboratorController:
 
         my_filter = self.FILTERS.get(model_type.lower())[my_filter_id - 1]
 
+        self.FILTERS = {
+            "manager": ["name", "email"],
+            "commercial": ["name", "email"],
+            "technician": ["name", "email"],
+            "contract": ["client-name", "client-id", "creation-date", "status", "bill-to-pay"],
+            "client": ["name", "no-commercial", "commercial-id", "commercial-name", "prior-date", "afterward-date"],
+            "event": ["name", "location", "attendees-max", "no-technician", "technician-id", "technician-name",
+                      "prior-date", "afterward-date"]
+        }
+
         try:
-            if '-id' in my_filter or '-max' in my_filter:
-                filter_value = self.main_controller.view.prompt_for_integer(model_type=model_type,
-                                                                            my_filter=my_filter)
+            match my_filter:
+                case "commercial-id" | "client_id":
+                    filter_value = self.main_controller.view.prompt_for_integer(model_type=model_type,
+                                                                                my_filter=my_filter)
 
-            elif '-date' in my_filter:
-                filter_value = self.main_controller.view.prompt_for_date_filter_value(model_type=model_type,
-                                                                                      my_filter=my_filter)
+                case "attendees-max":
+                    filter_value = self.main_controller.view.prompt_for_integer(model_type=model_type,
+                                                                                my_filter=my_filter)
 
-            elif 'no-' in my_filter:
-                filter_value=None
+                case "prior-date" | "afterward-date":
+                    filter_value = self.main_controller.view.prompt_for_date_filter_value(model_type=model_type,
+                                                                                          my_filter=my_filter)
 
-            elif my_filter == 'status':
-                filter_value = self.main_controller.view.contract_view.prompt_for_contract_boolean()
+                case "no-commercial" | "no-technician" | "bill-to-pay":
+                    filter_value = None
 
-            elif my_filter == 'bill-to-pay':
-                filter_value = None
+                case "status":
+                    filter_value = self.main_controller.view.contract_view.prompt_for_contract_boolean()
 
-            else:
-                filter_value = self.main_controller.view.prompt_for_filter_value(model_type=model_type,
-                                                                                 my_filter=my_filter)
+                case _:
+                    filter_value = self.main_controller.view.prompt_for_filter_value(model_type=model_type,
+                                                                                     my_filter=my_filter)
+
         except ValueError as e:
             self.main_controller.view.filtering_format_error()
             filter_value = None
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
 
         results = self.filter_action(session=session,
                                      model_type=model_type,
@@ -615,63 +639,11 @@ class CollaboratorController:
             self.main_controller.view.display_filter_no_results(model_type=model_type,
                                                                 my_filter=my_filter,
                                                                 filter_value=filter_value)
-    @staticmethod
-    def is_float(s: str) -> bool:
-        """
-        Method that checks if the input is a float
-        Args:
-            s (str): The input string
-
-        Returns:
-        A boolean that indicates if the input is a float or not
-        """
-        try:
-            float(s)
-            return True
-        except ValueError:
-            return False
-
-    def is_date(self, s: str) -> bool:
-        """
-        Method to check if the input is a date
-        Args:
-            s (str): The input string
-
-        Returns:
-        A boolean that indicates if the input is a date or not
-        """
-        try:
-            s += ':00'
-            datetime.strptime(s, "%d/%m/%y %H:%M:%S")
-            return True
-
-        except ValueError as e:
-            self.main_controller.view.display_date_format_error()
-            return False
-
-    @staticmethod
-    def is_bool(s: str) -> bool | None:
-        """
-        Method to check if the input is a boolean.
-        Args:
-            s (str): The input string
-
-        Returns:
-        A boolean that indicates if the input is a boolean or not, or None otherwise.
-        """
-        if str(s).lower() == "true" or (s.isdigit() and int(s) == 1):
-            return True
-
-        elif str(s).lower() == "false" or (s.isdigit() and int(s) == 0):
-            return False
-
-        else:
-            return None
 
     def filter_action(self, session: Session,
                       model_type: str,
                       my_filter: str,
-                      filter_value: str | int | float | datetime) -> list | None:
+                      filter_value: str | int | float | datetime) -> CollaboratorList | ObjectList | None:
         """
         Method to filter data in database by a given filter value
         Args:
@@ -706,7 +678,10 @@ class CollaboratorController:
             }
             action = actions.get(model_type)
 
-            results = action(session=session, my_filter=my_filter, filter_value=filter_value, class_name=class_name)
+            results = action(session=session,
+                             my_filter=my_filter,
+                             filter_value=filter_value,
+                             class_name=class_name)
 
         return results
 
@@ -714,7 +689,7 @@ class CollaboratorController:
                             model_type: str,
                             my_filter: str,
                             filter_value: str | int | float | datetime,
-                            class_name: Commercial | Manager | Technician) -> list | None:
+                            class_name: Commercial | Manager | Technician) -> CollaboratorList | None:
         """
         Method to filter collaborators
         Args:
@@ -729,20 +704,23 @@ class CollaboratorController:
         """
         results = []
         if my_filter == "name":
-            results = session.query(class_name).filter(class_name.is_active == True,
-                                                       class_name.name.contains(filter_value)).all()
+            results = (session.query(class_name)
+                       .filter(class_name.is_active, class_name.name.contains(filter_value))
+                       .all()
+                       )
 
         elif my_filter == "email":
-            results = session.query(class_name).filter(class_name.is_active == True,
-                                                       class_name.email.contains(filter_value)).all()
+            results = (session.query(class_name)
+                       .filter(class_name.is_active, class_name.email.contains(filter_value))
+                       .all()
+                       )
 
         results = [self.get_collaborator_by_id(session=session, role=model_type, collaborator_id=result.id)
                    for result in results]
 
         return results
 
-
-    def get_models(self, session: Session, model_type: str) -> dict | list:
+    def get_models(self, session: Session, model_type: str) -> ContractDict | ObjectList | CollaboratorList:
         """
         Methods to get all models of a type and in case of contracts, some extra data are added
         and a dict is returned
@@ -755,10 +733,19 @@ class CollaboratorController:
         """
         if model_type in self.MODELS.keys():
             if model_type == "contract":
-                models={
-                    "contracts": session.query(self.MODELS.get("contract")).filter_by(is_active=True).all(),
-                    "clients": session.query(self.MODELS.get("client")).filter_by(is_active=True).all(),
-                    "commercials": session.query(self.COLLABORATORS.get("commercial")).filter_by(is_active=True).all()
+                models = {
+                    "contracts": (session.query(self.MODELS.get("contract"))
+                                  .filter_by(is_active=True)
+                                  .all()
+                                  ),
+                    "clients": (session.query(self.MODELS.get("client"))
+                                .filter_by(is_active=True)
+                                .all()
+                                ),
+                    "commercials": (session.query(self.COLLABORATORS.get("commercial"))
+                                    .filter_by(is_active=True)
+                                    .all()
+                                    )
                 }
                 return models
             else:
@@ -766,10 +753,13 @@ class CollaboratorController:
         else:
             model_class = self.COLLABORATORS.get(model_type)
 
-        models = session.query(model_class).filter_by(is_active=True).all()
+        models = (session.query(model_class)
+                  .filter_by(is_active=True)
+                  .all())
         return models
 
-    def get_object_by_id(self, session: Session, model_type: str, object_id: int) -> (type[Client | Event | Contract]):
+    def get_object_by_id(self, session: Session, model_type: str, object_id: int) \
+            -> (type[Client | Event | Contract]):
         """
         Method to get an object of class Contract, Client or Event according to the given id and type
         Args:
@@ -791,10 +781,8 @@ class CollaboratorController:
 
         return my_object
 
-    def get_model(self, session: Session,
-                  model_type: str,
-                  model_id: int) -> type[Client] | type[Event] | type[Contract] | None | type[Manager] | type[
-        Commercial] | type[Technician]:
+    def get_model(self, session: Session, model_type: str, model_id: int) \
+            -> (type[Client | Event | Contract | Manager | Commercial | Technician] | None):
         """
         Method to get a model by its id and type
         Args:
@@ -811,13 +799,18 @@ class CollaboratorController:
 
         elif model_type in self.COLLABORATORS.keys():
             model = self.get_collaborator_by_id(session=session, collaborator_id=model_id, role=model_type)
-            role = session.query(Role).filter_by(id=model.role_id).first()
+
+            role = (session.query(Role)
+                    .filter_by(id=model.role_id)
+                    .first()
+                    )
+
             model.role_name = role.name
 
         return model
 
     def get_collaborator_by_id(self, session: Session, collaborator_id: int, role: str) \
-            -> type[Manager] | type[Commercial] | type[Technician] | None:
+            -> (type[Manager | Commercial | Technician] | None):
         """
         Method to get a collaborator by its id
         Args:
@@ -829,7 +822,10 @@ class CollaboratorController:
         The collaborator object as Commercial or Manager or Technician.
         """
         collaborator_class = self.COLLABORATORS.get(role)
-        collaborator = session.query(collaborator_class).filter_by(is_active=True, id=collaborator_id).first()
+        collaborator = (session.query(collaborator_class)
+                        .filter_by(is_active=True, id=collaborator_id)
+                        .first()
+                        )
 
         return collaborator
 
@@ -844,21 +840,28 @@ class CollaboratorController:
         Returns:
         The collaborator object as Commercial or Manager or Technician.
         """
-        collaborator = session.query(Manager).filter_by(is_active=True, email=email).first()
+        collaborator = (session.query(Manager)
+                        .filter_by(is_active=True, email=email)
+                        .first()
+                        )
 
         if collaborator:
             return collaborator
 
-        collaborator = session.query(Commercial).filter_by(is_active=True, email=email).first()
+        collaborator = (session.query(Commercial)
+                        .filter_by(is_active=True, email=email)
+                        .first()
+                        )
         if collaborator:
             return collaborator
 
-        return session.query(Technician).filter_by(is_active=True, email=email).first()
+        return (session.query(Technician)
+                .filter_by(is_active=True, email=email)
+                .first()
+                )
 
-    def get_collaborator_inactive_by_mail(self, session: Session, email: str, role: str) -> (type[Manager]
-                                                                                            | type[Commercial]
-                                                                                            | type[Technician]
-                                                                                            | None):
+    def get_collaborator_inactive_by_mail(self, session: Session, email: str, role: str) \
+            -> (type[Manager | Commercial | Technician] | None):
         """
         Method to get an inactive collaborator by its name
         Args:
@@ -870,7 +873,10 @@ class CollaboratorController:
         The collaborator object as Commercial or Manager or Technician.
         """
         collaborator_class = self.COLLABORATORS.get(role)
-        collaborator = session.query(collaborator_class).filter_by(is_active=False, email=email).first()
+        collaborator = (session.query(collaborator_class)
+                        .filter_by(is_active=False, email=email)
+                        .first()
+                        )
 
         return collaborator
 
@@ -884,7 +890,10 @@ class CollaboratorController:
         Returns:
         The admin manager object.
         """
-        return session.query(Manager).filter_by(is_active=True, id=1).first()
+        return (session.query(Manager)
+                .filter_by(is_active=True, id=1)
+                .first()
+                )
 
     def delete_model_with_view(self, session: Session, model_type: str) -> None:
         """
@@ -917,26 +926,22 @@ class CollaboratorController:
                 return
 
             delete_actions = {
-                "contract": lambda : self.main_controller.contract_controller\
-                    .delete_contract(session=session, contract_id=model_id),
-
-                "client": lambda : self.main_controller.client_controller\
-                    .delete_client(session=session, client_id=model_id),
-
-                "event": lambda : self.main_controller.event_controller\
-                    .delete_event(session=session, event_id=model_id),
-
-                "manager": lambda : self.main_controller.user_controller\
-                    .delete_collaborator(session=session, collaborator_id=model_id, role=model_type),
-
-                "commercial": lambda : self.main_controller.user_controller\
-                    .delete_collaborator(session=session, collaborator_id=model_id, role=model_type),
-
-                "technician": lambda : self.main_controller.user_controller\
-                    .delete_collaborator(session=session, collaborator_id=model_id, role=model_type)
+                "contract": self.main_controller.contract_controller.delete_contract,
+                "client": self.main_controller.client_controller.delete_client,
+                "event": self.main_controller.event_controller.delete_event,
             }
-            action = delete_actions.get(model_type)
-            success = action()
+
+            if model_type in ["manager", "commercial", "technician"]:
+                success = self.main_controller.user_controller.delete_collaborator(
+                    session=session,
+                    collaborator_id=model_id,
+                    role=model_type
+                )
+            else:
+                success = delete_actions[model_type](
+                    session=session,
+                    model_id=model_id
+                )
 
             if success:
                 self.main_controller.view.display_action_successfully_done(action="deleted",
@@ -956,8 +961,10 @@ class CollaboratorController:
         A boolean indicating whether deletion was successful.
         """
 
-        (session.query(self.COLLABORATORS.get(role)).filter_by(is_active=True, id=collaborator_id)
-         .update({"is_active": False}))
+        (session.query(self.COLLABORATORS.get(role))
+         .filter_by(is_active=True, id=collaborator_id)
+         .update({"is_active": False})
+         )
         try:
             session.commit()
             return True
@@ -966,11 +973,10 @@ class CollaboratorController:
             session.rollback()
             self.main_controller.view.display_database_error()
             self.main_controller.view.display_something_wrong("deleting")
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
             return False
 
-
-    def model_exists(self, session: Session, model_type: str, value: str) -> bool:
+    def object_exists(self, session: Session, model_type: str, value: str) -> bool:
         """
         Method to check if a model exists by its type and its value
         Args:
@@ -985,10 +991,16 @@ class CollaboratorController:
         result = None
 
         if class_name == Client:
-            result = session.query(class_name).filter_by(is_active=True, email=value).first()
+            result = (session.query(class_name)
+                      .filter_by(is_active=True, email=value)
+                      .first()
+                      )
 
         elif class_name == Event:
-            result = session.query(class_name).filter_by(is_active=True, name=value).first()
+            result = (session.query(class_name)
+                      .filter_by(is_active=True, name=value)
+                      .first()
+                      )
 
         return result is not None or (isinstance(result, list) and (None,) not in result)
 

@@ -76,32 +76,32 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        self.console.print(Panel(f"❌[bold] You don't have the permission to [bold red]{action} "
-                            f"a {model_type}[/bold].",
-                            border_style="bold bright_red",
-                            style="white",
-                            expand=False))
+        self.console.print(Panel(renderable=f"❌[bold] You don't have the permission to [bold red]{action} "
+                                            f"a {model_type}[/bold].",
+                                 border_style="bold bright_red",
+                                 style="white",
+                                 expand=False))
 
     def display_database_error(self):
-        self.console.print(Panel(f"❗ Database error!.",
+        self.console.print(Panel(renderable="❗ Database error!.",
                                  border_style="bold red3",
                                  style="bold red3",
                                  expand=False))
 
     def display_error_while_filtering_value(self):
-        self.console.print(Panel(f"❗ Error while filtering!.",
+        self.console.print(Panel(renderable="❗ Error while filtering!.",
                                  border_style="bold red3",
                                  style="bold red3",
                                  expand=False))
 
     def display_date_format_error(self):
-        self.console.print(Panel(f"❗ Try to format date fails!.",
+        self.console.print(Panel(renderable="❗ Try to format date fails!.",
                                  border_style="bold bright_red",
                                  style="bold red3",
                                  expand=False))
 
     def filtering_format_error(self):
-        self.console.print(Panel(f"❗ Try to format filter fails!.",
+        self.console.print(Panel(renderable="❗ Try to format filter fails!.",
                                  border_style="bold bright_red",
                                  style="bold red3",
                                  expand=False))
@@ -113,7 +113,8 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        self.console.print(f"\n[bold light_goldenrod2]⭢ You are going to {action} {model_type}s.[/bold light_goldenrod2]\n")
+        self.console.print(f"\n[bold light_goldenrod2]⭢ You are going to {action} {model_type}s."
+                           f"[/bold light_goldenrod2]\n")
 
     def display_login_submenu(self) -> None:
         """
@@ -130,19 +131,19 @@ class MainView:
         Args:
             name (str): The name of the user.
         """
-        self.console.print(Panel(f"\n✅ {name.capitalize()}, you are successfully logged in.\n",
-                            border_style="bold green",
-                            style="bold white",
-                            expand=False))
+        self.console.print(Panel(renderable=f"\n✅ {name.capitalize()}, you are successfully logged in.\n",
+                                 border_style="bold green",
+                                 style="bold white",
+                                 expand=False))
 
     def display_error_while_logging_in(self) -> None:
         """
         Method to display the successfully logged in message.
         """
-        self.console.print(Panel(f"\n❗ An unexpected error occurred while logging in.\n",
-                            border_style="bold red3",
-                            style="bold red3",
-                            expand=False))
+        self.console.print(Panel(renderable="\n❗ An unexpected error occurred while logging in.\n",
+                                 border_style="bold red3",
+                                 style="bold red3",
+                                 expand=False))
 
     def display_action_successfully_done(self, action: str, model_type: str) -> None:
         """
@@ -151,10 +152,10 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        self.console.print(Panel(f"\n✅ The {model_type} has been successfully {action}.\n",
-                            border_style="bold green",
-                            style="bold white",
-                            expand=False))
+        self.console.print(Panel(renderable=f"\n✅ The {model_type} has been successfully {action}.\n",
+                                 border_style="bold green",
+                                 style="bold white",
+                                 expand=False))
 
     def display_action_fails(self, action: str, model_type: str) -> None:
         """
@@ -163,10 +164,11 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        self.console.print(Panel(f"\n❌ The [bold]{model_type}[/bold] has not been [bold]{action}[/bold].\n",
-                            border_style="bold bright_red",
-                            style="bold white",
-                            expand=False))
+        self.console.print(Panel(renderable=f"\n❌ The [bold]{model_type}[/bold] has not been "
+                                            f"[bold]{action}[/bold].\n",
+                                 border_style="bold bright_red",
+                                 style="bold white",
+                                 expand=False))
 
     def display_not_connected(self) -> None:
         """
@@ -190,7 +192,7 @@ class MainView:
         """
         Method to display the collaborator menu when successfully logged in.
         """
-        self.console.print(f"\n▶ EPIC EVENTS - COLLABORATOR MENU ◀\n")
+        self.console.print("\n▶ EPIC EVENTS - COLLABORATOR MENU ◀\n")
         self.console.print("▷▷ 1. Collaborator")
         self.console.print("▷▷ 2. Contract")
         self.console.print("▷▷ 3. Client")
@@ -201,7 +203,7 @@ class MainView:
         """
         Method to display the collaborator submenu.
         """
-        self.console.print(f"\n▶ EPIC EVENTS - COLLABORATOR SUBMENU ◀\n")
+        self.console.print("\n▶ EPIC EVENTS - COLLABORATOR SUBMENU ◀\n")
         self.console.print("▷▷ 1. Manager")
         self.console.print("▷▷ 2. Commercial")
         self.console.print("▷▷ 3. Technician")
@@ -217,19 +219,19 @@ class MainView:
         if (None,) in models or not models:
             if model_type == "contract":
                 self.console.print(f"\n[bold red3] ⯀ {model_type.upper()}S[/bold red3] "
-                              f"- [gold3]No {model_type} to display.[/gold3]\n")
+                                   f"- [gold3]No {model_type} to display.[/gold3]\n")
 
             elif model_type == "client":
                 self.console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S[/bold deep_sky_blue1] "
-                              f"- [gold3]No {model_type} to display.[/gold3]\n")
+                                   f"- [gold3]No {model_type} to display.[/gold3]\n")
 
             elif model_type == "event":
                 self.console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S[/bold spring_green3] "
-                              f"- [gold3]No {model_type} to display.[/gold3]\n")
+                                   f"- [gold3]No {model_type} to display.[/gold3]\n")
 
             else:
                 self.console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S[/bold grey85] "
-                              f"- [gold3]No {model_type} to display.[/gold3]\n")
+                                   f"- [gold3]No {model_type} to display.[/gold3]\n")
 
         else:
             if model_type == "contract":
@@ -265,10 +267,10 @@ class MainView:
             models (list): The models list.
         """
         for model in models:
-            self.console.print(Panel(f"  - {model.id}. {model.name.capitalize()}",
-                                expand=False,
-                                border_style="bold navajo_white3",
-                                style="navajo_white3"))
+            self.console.print(Panel(renderable=f"  - {model.id}. {model.name.capitalize()}",
+                                     expand=False,
+                                     border_style="bold navajo_white3",
+                                     style="navajo_white3"))
 
     @staticmethod
     def collaborator_to_display(collaborator: type[Commercial | Manager | Technician], role: str) -> Panel:
@@ -341,10 +343,10 @@ class MainView:
         Args:
             model_type (str): The model type.
         """
-        self.console.print(Panel(f"\n❌ This [bold]{model_type}[/bold] already exists.\n",
-                            border_style="bright_red",
-                            style="white",
-                            expand=False))
+        self.console.print(Panel(renderable=f"\n❌ This [bold]{model_type}[/bold] already exists.\n",
+                                 border_style="bright_red",
+                                 style="white",
+                                 expand=False))
 
     def display_collaborator_already_exists(self, collaborator: type[Commercial | Manager | Technician]) -> None:
         """
@@ -352,14 +354,15 @@ class MainView:
         Args:
             collaborator (type[Commercial | Manager | Technician]): The collaborator
         """
-        self.console.print(Panel(f"\n❌ The collaborator [bold]{collaborator.email}[/bold] already exists.\n",
-                            border_style="bright_red",
-                            style="white",
-                            expand=False))
+        self.console.print(Panel(renderable=f"\n❌ The collaborator [bold]{collaborator.email}[/bold] "
+                                            f"already exists.\n",
+                                 border_style="bright_red",
+                                 style="white",
+                                 expand=False))
 
     @staticmethod
-    def display_collaborator_already_exists_but_inactive(collaborator: \
-            type[Commercial | Manager | Technician]) -> None:
+    def display_collaborator_already_exists_but_inactive(collaborator: type[Commercial | Manager | Technician]) \
+            -> None:
         """
         Method to display a message when a model already exists.
         Args:
@@ -371,37 +374,37 @@ class MainView:
         """
         Method to display a message when something goes wrong during the givent action.
         """
-        self.console.print(Panel(f"\n❌ Something went wrong while [bold]{action}[/bold].\n",
-                            border_style="bright_red",
-                            style="white",
-                            expand=False))
+        self.console.print(Panel(renderable=f"\n❌ Something went wrong while [bold]{action}[/bold].\n",
+                                 border_style="bright_red",
+                                 style="white",
+                                 expand=False))
 
     def display_something_wrong_while_creating(self) -> None:
         """
         Method to display a message when something goes wrong while creating
         """
-        self.console.print(Panel(f"\n❌ Something went wrong while creating.\n",
-                            border_style="bold bright_red",
-                            style="white",
-                            expand=False))
+        self.console.print(Panel(renderable="\n❌ Something went wrong while creating.\n",
+                                 border_style="bold bright_red",
+                                 style="white",
+                                 expand=False))
 
     def display_something_wrong_while_updating(self) -> None:
         """
         Method to display a message when something goes wrong while updating
         """
-        self.console.print(Panel(f"\n❌ Something went wrong while updating.\n",
-                            border_style="bold bright_red",
-                            style="white",
-                            expand=False))
+        self.console.print(Panel(renderable="\n❌ Something went wrong while updating.\n",
+                                 border_style="bold bright_red",
+                                 style="white",
+                                 expand=False))
 
     def display_something_wrong_while_deleting(self) -> None:
         """
         Method to display a message when something goes wrong while deleting
         """
-        self.console.print(Panel(f"\n❌ Something went wrong while deleting.\n",
-                            border_style="bold bright_red",
-                            style="white",
-                            expand=False))
+        self.console.print(Panel(renderable="\n❌ Something went wrong while deleting.\n",
+                                 border_style="bold bright_red",
+                                 style="white",
+                                 expand=False))
 
     def display_action_impossible(self, model_type: str, action: str) -> None:
         """
@@ -410,21 +413,21 @@ class MainView:
             model_type (str): The model type.
             action (str): The action.
         """
-        self.console.print(Panel(f"\n❌ No {model_type} to [bold]{action}[/bold]. "
-                                 f"You need to create one before.\n",
-                            border_style="bold red3",
-                            style="bold bright_red",
-                            expand=False))
+        self.console.print(Panel(renderable=f"\n❌ No {model_type} to [bold]{action}[/bold]. "
+                                            f"You need to create one before.\n",
+                                 border_style="bold red3",
+                                 style="bold bright_red",
+                                 expand=False))
 
     def display_cannot_delete_admin_manager_or_yourself(self) -> None:
         """
         Method to display a message when a user wants to delete the admin manager or its own profile
         """
-        self.console.print(Panel(f"\n❌ You can not [bold]delete[/bold] the [bold]admin[/bold] manager "
-                            f"or your [bold]own account[/bold].\n",
-                            border_style="bright_red",
-                            style="white",
-                            expand=False))
+        self.console.print(Panel(renderable="\n❌ You can not [bold]delete[/bold] the [bold]admin[/bold] manager "
+                                            "or your [bold]own account[/bold].\n",
+                                 border_style="bright_red",
+                                 style="white",
+                                 expand=False))
 
     def display_cannot_delete(self, model_type, model_linked) -> None:
         """
@@ -434,36 +437,36 @@ class MainView:
             model_linked (str): The model type linked to the model
         """
         if model_type == "contract":
-            self.console.print(Panel(f"\n❌ Cannot delete [bold]{model_type}[/bold] : {model_linked}(s) "
-                                f"linked.\n",
-                                border_style="bright_red",
-                                style="white",
-                                expand=False))
+            self.console.print(Panel(renderable=f"\n❌ Cannot delete [bold]{model_type}[/bold] : {model_linked}(s) "
+                                                f"linked.\n",
+                                     border_style="bright_red",
+                                     style="white",
+                                     expand=False))
 
         elif model_type == "client":
-            self.console.print(Panel(f"\n❌ Cannot delete "
-                                f"[bold cornflower_blue]{model_type}[/bold cornflower_blue] : {model_linked}(s) "
-                                f"linked.\n",
-                                border_style="bright_red",
-                                style="white",
-                                expand=False))
+            self.console.print(Panel(renderable=f"\n❌ Cannot delete "
+                                                f"[bold cornflower_blue]{model_type}[/bold cornflower_blue] : "
+                                                f"{model_linked}(s) linked.\n",
+                                     border_style="bright_red",
+                                     style="white",
+                                     expand=False))
         else:
-            self.console.print(Panel(f"\n❌ Cannot delete "
-                                f"[bold chartreuse2]{model_type}[/bold chartreuse2] : {model_linked}(s) "
-                                f"linked.\n",
-                                border_style="bold bright_red",
-                                style="white",
-                                expand=False))
+            self.console.print(Panel(renderable=f"\n❌ Cannot delete "
+                                                f"[bold chartreuse2]{model_type}[/bold chartreuse2] : "
+                                                f"{model_linked}(s) linked.\n",
+                                     border_style="bold bright_red",
+                                     style="white",
+                                     expand=False))
 
     def display_wrong_collaborator_role(self):
         """
         Method to display a message when the user enters a wrong collaborator role.
         """
-        self.console.print(Panel(f"\n❌ You did not enter a valid role as below : "
-                            f"[manager | commercial | technician].\n",
-                            border_style="bold bright_red",
-                            style="white",
-                            expand=False))
+        self.console.print(Panel(renderable="\n❌ You did not enter a valid role as below : "
+                                            "[manager | commercial | technician].\n",
+                                 border_style="bold bright_red",
+                                 style="white",
+                                 expand=False))
 
     def display_roles(self, roles: dict) -> None:
         """
@@ -473,11 +476,11 @@ class MainView:
         """
         self.console.print("[bold grey62]\nAll roles :[/bold grey62]")
         for role_id, role_name in roles.items():
-            self.console.print(Panel(f"  - {role_id}. {role_name.upper()}"
-                                f"[manager | commercial | technician].\n",
-                                border_style="bold grey62",
-                                style= "grey62",
-                                expand=False))
+            self.console.print(Panel(renderable=f"  - {role_id}. {role_name.upper()}"
+                                                f"[manager | commercial | technician].\n",
+                                     border_style="bold grey62",
+                                     style="grey62",
+                                     expand=False))
 
     def display_filters(self, filters: list) -> None:
         """
@@ -494,13 +497,13 @@ class MainView:
             border_style="bold pale_violet_red1",
             style="pale_violet_red1",
             title_style="bold pale_violet_red1",
-            box = box.ROUNDED
+            box=box.ROUNDED
         )
         table.add_column(header="\nAll filters available\n")
 
         for the_filter in filters:
-            table.add_row(Panel(f"  - {filters.index(the_filter) + 1}. {the_filter}"
-                                f"[manager | commercial | technician].\n",
+            table.add_row(Panel(renderable=f"  - {filters.index(the_filter) + 1}. {the_filter}"
+                                           f"[manager | commercial | technician].\n",
                                 border_style="bold pale_violet_red1",
                                 style="pale_violet_red1",
                                 expand=False,
@@ -522,8 +525,8 @@ class MainView:
         """
         self.console.print()
         title = Panel(
-            f"[bold white]⮞ All results for {model_type}s filtered by {my_filter} "
-            f"with value '{filter_value}' ⮜[/bold white]",
+            renderable=f"[bold white]⮞ All results for {model_type}s filtered by {my_filter} "
+                       f"with value '{filter_value}' ⮜[/bold white]",
             border_style="bold white",
             expand=False
         )
@@ -539,43 +542,43 @@ class MainView:
 
         for the_result in results:
             header = ""
-            if (model_type.lower() == "manager" or model_type.lower() == "commercial"
-                    or model_type.lower() == "technician"):
-                header = Panel(f"[bold grey85]  - {model_type.upper()} ❱ "
-                               f"'{the_result.name}' : [/bold grey85]",
-                               border_style="",
-                               expand=True)
+            match model_type.lower():
+                case "manager" | "commercial" | "technician":
+                    header = Panel(renderable=f"[bold grey85]  - {model_type.upper()} ❱ "
+                                              f"'{the_result.name}' : [/bold grey85]",
+                                   border_style="",
+                                   expand=True)
 
-            elif model_type.lower() == "contract" :
-                header = Panel(f"[bold bright_red]  - {model_type.upper()} ❱ n° {the_result.id} "
-                               f"between '{the_result.client_name}' "
-                               f"and '{the_result.commercial_name}'[/bold bright_red]",
-                               border_style="bold bright_red",
-                               expand=True)
+                case "contract":
+                    header = Panel(renderable=f"[bold bright_red]  - {model_type.upper()} ❱ n° {the_result.id} "
+                                              f"between '{the_result.client_name}' "
+                                              f"and '{the_result.commercial_name}'[/bold bright_red]",
+                                   border_style="bold bright_red",
+                                   expand=True)
 
-            elif model_type.lower() == "client" :
-                header = Panel(f"[bold deep_sky_blue1]  - {model_type.upper()} ❱ "
-                               f"n° {the_result.id} [/bold deep_sky_blue1]"
-                               f"[deep_sky_blue1]- '{the_result.name}' [/deep_sky_blue1]",
-                               border_style="bold deep_sky_blue1",
-                               expand=True)
+                case "client":
+                    header = Panel(renderable=f"[bold deep_sky_blue1]  - {model_type.upper()} ❱ "
+                                              f"n° {the_result.id} [/bold deep_sky_blue1]"
+                                              f"[deep_sky_blue1]- '{the_result.name}' [/deep_sky_blue1]",
+                                   border_style="bold deep_sky_blue1",
+                                   expand=True)
 
-            elif model_type.lower() == "event" :
-                header = Panel(f"[bold spring_green3]  - {model_type.upper()} ❱ "
-                               f"n° {the_result.id} [/bold spring_green3]"
-                               f"[spring_green3]- '{the_result.name}' [/spring_green3]",
-                               border_style="bold spring_green3",
-                               expand=True)
+                case "event":
+                    header = Panel(renderable=f"[bold spring_green3]  - {model_type.upper()} ❱ "
+                                              f"n° {the_result.id} [/bold spring_green3]"
+                                              f"[spring_green3]- '{the_result.name}' [/spring_green3]",
+                                   border_style="bold spring_green3",
+                                   expand=True)
 
             table.add_row(header)
 
             actions = {
-                "commercial": lambda : self.collaborator_to_display(collaborator=the_result, role="Commercial"),
-                "manager": lambda : self.collaborator_to_display(collaborator=the_result, role="manager"),
-                "technician": lambda : self.collaborator_to_display(collaborator=the_result, role="technician"),
-                "contract": lambda : self.contract_view.display_contract(contract=the_result),
-                "client": lambda : self.client_view.display_client(client=the_result),
-                "event": lambda : self.event_view.display_event(event=the_result),
+                "commercial": lambda: self.collaborator_to_display(collaborator=the_result, role="Commercial"),
+                "manager": lambda: self.collaborator_to_display(collaborator=the_result, role="manager"),
+                "technician": lambda: self.collaborator_to_display(collaborator=the_result, role="technician"),
+                "contract": lambda: self.contract_view.display_contract(contract=the_result),
+                "client": lambda: self.client_view.display_client(client=the_result),
+                "event": lambda: self.event_view.display_event(event=the_result),
             }
 
             action = actions.get(model_type)
@@ -595,14 +598,14 @@ class MainView:
             my_filter (str): The filter.
             filter_value (str | int | float): The filter value.
         """
-        if filter_value is not None :
+        if filter_value is not None:
             self.console.print(f"\n❗ [bright_red]No results found for [bold]'{my_filter}'[/bold] filtering "
-                          f"in [bold]{model_type}s[/bold] "
-                          f"with value [bold]'{filter_value}'[/bold].[/bright_red]\n")
+                               f"in [bold]{model_type}s[/bold] "
+                               f"with value [bold]'{filter_value}'[/bold].[/bright_red]\n")
 
         else:
             self.console.print(f"\n❗ [bright_red]No results found for [bold]'{my_filter}'[/bold] filtering "
-                          f"in [bold]{model_type}[/bold].[/bright_red]\n")
+                               f"in [bold]{model_type}[/bold].[/bright_red]\n")
 
     def prompt_for_menu(self, nb) -> int | None:
         """
@@ -621,7 +624,7 @@ class MainView:
                 self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
-            coll = (str(i+1) for i in range(nb))
+            coll = (str(i + 1) for i in range(nb))
 
             if answer not in coll:
                 self.console.print(f"\n❗ [bold bright_red]Please choose between 1 and {nb}.\n[/bold bright_red]")
@@ -651,7 +654,8 @@ class MainView:
             coll = (str(i + 1) for i in range(len(filters)))
 
             if answer not in coll:
-                self.console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(filters)}.\n[/bold bright_red]")
+                self.console.print(f"\n❗ [bold bright_red]Please choose between 1 and {len(filters)}.\n"
+                                   f"[/bold bright_red]")
                 continue
 
             return int(answer)
@@ -743,7 +747,7 @@ class MainView:
                 self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
-            coll = [i.id  for i in models]
+            coll = [i.id for i in models]
 
             if int(answer) not in coll:
                 self.console.print(f"\n❗ [bold bright_red]Please choose an id "
@@ -775,7 +779,7 @@ class MainView:
                 self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")
                 continue
 
-            coll = [i.id  for i in models]
+            coll = [i.id for i in models]
 
             if int(answer) not in coll:
                 self.console.print(f"\n❗ [bold bright_red]Please choose an id "
@@ -806,12 +810,12 @@ class MainView:
         The e-mail address or None
         """
         while True:
-            email = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Enter the e-mail address [/bold light_goldenrod2]\n"
-                               f"▶▶ ")
+            email = Prompt.ask("\n[bold light_goldenrod2]▷▷ Enter the e-mail address [/bold light_goldenrod2]\n"
+                               "▶▶ ")
 
             email = email.replace('%', '').replace('_', '')
 
-            if not re.fullmatch(r'[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', email):
+            if not re.fullmatch(r"[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", email):
                 self.console.print("❗ [bold bright_red]Invalid e-mail address.[/bold bright_red]")
                 continue
 
@@ -848,7 +852,7 @@ class MainView:
             if answer.lower() in ["y", "n"]:
                 return True if answer.lower() == "y" else False
 
-            self.console.print(f"❗ [bold bright_red]Please enter either 'y' or 'n'.[/bold bright_red]")
+            self.console.print("❗ [bold bright_red]Please enter either 'y' or 'n'.[/bold bright_red]")
 
     @staticmethod
     def prompt_for_string(model_type: str, field: str) -> str:
@@ -877,8 +881,8 @@ class MainView:
         Returns:
         The string or None
         """
-        answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please type the {model_type} {field} or leave blank to continue"
-                            f"[/bold light_goldenrod2]\n"
+        answer = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Please type the {model_type} {field} "
+                            f"or leave blank to continue[/bold light_goldenrod2]\n"
                             f"▶▶ ",
                             default="")
         return answer
@@ -942,9 +946,9 @@ class MainView:
             }
             self.display_roles(roles)
 
-            role = Prompt.ask(f"\n[bold light_goldenrod2]▷▷ Which new role do you want to assign, "
-                              f"if wanted? (1,2,3)[/bold light_goldenrod2]\n"
-                              f"▶▶ ")
+            role = Prompt.ask("\n[bold light_goldenrod2]▷▷ Which new role do you want to assign, "
+                              "if wanted? (1,2,3)[/bold light_goldenrod2]\n"
+                              "▶▶ ")
 
             if not role.isdigit():
                 self.console.print("\n❗ [bold bright_red]Please enter a number.\n[/bold bright_red]")

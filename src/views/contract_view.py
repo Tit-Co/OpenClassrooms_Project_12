@@ -7,6 +7,7 @@ from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
 
+from src.controllers.helper_controller import is_bool, is_float
 from src.models.contract import Contract
 
 if TYPE_CHECKING:
@@ -20,29 +21,6 @@ class ContractView:
     @property
     def console(self) -> Console:
         return self.main_view.console
-
-    @staticmethod
-    def is_float(s: str) -> bool:
-        """
-        Method that checks if the input is a float
-        Args:
-            s (str): The input string
-
-        Returns:
-        A boolean that indicates if the input is a float or not
-        """
-        try:
-            float(s)
-            return True
-        except ValueError:
-            return False
-
-    @staticmethod
-    def is_bool(s: str) -> bool | None:
-        if str(s) == "true" or (s.isdigit() and int(s) == 1) or str(s) == "false" or (s.isdigit() and int(s) == 0):
-            return True
-        else:
-            return False
 
     def display_contracts(self, models: dict) -> None:
         """
@@ -64,11 +42,11 @@ class ContractView:
             commercial = next((c for c in commercials if c.id == commercial_id), None)
             commercial_name = commercial.name if commercial and commercial.name else "(unknown)"
 
-            self.console.print(Panel(f"  - {contract.id}. Contract between the client {client_name} "
-                                     f"and the commercial {commercial_name}",
-                                border_style="bold red3",
-                                style="red3",
-                                expand=False))
+            self.console.print(Panel(renderable=f"  - {contract.id}. Contract between the client {client_name} "
+                                                f"and the commercial {commercial_name}",
+                                     border_style="bold red3",
+                                     style="red3",
+                                     expand=False))
 
     @staticmethod
     def display_contract(contract: type[Contract]) -> Panel:
@@ -79,14 +57,14 @@ class ContractView:
         """
         table = Table(show_header=False, box=None)
         table.add_row(f"[bold red3]Id[/bold red3] : {contract.id}")
-        table.add_row(f"[bold red3]Client name[/bold red3] : {contract.client_name \
-            if contract.client_name else ''}")
-        table.add_row(f"[bold red3]Client email[/bold red3] : {contract.client_email \
-            if contract.client_email else ''}")
-        table.add_row(f"[bold red3]Client phone[/bold red3] : {contract.client_phone \
-            if contract.client_phone else ''}")
-        table.add_row(f"[bold red3]Commercial name[/bold red3] : {contract.commercial_name \
-            if contract.commercial_name else ''}")
+        table.add_row(f"[bold red3]Client name[/bold red3] : "
+                      f"{contract.client_name if contract.client_name else ''}")
+        table.add_row(f"[bold red3]Client email[/bold red3] : "
+                      f"{contract.client_email if contract.client_email else ''}")
+        table.add_row(f"[bold red3]Client phone[/bold red3] : "
+                      f"{contract.client_phone if contract.client_phone else ''}")
+        table.add_row(f"[bold red3]Commercial name[/bold red3] : "
+                      f"{contract.commercial_name if contract.commercial_name else ''}")
         table.add_row(f"[bold red3]Total amount[/bold red3] : {contract.total_amount} $")
         table.add_row(f"[bold red3]Bill to pay[/bold red3] : {contract.bill_to_pay} $")
         table.add_row(f"[bold red3]Creation date[/bold red3] : {contract.creation_date}")
@@ -94,8 +72,8 @@ class ContractView:
 
         return Panel(table, border_style="bold bright_red", expand=False)
 
-    def prompt_for_contract(self, clients: list, commercials: list) -> tuple[
-        int | None, int | None, float | None, float | None, bool | None]:
+    def prompt_for_contract(self, clients: list, commercials: list) \
+            -> tuple[int | None, int | None, float | None, float | None, bool | None]:
         """
         Method that prompts the user to enter the contract data
         Args:
@@ -165,7 +143,7 @@ class ContractView:
                                     "[/bold light_goldenrod2]\n"
                                     "▶▶ ")
 
-            if not self.is_float(answer):
+            if not is_float(answer):
                 self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
                 continue
 
@@ -183,7 +161,7 @@ class ContractView:
                                 "(true/false | 1/0) ?[/bold light_goldenrod2]\n"
                                 "▶▶ ", default="false")
 
-            if not self.is_bool(answer.lower().strip()):
+            if not is_bool(answer.lower().strip()):
                 self.console.print("\n❗ [bold red]Please enter a boolean (true/false | 1/0).\n[/bold red]")
                 continue
 

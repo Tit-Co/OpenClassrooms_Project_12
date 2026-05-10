@@ -1,5 +1,6 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
@@ -26,7 +27,6 @@ class TestCollaboratorController(unittest.TestCase):
     main_controller = MainController()
     controller = CollaboratorController(main_controller)
     event_controller = EventController(main_controller)
-
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -127,11 +127,11 @@ class TestCollaboratorController(unittest.TestCase):
                             status=True)
 
         contract_2 = Contract(client_id=client.id,
-                             commercial_id=commercial.id,
-                             total_amount=1000,
-                             bill_to_pay=500,
-                             creation_date=datetime.now(),
-                             status=True)
+                              commercial_id=commercial.id,
+                              total_amount=1000,
+                              bill_to_pay=500,
+                              creation_date=datetime.now(),
+                              status=True)
 
         self.session.add(contract)
         self.session.add(contract_2)
@@ -331,7 +331,7 @@ class TestCollaboratorController(unittest.TestCase):
             "attendees": 100,
         }
 
-        self.event_controller.update_event(session=self.session, event_id=1, data=new_data)
+        self.event_controller.update_event(session=self.session, model_id=1, data=new_data)
         client = self.session.query(Event).filter_by(is_active=True, id=1).first()
 
         self.assertEqual(client.location, "London")
@@ -340,7 +340,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that deletes an event in success case
         """
-        self.event_controller.delete_event(session=self.session, event_id=2)
+        self.event_controller.delete_event(session=self.session, model_id=2)
 
         event = self.session.query(Event).filter_by(is_active=True, id=2).first()
 

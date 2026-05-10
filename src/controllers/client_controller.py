@@ -1,28 +1,19 @@
 from __future__ import annotations
 
-import logging
-import sentry_sdk
-
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-if TYPE_CHECKING:
-    from src.controllers.main_controller import MainController
-
+from src.core.monitoring import sentry_capture_exception, logger
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.user import Commercial
 
 
-logger = logging.getLogger(__name__)
-
-
 class ClientController:
-    def __init__(self, main_controller: MainController):
+    def __init__(self, main_controller: "MainController"):
         self.main_controller = main_controller
 
     def create_client_with_view(self, session: Session) -> None:
@@ -40,9 +31,9 @@ class ClientController:
          company
          ) = self.main_controller.view.client_view.prompt_for_client(commercials=commercials)
 
-        if not self.main_controller.user_controller.model_exists(session=session,
-                                                                 model_type="client",
-                                                                 value=email):
+        if not self.main_controller.user_controller.object_exists(session=session,
+                                                                  model_type="client",
+                                                                  value=email):
             data = {
                 "commercial_id": commercial_id,
                 "name": name,
@@ -60,18 +51,18 @@ class ClientController:
 
                 client = self.get_client(session=session, model_id=client.id)
 
-                sentry_sdk.logger.info(f'Created client {client.name} successfully.')
+                logger.info(f"Created client {client.name} successfully.")
 
                 self.main_controller.view.client_view.display_client(client=client)
 
             else:
                 self.main_controller.view.display_something_wrong("creating")
 
-                logger.error(f'Failed to create client. Something wrong.', attributes=data)
+                logger.error("Failed to create client. Something wrong.", attributes=data)
         else:
             self.main_controller.view.display_model_already_exist(model_type="client")
 
-            logger.warning(f'Cannot create client : {name}/{email} already exists.')
+            logger.warning(f"Cannot create client : {name}/{email} already exists.")
 
     def create_client(self, session: Session, data: dict) -> Client | None:
         """
@@ -84,12 +75,12 @@ class ClientController:
         The created client object
         """
         client = Client(commercial_id=data["commercial_id"],
-                          name=data["name"],
-                          email=data["email"],
-                          phone=data["phone"],
-                          company=data["company"],
-                          creation_date=data["creation_date"],
-                          last_update=data["last_update"])
+                        name=data["name"],
+                        email=data["email"],
+                        phone=data["phone"],
+                        company=data["company"],
+                        creation_date=data["creation_date"],
+                        last_update=data["last_update"])
 
         session.add(client)
 
@@ -100,7 +91,7 @@ class ClientController:
         except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
             return None
 
     def update_client_with_view(self, session: Session) -> None:
@@ -148,7 +139,7 @@ class ClientController:
                 "last_update": datetime.now(),
             }
 
-            self.update_client(session=session, client_id=client_id, data=new_client_data)
+            self.update_client(session=session, model_id=client_id, data=new_client_data)
 
             client = self.get_client(session=session, model_id=client_id)
 
@@ -157,22 +148,22 @@ class ClientController:
                                                                            model_type="client")
                 logger.info(f'Updated client {client.name} successfully.')
 
-
                 self.main_controller.view.client_view.display_client(client=client)
+
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-                logger.error(f'Failed to update client. Something wrong.', attributes=new_client_data)
+                logger.error("Failed to update client. Something wrong.", attributes=new_client_data)
 
-    def update_client(self, session: Session, client_id: int, data: dict) -> None:
+    def update_client(self, session: Session, model_id: int, data: dict) -> None:
         """
         Method to update client with view
         Args:
             session (SessionLocal): Session instance
-            client_id (int): Client id
+            model_id (int): Client id
             data (dict): data
         """
-        session.query(Client).filter_by(is_active=True, id=client_id).update(data)
+        session.query(Client).filter_by(is_active=True, id=model_id).update(data)
         try:
             session.commit()
 
@@ -180,23 +171,28 @@ class ClientController:
             session.rollback()
             self.main_controller.view.display_database_error()
 
-    def delete_client(self, session: Session, client_id: int) -> bool:
+    def delete_client(self, session: Session, model_id: int) -> bool:
         """
         Method to delete client with view
         Args:
             session (SessionLocal): Session instance
-            client_id (int): Client id
+            model_id (int): Client id
 
         Returns:
         A boolean indicating if the client was deleted successfully or not
         """
-        client = session.query(Contract).filter_by(is_active=True, client_id=client_id).first()
+        client = (session.query(Contract)
+                  .filter_by(is_active=True, client_id=model_id)
+                  .first())
+
         if client:
             self.main_controller.view.display_cannot_delete(model_type="client",
                                                             model_linked="contract")
             return False
 
-        session.query(Client).filter_by(is_active=True, id=client_id).delete()
+        (session.query(Client)
+         .filter_by(is_active=True, id=model_id)
+         .delete())
 
         try:
             session.commit()
@@ -205,9 +201,8 @@ class ClientController:
         except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
             return False
-
 
     @staticmethod
     def get_client(session: Session, model_id: int) -> type[Client] | None:
@@ -221,12 +216,9 @@ class ClientController:
         The client object
         """
         selection = (select(Client, Commercial)
-                        .join(Client.commercial, isouter=True)
-                        .where(
-                Client.is_active == True,
-                            Client.id == model_id
-                        )
-                    )
+                     .join(Client.commercial, isouter=True)
+                     .where(Client.is_active, Client.id == model_id)
+                     )
 
         result = session.execute(selection).first()
 
@@ -256,43 +248,48 @@ class ClientController:
         """
         results = []
 
-        if my_filter == "name":
-            results = (session.query(class_name)
-                       .filter(class_name.is_active == True,
-                               class_name.name.contains(filter_value)).all())
+        match my_filter:
 
-        elif my_filter == "no-commercial":
-            results = session.query(class_name).filter_by(is_active=True, commercial_id=None).all()
+            case "name":
+                results = (session.query(class_name)
+                           .filter(class_name.is_active, class_name.name.contains(filter_value))
+                           .all()
+                           )
 
-        elif my_filter == "commercial-id":
-            results = session.query(class_name).filter_by(is_active=True, commercial_id=filter_value).all()
+            case "no-commercial":
+                results = (session.query(class_name)
+                           .filter_by(is_active=True, commercial_id=None)
+                           .all()
+                           )
 
-        elif my_filter == "commercial-name":
-            results = (session.query(class_name)
-                       .join(Commercial, class_name.commercial_id == Commercial.id)
-                       .filter(
-                class_name.is_active == True, Commercial.name.contains(filter_value)
-            ).all())
+            case "commercial-id":
+                results = (session.query(class_name)
+                           .filter_by(is_active=True, commercial_id=filter_value)
+                           .all()
+                           )
 
-        elif my_filter == "prior-date":
-            results = (
-                session.query(class_name)
-                .filter(
-                    class_name.is_active == True,
-                    class_name.last_update < filter_value
+            case "commercial-name":
+                results = (session.query(class_name)
+                           .join(Commercial, class_name.commercial_id == Commercial.id)
+                           .filter(class_name.is_active, Commercial.name.contains(filter_value))
+                           .all()
+                           )
+
+            case "prior-date":
+                results = (
+                    session.query(class_name)
+                    .filter(class_name.is_active, class_name.last_update < filter_value)
+                    .all()
                 )
-                .all()
-            )
 
-        elif my_filter == "afterward-date":
-            results = (
-                session.query(class_name)
-                .filter(
-                    class_name.is_active == True,
-                    class_name.last_update > filter_value
+            case "afterward-date":
+                results = (
+                    session.query(class_name)
+                    .filter(
+                        class_name.is_active, class_name.last_update > filter_value)
+                    .all()
                 )
-                .all()
-            )
+
         results = [self.get_client(session=session, model_id=result.id) for result in results]
 
         return results

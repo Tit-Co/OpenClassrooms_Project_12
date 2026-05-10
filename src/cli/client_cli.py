@@ -1,13 +1,14 @@
 import click
 
 from src.controllers.main_controller import MainController
-from src.database import get_session, get_engine, DATABASE_URL
+from src.database import DATABASE_URL, get_engine, get_session
 
 
 @click.group()
 @click.pass_context
 def client(ctx):
     ctx.ensure_object(dict)
+
 
 @client.command()
 @click.pass_context
@@ -27,6 +28,7 @@ def create_client(ctx):
 
     else:
         main_controller.view.display_permission_denied(action="create", model_type="client")
+
 
 @client.command()
 @click.pass_context
@@ -67,6 +69,7 @@ def delete_client(ctx):
     else:
         main_controller.view.display_permission_denied(action="delete", model_type="client")
 
+
 @client.command()
 @click.pass_context
 def filter_client(ctx):
@@ -89,6 +92,7 @@ def filter_client(ctx):
 
     else:
         main_controller.view.display_permission_denied(action="filter", model_type="client")
+
 
 @client.command()
 @click.pass_context

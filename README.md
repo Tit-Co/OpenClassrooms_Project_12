@@ -103,7 +103,7 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
   - With Git Bash :
     ```
     export DB_USERNAME="user"
-    export DB_PASSWORD="pasword"
+    export DB_PASSWORD="password"
     export DATABASE="epic_events"
     export HOST="127.0.0.1"
     export PORT="3307"
@@ -174,7 +174,7 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 
 **Type the line below in the terminal to generate another report with [flake8-html](https://pypi.org/project/flake8-html/) tool :**
 
-` flake8 --format=html --htmldir=flake8-report --max-line-length=119 --extend-exclude=env/`
+` flake8 --format=html --htmldir=flake8-report --max-line-length=119 --extend-exclude=env/ --ignore="E402, F821"`
 
 ---
 

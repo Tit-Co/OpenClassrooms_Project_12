@@ -21,11 +21,12 @@ class Collaborator(Base):
 
     is_active = Column(Boolean, nullable=False, default=True)
 
+
 class Technician(Collaborator):
     __tablename__ = "technician"
-    __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {"sqlite_autoincrement": True}
 
-    role_id = Column(Integer, ForeignKey('role.id'), nullable=False)
+    role_id = Column(Integer, ForeignKey("role.id"), nullable=False)
     role = relationship("Role")
 
     def __repr__(self):
@@ -36,19 +37,19 @@ class Commercial(Collaborator):
     __tablename__ = "commercial"
     __table_args__ = {'sqlite_autoincrement': True}
 
-    role_id = Column(Integer, ForeignKey('role.id'), nullable=False)
+    role_id = Column(Integer, ForeignKey("role.id"), nullable=False)
     role = relationship("Role")
 
     def __repr__(self):
-        return f'Commercial {self.name}'
+        return f"Commercial {self.name}"
 
 
 class Manager(Collaborator):
     __tablename__ = "manager"
-    __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {"sqlite_autoincrement": True}
 
-    role_id = Column(Integer, ForeignKey('role.id'), nullable=False)
+    role_id = Column(Integer, ForeignKey("role.id"), nullable=False)
     role = relationship("Role")
 
     def __repr__(self):
-        return f'Manager {self.name}'
+        return f"Manager {self.name}"

@@ -1,5 +1,5 @@
 from src.controllers.main_controller import MainController
-from src.database import get_session, get_engine, DATABASE_URL
+from src.database import DATABASE_URL, get_engine, get_session
 
 
 def main():

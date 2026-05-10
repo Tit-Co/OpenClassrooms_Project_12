@@ -1,13 +1,14 @@
 import click
 
 from src.controllers.main_controller import MainController
-from src.database import get_session, get_engine, DATABASE_URL
+from src.database import DATABASE_URL, get_engine, get_session
 
 
 @click.group()
 @click.pass_context
 def collaborator(ctx):
     ctx.ensure_object(dict)
+
 
 @collaborator.command()
 @click.pass_context
@@ -36,6 +37,7 @@ def create_collaborator(ctx):
     else:
         main_controller.view.display_permission_denied(action="update", model_type=role)
 
+
 @collaborator.command()
 @click.pass_context
 def update_collaborator(ctx):
@@ -62,6 +64,7 @@ def update_collaborator(ctx):
 
     else:
         main_controller.view.display_permission_denied(action="update", model_type=role)
+
 
 @collaborator.command()
 @click.pass_context
@@ -90,6 +93,7 @@ def delete_collaborator(ctx):
     else:
         main_controller.view.display_permission_denied(action="delete", model_type=role)
 
+
 @collaborator.command()
 @click.pass_context
 def filter_collaborator(ctx):
@@ -117,6 +121,7 @@ def filter_collaborator(ctx):
     else:
         main_controller.view.display_permission_denied(action="filter", model_type=role)
 
+
 @collaborator.command()
 @click.pass_context
 def display_collaborator(ctx):
@@ -137,6 +142,7 @@ def display_collaborator(ctx):
 
     else:
         main_controller.view.display_wrong_collaborator_role()
+
 
 @collaborator.command()
 @click.pass_context

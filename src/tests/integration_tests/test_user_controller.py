@@ -1,5 +1,6 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
@@ -101,19 +102,16 @@ class TestCollaboratorController(unittest.TestCase):
             "role": "MANAGER"
         }
 
-
-
         admin = Manager(name=admin_credentials["name"],
                         email=admin_credentials["email"],
                         password=admin_credentials["password"],
-                        role_id=1
-                        )
+                        role_id=1)
 
         manager = Manager(name="Manager Test",
                           email="manager@test.com",
                           password="test_pwd",
-                          role_id=1
-                          )
+                          role_id=1)
+
         self.session.add(admin)
         self.session.add(manager)
         self.session.commit()
@@ -145,11 +143,11 @@ class TestCollaboratorController(unittest.TestCase):
                             status=True)
 
         contract2 = Contract(client_id=client.id,
-                            commercial_id=commercial.id,
-                            total_amount=1000,
-                            bill_to_pay=500,
-                            creation_date=datetime.now(),
-                            status=True)
+                             commercial_id=commercial.id,
+                             total_amount=1000,
+                             bill_to_pay=500,
+                             creation_date=datetime.now(),
+                             status=True)
 
         self.session.add(contract)
         self.session.add(contract2)
@@ -175,7 +173,6 @@ class TestCollaboratorController(unittest.TestCase):
 
         self.session.add(event)
         self.session.commit()
-
 
         return {
             "managers": [admin, manager],
@@ -377,10 +374,10 @@ class TestCollaboratorController(unittest.TestCase):
         }
 
         manager = Manager(
-                name=data["name"],
-                email=data["email"],
-                password=data["password"],
-                role_id=self.session.query(Role).filter_by(name=data["role"].upper()).first().id)
+            name=data["name"],
+            email=data["email"],
+            password=data["password"],
+            role_id=self.session.query(Role).filter_by(name=data["role"].upper()).first().id)
 
         with patch.object(
             self.controller,
@@ -484,8 +481,8 @@ class TestCollaboratorController(unittest.TestCase):
         self.main_controller.view.prompt_for_model_id = Mock(side_effect=[2])
         self.main_controller.view.prompt_for_confirmation = Mock(side_effect=['y'])
         self.controller.get_models = Mock(return_value={"contracts": self.data["contracts"],
-                                                       "clients": self.data["clients"],
-                                                       "commercials": self.data["commercials"]})
+                                                        "clients": self.data["clients"],
+                                                        "commercials": self.data["commercials"]})
 
         self.controller.current_collaborator = self.data["managers"][1]
 
@@ -575,7 +572,7 @@ class TestCollaboratorController(unittest.TestCase):
             "pwd_test",
             "Technician name"))
 
-        self.main_controller.view.prompt_for_collaborator_role = Mock(return_value=(2,"commercial"))
+        self.main_controller.view.prompt_for_collaborator_role = Mock(return_value=(2, "commercial"))
 
         buffer = StringIO()
         test_console = Console(file=buffer, force_terminal=False)
@@ -608,7 +605,6 @@ class TestCollaboratorController(unittest.TestCase):
         output = buffer.getvalue()
 
         self.assertIn("The technician has been successfully deleted.", output)
-
 
     def test_delete_collaborator_ok(self) -> None:
         """

@@ -1,5 +1,6 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
@@ -147,7 +148,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         models = self.controller.get_models(self.session, "contract")
 
-        self.assertEqual(len(models),3)
+        self.assertEqual(len(models), 3)
         self.assertEqual(models.get("contracts")[0].id, self.data["contract"].id)
         self.assertEqual(models.get("contracts")[0].client_id, self.data["client"].id)
         self.assertEqual(models.get("contracts")[0].commercial_id, self.data["commercial"].id)
@@ -161,7 +162,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         clients = self.controller.get_models(self.session, "client")
 
-        self.assertEqual(len(clients),1)
+        self.assertEqual(len(clients), 1)
         self.assertEqual(clients[0].id, self.data["client"].id)
         self.assertEqual(clients[0].name, self.data["client"].name)
         self.assertEqual(clients[0].email, self.data["client"].email)
@@ -202,20 +203,20 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the method that gets event
         """
         technician = Technician(name="Technician name",
-                               email="technician.test@epicevents.url.com",
-                               password="pwd_test_2",
-                               role_id=3)
+                                email="technician.test@epicevents.url.com",
+                                password="pwd_test_2",
+                                role_id=3)
         self.session.add(technician)
         self.session.commit()
 
         event = Event(name="Event Test",
-                          start_date=datetime.now(),
-                          end_date=datetime.now(),
-                          location="Location Test",
-                          attendees=100,
-                          notes="Notes event",
-                          contract_id=self.data["contract"].id,
-                          technician_id=technician.id)
+                      start_date=datetime.now(),
+                      end_date=datetime.now(),
+                      location="Location Test",
+                      attendees=100,
+                      notes="Notes event",
+                      contract_id=self.data["contract"].id,
+                      technician_id=technician.id)
         self.session.add(event)
         self.session.commit()
 
@@ -236,7 +237,6 @@ class TestCollaboratorController(unittest.TestCase):
         test_console = Console(file=buffer, force_terminal=False)
         self.main_controller.console = test_console
         self.main_controller.view.console = test_console
-
 
         self.controller.logout(self.session)
 
@@ -267,9 +267,9 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that tests if a model already exists in true case
         """
-        result = self.controller.model_exists(session=self.session,
-                                              model_type="client",
-                                              value="client@clienttest.com")
+        result = self.controller.object_exists(session=self.session,
+                                               model_type="client",
+                                               value="client@clienttest.com")
 
         self.assertTrue(result)
 
@@ -277,9 +277,9 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that tests if a model already exists in false case
         """
-        result = self.controller.model_exists(session=self.session,
-                                              model_type="client",
-                                              value="unautreemail@clienttest.com")
+        result = self.controller.object_exists(session=self.session,
+                                               model_type="client",
+                                               value="unautreemail@clienttest.com")
 
         self.assertFalse(result)
 
@@ -299,54 +299,6 @@ class TestCollaboratorController(unittest.TestCase):
 
             self.assertIn("Goodbye !", output)
             self.assertEqual(mock.exception.code, 1)
-
-    def test_is_float_ok(self) -> None:
-        """
-        Test for checking the is_float method in a True case
-        """
-        float = self.controller.is_float(s="152.23")
-
-        self.assertTrue(float)
-
-    def test_is_float_return_false_with_str(self) -> None:
-        """
-        Test for checking the is_float method in a false case
-        """
-        float = self.controller.is_float(s="test")
-
-        self.assertFalse(float)
-
-    def test_is_date_ok(self) -> None:
-        """
-        Test for checking the is_date method in a success case
-        """
-        date = self.controller.is_date(s="25/04/26 11:00")
-
-        self.assertTrue(date)
-
-    def test_is_date_return_false_with_wrong_format(self) -> None:
-        """
-        Test for checking the is_date method in a failure case
-        """
-        date = self.controller.is_date(s="25/04/26 11")
-
-        self.assertFalse(date)
-
-    def test_is_bool(self) -> None:
-        """
-        Test for checking the is_bool method in a success case
-        """
-        my_bool = self.controller.is_bool(s="true")
-
-        self.assertTrue(my_bool)
-
-    def test_is_bool_fails(self) -> None:
-        """
-        Test for checking the is_bool method in a failure case
-        """
-        my_bool = self.controller.is_bool(s="test")
-
-        self.assertIsNone(my_bool)
 
     def test_get_object(self) -> None:
         """

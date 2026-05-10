@@ -1,28 +1,18 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-import logging
-import sentry_sdk
-
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-if TYPE_CHECKING:
-    from src.controllers.main_controller import MainController
-
+from src.core.monitoring import sentry_capture_exception, logger
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
 from src.models.user import Technician
 
 
-logger = logging.getLogger(__name__)
-
-
 class EventController:
-    def __init__(self, main_controller: MainController) -> None:
+    def __init__(self, main_controller: "MainController") -> None:
         self.main_controller = main_controller
 
     def create_event_with_view(self, session: Session) -> None:
@@ -48,9 +38,9 @@ class EventController:
          ) = self.main_controller.view.event_view.prompt_for_event(contracts=contracts,
                                                                    technicians=technicians)
 
-        if not self.main_controller.user_controller.model_exists(session=session,
-                                                                 model_type="event",
-                                                                 value=name):
+        if not self.main_controller.user_controller.object_exists(session=session,
+                                                                  model_type="event",
+                                                                  value=name):
             data = {
                 "name": name,
                 "contract_id": contract_id,
@@ -70,19 +60,19 @@ class EventController:
                 self.main_controller.view.display_action_successfully_done(action="created",
                                                                            model_type="event")
 
-                sentry_sdk.logger.info(f'Created event {event.name} successfully.')
+                logger.info(f"Created event {event.name} successfully.")
 
                 self.main_controller.view.event_view.display_event(event=event)
 
             else:
                 self.main_controller.view.display_something_wrong("creating")
 
-                logger.error(f'Failed to create event.', attributes=data)
+                logger.error("Failed to create event.", attributes=data)
 
         else:
             self.main_controller.view.display_model_already_exist(model_type="event")
 
-            logger.error(f'Failed to create event : {name} already exists.')
+            logger.error(f"Failed to create event : {name} already exists.")
 
     def create_event(self, session: Session, data: dict) -> Event | None:
         """
@@ -111,7 +101,7 @@ class EventController:
         except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
             return None
 
     def update_event_with_view(self, session: Session) -> None:
@@ -165,7 +155,7 @@ class EventController:
                 "attendees": attendees,
                 "notes": notes
             }
-            self.update_event(session=session, event_id=event_id, data=new_event_data)
+            self.update_event(session=session, model_id=event_id, data=new_event_data)
 
             event = self.get_event(session=session, model_id=event_id)
 
@@ -173,43 +163,46 @@ class EventController:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type="event")
 
-                logger.info(f'Updated event {event.name} successfully.')
+                logger.info(f"Updated event {event.name} successfully.")
 
                 self.main_controller.view.event_view.display_event(event=event)
 
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-                logger.error(f'Failed to update event. Something wrong.', attributes=new_event_data)
+                logger.error("Failed to update event. Something wrong.", attributes=new_event_data)
 
-    def update_event(self, session: Session, event_id: int, data: dict) -> None:
+    def update_event(self, session: Session, model_id: int, data: dict) -> None:
         """
         Method to update event with view
         Args:
             session (Session): session
-            event_id (int): event id
+            model_id (int): event id
             data (dict): data
         """
-        session.query(Event).filter_by(is_active=True, id=event_id).update(data)
+        session.query(Event).filter_by(is_active=True, id=model_id).update(data)
         try:
             session.commit()
 
         except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
 
-    def delete_event(self, session: Session, event_id: int) -> bool:
+    def delete_event(self, session: Session, model_id: int) -> bool:
         """
         Method to delete event
         Args:
             session (Session): session
-            event_id (int): event id
+            model_id (int): event id
 
         Returns:
         A boolean indicating if the event was deleted successfully
         """
-        session.query(Event).filter_by(is_active=True, id=event_id).update({"is_active": False})
+        (session.query(Event)
+         .filter_by(is_active=True, id=model_id)
+         .update({"is_active": False})
+         )
 
         try:
             session.commit()
@@ -218,7 +211,7 @@ class EventController:
         except SQLAlchemyError as e:
             session.rollback()
             self.main_controller.view.display_database_error()
-            sentry_sdk.capture_exception(e)
+            sentry_capture_exception(e)
             return False
 
     @staticmethod
@@ -233,14 +226,11 @@ class EventController:
         The event object
         """
         selection = (select(Event, Technician, Contract, Client)
-                        .join(Event.technician, isouter=True)
-                        .join(Event.contract, isouter=True)
-                        .join(Client, Client.id == Contract.client_id)
-                        .where(
-                            Event.is_active == True,
-                            Event.id == model_id
-                        )
-                    )
+                     .join(Event.technician, isouter=True)
+                     .join(Event.contract, isouter=True)
+                     .join(Client, Client.id == Contract.client_id)
+                     .where(Event.is_active, Event.id == model_id)
+                     )
         result = session.execute(selection).first()
         event, technician, contract, client = result
 
@@ -268,52 +258,59 @@ class EventController:
         """
         results = []
 
-        if my_filter == "name":
-            results = (session.query(class_name)
-                       .filter(class_name.is_active == True, class_name.name.contains(filter_value)).all())
+        match my_filter:
+            case "name":
+                results = (session.query(class_name)
+                           .filter(class_name.is_active, class_name.name.contains(filter_value))
+                           .all()
+                           )
 
-        elif my_filter == "location":
-            results = (session.query(class_name)
-                       .filter(class_name.is_active == True, class_name.location.contains(filter_value)).all())
+            case "location":
+                results = (session.query(class_name)
+                           .filter(class_name.is_active, class_name.location.contains(filter_value))
+                           .all()
+                           )
 
-        elif my_filter == "attendees-max":
-            results = (session.query(class_name)
-                       .filter(class_name.is_active == True, class_name.attendees < filter_value).all())
+            case "attendees-max":
+                results = (session.query(class_name)
+                           .filter(class_name.is_active, class_name.attendees < filter_value)
+                           .all()
+                           )
 
-        elif my_filter == "prior-date":
-            results = (
-                session.query(class_name)
-                .filter(
-                    class_name.is_active == True,
-                    class_name.start_date < filter_value
+            case "prior-date":
+                results = (
+                    session.query(class_name)
+                    .filter(class_name.is_active, class_name.start_date < filter_value)
+                    .all()
                 )
-                .all()
-            )
 
-        elif my_filter == "afterward-date":
-            results = (
-                session.query(class_name)
-                .filter(
-                    class_name.is_active == True,
-                    class_name.start_date > filter_value
+            case "afterward-date":
+                results = (
+                    session.query(class_name)
+                    .filter(class_name.is_active, class_name.start_date > filter_value)
+                    .all()
                 )
-                .all()
-            )
 
-        elif my_filter == "no-technician":
-            results = session.query(class_name).filter_by(is_active=True, technician_id=None).all()
+            case "no-technician":
+                results = (session.query(class_name)
+                           .filter_by(is_active=True, technician_id=None)
+                           .all()
+                           )
 
-        elif my_filter == "technician-id":
-            results = session.query(class_name).filter_by(is_active=True, technician_id=filter_value).all()
+            case "technician-id":
+                results = (session.query(class_name)
+                           .filter_by(is_active=True, technician_id=filter_value)
+                           .all()
+                           )
 
-        elif my_filter == "technician-name":
-            results = (
-                session.query(class_name)
-                .join(class_name.technician)
-                .filter(
-                    class_name.is_active == True,
-                    Technician.name.contains(filter_value)
-                ).all())
+            case "technician-name":
+                results = (
+                    session.query(class_name)
+                    .join(class_name.technician)
+                    .filter(
+                        class_name.is_active, Technician.name.contains(filter_value)
+                    ).all())
 
         results = [self.get_event(session=session, model_id=result.id) for result in results]
+
         return results

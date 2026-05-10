@@ -5,7 +5,7 @@ from src.cli.collaborator_cli import collaborator
 from src.cli.contract_cli import contract
 from src.cli.event_cli import event
 from src.controllers.main_controller import MainController
-from src.database import get_session, get_engine, DATABASE_URL
+from src.database import DATABASE_URL, get_engine, get_session
 
 
 @click.group()
@@ -13,10 +13,12 @@ from src.database import get_session, get_engine, DATABASE_URL
 def cli(ctx):
     ctx.ensure_object(dict)
 
+
 cli.add_command(collaborator)
 cli.add_command(contract)
 cli.add_command(client)
 cli.add_command(event)
+
 
 @cli.command()
 @click.option("--email", required=False)
@@ -38,10 +40,10 @@ def login(ctx, email, password):
         password = main_controller.view.prompt_for_password()
 
     try:
-        result = main_controller.authenticate(session=session,
-                                              email=email,
-                                              password=password)
-    except Exception as e:
+        main_controller.authenticate(session=session,
+                                     email=email,
+                                     password=password)
+    except Exception:
         main_controller.view.display_error_while_logging_in()
 
     session.close()

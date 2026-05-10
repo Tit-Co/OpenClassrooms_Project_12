@@ -1,5 +1,6 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
@@ -153,7 +154,6 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.add(event)
         self.session.add(event_2)
         self.session.commit()
-
 
         return {
             "managers": [manager],

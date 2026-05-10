@@ -1,5 +1,6 @@
 import logging
 import os
+
 os.environ["APP_ENV"] = "test"
 
 import unittest
@@ -92,8 +93,7 @@ class TestCollaboratorController(unittest.TestCase):
         manager = Manager(name=admin_credentials["name"],
                           email=admin_credentials["email"],
                           password=admin_credentials["password"],
-                          role_id=1
-        )
+                          role_id=1)
         self.session.add(manager)
         self.session.commit()
 
@@ -114,12 +114,12 @@ class TestCollaboratorController(unittest.TestCase):
                         commercial_id=commercial.id)
 
         client_2 = Client(name="Another Client Test",
-                        email="client2@clienttest.com",
-                        phone="5551248966",
-                        company="Company Test 2",
-                        creation_date=datetime.now(),
-                        last_update=datetime.now(),
-                        commercial_id=commercial.id)
+                          email="client2@clienttest.com",
+                          phone="5551248966",
+                          company="Company Test 2",
+                          creation_date=datetime.now(),
+                          last_update=datetime.now(),
+                          commercial_id=commercial.id)
 
         self.session.add(client)
         self.session.add(client_2)
@@ -135,7 +135,6 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.add(contract)
 
         self.session.commit()
-
 
         return {
             "managers": [manager],
@@ -158,7 +157,7 @@ class TestCollaboratorController(unittest.TestCase):
             "client@client.com",
             "3355659845",
             "Company test",
-            1 # commercial_id
+            1  # commercial_id
         ])
 
         buffer = StringIO()
@@ -209,7 +208,7 @@ class TestCollaboratorController(unittest.TestCase):
             "new.client@client.com",
             "3355679845",
             "Company test update",
-            ])
+        ])
 
         buffer = StringIO()
         test_console = Console(file=buffer, force_terminal=False)
@@ -241,7 +240,7 @@ class TestCollaboratorController(unittest.TestCase):
             "commercial_id": 1
         }
 
-        self.client_controller.update_client(session=self.session, client_id=1, data=new_data)
+        self.client_controller.update_client(session=self.session, model_id=1, data=new_data)
         client = self.session.query(Client).filter_by(is_active=True, id=1).first()
 
         self.assertEqual(client.email, "client@client.com")
@@ -250,7 +249,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that deletes a client.
         """
-        self.client_controller.delete_client(session=self.session, client_id=2)
+        self.client_controller.delete_client(session=self.session, model_id=2)
 
         client = self.session.query(Client).filter_by(is_active=True, id=2).first()
 
@@ -260,7 +259,7 @@ class TestCollaboratorController(unittest.TestCase):
         """
         Test for checking the method that deletes a client when it's not possible.
         """
-        self.client_controller.delete_client(session=self.session, client_id=1)
+        self.client_controller.delete_client(session=self.session, model_id=1)
 
         client = self.session.query(Client).filter_by(is_active=True, id=1).first()
 
@@ -271,9 +270,9 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the method that creates collaborator with view
         """
         clients = self.client_controller.filter_client(session=self.session,
-                                                        my_filter="name",
-                                                        filter_value="Client Test",
-                                                        class_name=Client)
+                                                       my_filter="name",
+                                                       filter_value="Client Test",
+                                                       class_name=Client)
 
         self.assertEqual(clients, self.data["clients"])
 
@@ -282,8 +281,8 @@ class TestCollaboratorController(unittest.TestCase):
         Test for checking the method that creates collaborator with view
         """
         clients = self.client_controller.filter_client(session=self.session,
-                                                        my_filter="name",
-                                                        filter_value="machin",
-                                                        class_name=Client)
+                                                       my_filter="name",
+                                                       filter_value="machin",
+                                                       class_name=Client)
 
         self.assertEqual(clients, [])

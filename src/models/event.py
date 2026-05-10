@@ -6,7 +6,7 @@ from .base import Base
 
 class Event(Base):
     __tablename__ = "event"
-    __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {"sqlite_autoincrement": True}
 
     id = Column(Integer, primary_key=True)
     name = Column(String(200), nullable=False)
@@ -15,15 +15,12 @@ class Event(Base):
     location = Column(String(200), nullable=True)
     attendees = Column(Integer, nullable=True)
     notes = Column(String(500), nullable=True)
-    contract_id = Column(Integer, ForeignKey('contract.id'), nullable=True)
-    contract = relationship('Contract')
-    technician_id = Column(Integer, ForeignKey('technician.id', ondelete="SET NULL"), nullable=True)
-    technician = relationship('Technician', passive_deletes=True)
+    contract_id = Column(Integer, ForeignKey("contract.id"), nullable=True)
+    contract = relationship("Contract")
+    technician_id = Column(Integer, ForeignKey("technician.id", ondelete="SET NULL"), nullable=True)
+    technician = relationship("Technician", passive_deletes=True)
 
     is_active = Column(Boolean, nullable=False, default=True)
 
     def __repr__(self):
-        return f'Event {self.name}'
-
-    def __str__(self):
-        return self.name
+        return f"Event {self.name}"
