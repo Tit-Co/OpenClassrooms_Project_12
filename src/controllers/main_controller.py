@@ -10,7 +10,7 @@ from src.controllers.client_controller import ClientController
 from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.contract_controller import ContractController
 from src.controllers.event_controller import EventController
-from src.core.monitoring import init_sentry, sentry_capture_exception
+from src.core.monitoring import sentry_capture_exception
 from src.models.base import Base
 from src.models.role import Role
 from src.models.user import Commercial, Manager, Technician
@@ -73,8 +73,6 @@ class MainController:
             db_engine (Engine): database engine
             session (Session): session
         """
-        init_sentry()
-
         Base.metadata.create_all(bind=db_engine)
 
         for role in roles:
@@ -182,7 +180,7 @@ class MainController:
 
         self.user_controller.save_current_user(email=email)
 
-        self.view.display_successfully_logged_in(name=user.name.capitalize())
+        self.view.display_successfully_logged_in(name=user.name)
 
         return True
 

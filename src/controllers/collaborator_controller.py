@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.core.monitoring import sentry_capture_exception, logger
+from src.core.monitoring import sentry_capture_exception, sentry_flush, sentry_capture_message
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
@@ -307,15 +307,15 @@ class CollaboratorController:
             self.main_controller.view.display_action_successfully_done(action="created",
                                                                        model_type=role)
 
-            logger.info(f"Created {role} {collaborator.name} successfully.")
+            sentry_capture_message(f"Created {role} '{collaborator.name}' successfully.")
 
             self.main_controller.view.display_collaborator(collaborator=collaborator, role=role)
 
         else:
             self.main_controller.view.display_something_wrong("creating collaborator")
 
-            logger.error("Failed to create/reactivate collaborator. Something wrong.",
-                         attributes=data)
+            sentry_capture_message(f"Failed to create/reactivate collaborator. Something wrong. {data=}")
+        sentry_flush()
 
     def create_collaborator(self, session: Session, data: dict) -> Manager | Commercial | Technician | None:
         """
@@ -430,15 +430,17 @@ class CollaboratorController:
             (new_role_id,
              new_role_name) = self.main_controller.view.prompt_for_collaborator_role()
 
+            new_collaborator_data = {
+                "name": name,
+                "email": email,
+                "password": self.main_controller.hash_password(password),
+            }
+
             current_role_id = collaborator.role_id
 
             if new_role_id != current_role_id:
-                new_collaborator_data = {
-                    "name": name,
-                    "email": email,
-                    "password": password,
-                    "role": new_role_name,
-                }
+                new_collaborator_data["role"] = new_role_name
+
                 new_id = self.change_role_for_collaborator(session=session,
                                                            collaborator_id=collaborator_id,
                                                            current_role=role,
@@ -451,12 +453,7 @@ class CollaboratorController:
                 label = f"collaborator ({role} to {new_role_name})"
 
             else:
-                new_collaborator_data = {
-                    "name": name,
-                    "email": email,
-                    "password": password,
-                    "role_id": current_role_id,
-                }
+                new_collaborator_data["role_id"] = current_role_id
 
                 new_role_name = roles[current_role_id]
 
@@ -473,7 +470,7 @@ class CollaboratorController:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type=label)
 
-                logger.info(f"Updated collaborator {collaborator.name} successfully.")
+                sentry_capture_message(f"Updated collaborator '{collaborator.name}' successfully.")
 
                 self.main_controller.view.display_collaborator(collaborator=collaborator,
                                                                role=new_role_name)
@@ -481,8 +478,9 @@ class CollaboratorController:
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-                logger.error("Failed to update collaborator. Something wrong.",
-                             attributes=new_collaborator_data)
+                sentry_capture_message(f"Failed to update collaborator. Something wrong. {new_collaborator_data=}")
+
+        sentry_flush()
 
     def update_collaborator(self, session: Session, collaborator_id: int, data: dict):
         """
@@ -512,6 +510,7 @@ class CollaboratorController:
             session.rollback()
             self.main_controller.view.display_database_error()
             sentry_capture_exception(e)
+            sentry_flush()
 
     def change_role_for_collaborator(self, session: Session,
                                      collaborator_id: int,
@@ -919,6 +918,7 @@ class CollaboratorController:
 
             if admin == requested or requested == self.current_collaborator:
                 self.main_controller.view.display_cannot_delete_admin_manager_or_yourself()
+                sentry_capture_message("Cannot delete admin manager or your profil.")
                 return
 
             if not self.main_controller.view.prompt_for_confirmation(action="delete",
@@ -946,8 +946,21 @@ class CollaboratorController:
             if success:
                 self.main_controller.view.display_action_successfully_done(action="deleted",
                                                                            model_type=model_type)
+                model_str = ""
+                match model_type:
+                    case "manager" | "commercial" | "technician" | "Client" | "Event":
+                        model_str = requested.name
+
+                    case "Contract":
+                        model_str = (f"n° {requested.id} between commercial '{requested.commercial_name}' "
+                                     f"and client '{requested.client_name}'.")
+
+                sentry_capture_message(f"Deleted {model_type} {model_str} successfully.")
         else:
             self.main_controller.view.display_action_impossible(model_type=model_type, action="delete")
+            sentry_capture_message(f"Cannot delete {model_type}.")
+
+        sentry_flush()
 
     def delete_collaborator(self, session: Session, collaborator_id: int, role: str) -> bool:
         """

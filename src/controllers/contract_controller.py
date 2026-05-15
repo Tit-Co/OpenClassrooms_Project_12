@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.core.monitoring import sentry_capture_exception, logger
+from src.core.monitoring import sentry_capture_exception, sentry_capture_message
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
@@ -53,15 +53,15 @@ class ContractController:
             self.main_controller.view.display_action_successfully_done(action="created",
                                                                        model_type="contract")
 
-            logger.info(f"Created contract between {contract.commercial_name} "
-                        f"and {contract.client_name} successfully.")
+            sentry_capture_message(f"Created contract between '{contract.commercial_name}' "
+                                   f"and '{contract.client_name}' successfully.")
 
             self.main_controller.view.contract_view.display_contract(contract=contract)
 
         else:
             self.main_controller.view.display_something_wrong("creating")
 
-            logger.error("Failed to create contract. Something wrong.", attributes=data)
+            sentry_capture_message(f"Failed to create contract. Something wrong. {data=}")
 
     def create_contract(self, session: Session, data: dict) -> Contract | None:
         """
@@ -141,13 +141,13 @@ class ContractController:
 
                 self.main_controller.view.contract_view.display_contract(contract=contract)
 
-                logger.info(f"Updated contract between {contract.commercial_name} "
-                            f"and {contract.client_name} successfully.")
+                sentry_capture_message(f"Updated contract between '{contract.commercial_name}' "
+                                       f"and '{contract.client_name}' successfully.")
 
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-                logger.error("Failed to update contract. Something wrong.", attributes=new_contract_data)
+                sentry_capture_message(f"Failed to update contract. Something wrong. {new_contract_data=}")
 
     def update_contract(self, session: Session, model_id: int, data: dict) -> None:
         """

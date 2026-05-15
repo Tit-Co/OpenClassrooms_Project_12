@@ -90,6 +90,7 @@ class EventView:
         technician_id = self.prompt_for_id(model_type="technician", models=technicians)
 
         name = self.main_view.prompt_for_string(model_type="event", field="name")
+        name = " ".join([n.capitalize() for n in name.split()])
 
         start_date = self.main_view.prompt_for_date(model_type="event", field="start date")
 

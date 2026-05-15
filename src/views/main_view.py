@@ -131,7 +131,7 @@ class MainView:
         Args:
             name (str): The name of the user.
         """
-        self.console.print(Panel(renderable=f"\n✅ {name.capitalize()}, you are successfully logged in.\n",
+        self.console.print(Panel(renderable=f"\n✅ {name}, you are successfully logged in.\n",
                                  border_style="bold green",
                                  style="bold white",
                                  expand=False))
@@ -235,18 +235,18 @@ class MainView:
 
         else:
             if model_type == "contract":
-                self.console.print(f"\n[bold red3] ⯀ {model_type.upper()}S TO DISPLAY : [/bold red3] \n")
+                self.console.print(f"\n[bold red3] ⯀ {model_type.upper()}S : [/bold red3] \n")
 
             elif model_type == "client":
-                self.console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S TO DISPLAY : "
+                self.console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S : "
                                    f"[/bold deep_sky_blue1] \n")
 
             elif model_type == "event":
-                self.console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S TO DISPLAY : "
+                self.console.print(f"\n[bold spring_green3] ⯀ {model_type.upper()}S : "
                                    f"[/bold spring_green3] \n")
 
             else:
-                self.console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S TO DISPLAY : [/bold grey85] \n")
+                self.console.print(f"\n[bold grey85] ⯀ {model_type.upper()}S : [/bold grey85] \n")
 
             actions = {
                 "contract": self.contract_view.display_contracts,
@@ -267,7 +267,7 @@ class MainView:
             models (list): The models list.
         """
         for model in models:
-            self.console.print(Panel(renderable=f"  - {model.id}. {model.name.capitalize()}",
+            self.console.print(Panel(renderable=f"  - {model.id}. {model.name}",
                                      expand=False,
                                      border_style="bold navajo_white3",
                                      style="navajo_white3"))
@@ -281,11 +281,11 @@ class MainView:
             role (str): The role of the collaborator.
         """
         table = Table(show_header=False, box=None, style="bright_white")
-        table.add_row(f"[bold navajo_white3]Id[/bold navajo_white3] : {collaborator.id}")
-        table.add_row(f"[bold navajo_white3]Name[/bold navajo_white3] : {collaborator.name}")
-        table.add_row(f"[bold navajo_white3]Employee number[/bold navajo_white3] : {collaborator.employee_number}")
-        table.add_row(f"[bold navajo_white3]E-mail[/bold navajo_white3] : {collaborator.email}")
-        table.add_row(f"[bold navajo_white3]Role[/bold navajo_white3] : {role}")
+        table.add_row(f"[navajo_white3]Id[/navajo_white3] : {collaborator.id}")
+        table.add_row(f"[navajo_white3]Name[/navajo_white3] : {collaborator.name}")
+        table.add_row(f"[navajo_white3]Employee number[/navajo_white3] : {collaborator.employee_number}")
+        table.add_row(f"[navajo_white3]E-mail[/navajo_white3] : {collaborator.email}")
+        table.add_row(f"[navajo_white3]Role[/navajo_white3] : {role}")
 
         return Panel(table, border_style="bold navajo_white3", expand=False)
 
@@ -306,7 +306,16 @@ class MainView:
             model_type (str): The model type.
             model_id (int): The model id.
         """
-        self.console.print(f"\n[bright_white]Here is the {model_type} n°{model_id}: [/bright_white]\n")
+        color = ""
+        match model_type:
+            case "contract":
+                color = "bold red3"
+            case "client":
+                color = "bold deep_sky_blue1"
+            case "event":
+                color = "bold spring_green3"
+
+        self.console.print(f"\n[{color}]⮞ Here is the {model_type} n°{model_id}: [/{color}]\n")
 
     def display_model(self, model_type: str,
                       model: type[Client | Event | Contract]) -> None:
@@ -474,13 +483,25 @@ class MainView:
         Args:
             roles (dict): The roles dictionary
         """
-        self.console.print("[bold grey62]\nAll roles :[/bold grey62]")
+        table = Table(
+            title="All ROLES".upper(),
+            title_justify="center",
+            show_header=False,
+            expand=False,
+            padding=(0, 5),
+            border_style="bold bright_white",
+            style="bright_white",
+            title_style="bold bright_white",
+            box=box.ROUNDED
+        )
+        table.add_column(header="\nALL ROLES\n")
         for role_id, role_name in roles.items():
-            self.console.print(Panel(renderable=f"  - {role_id}. {role_name.upper()}"
-                                                f"[manager | commercial | technician].\n",
-                                     border_style="bold grey62",
-                                     style="grey62",
-                                     expand=False))
+            table.add_row(Panel(renderable=f"  - {role_id}. {role_name.upper()}\n",
+                                border_style="bold bright_white",
+                                style="bright_white",
+                                expand=False,
+                                height=3))
+        self.console.print(table)
 
     def display_filters(self, filters: list) -> None:
         """
@@ -502,8 +523,7 @@ class MainView:
         table.add_column(header="\nAll filters available\n")
 
         for the_filter in filters:
-            table.add_row(Panel(renderable=f"  - {filters.index(the_filter) + 1}. {the_filter}"
-                                           f"[manager | commercial | technician].\n",
+            table.add_row(Panel(renderable=f"  - {filters.index(the_filter) + 1}. {the_filter}",
                                 border_style="bold pale_violet_red1",
                                 style="pale_violet_red1",
                                 expand=False,
@@ -544,9 +564,9 @@ class MainView:
             header = ""
             match model_type.lower():
                 case "manager" | "commercial" | "technician":
-                    header = Panel(renderable=f"[bold grey85]  - {model_type.upper()} ❱ "
-                                              f"'{the_result.name}' : [/bold grey85]",
-                                   border_style="",
+                    header = Panel(renderable=f"[bold navajo_white3]  - {model_type.upper()} ❱ "
+                                              f"'{the_result.name}' : [/bold navajo_white3]",
+                                   border_style="bold navajo_white3",
                                    expand=True)
 
                 case "contract":
@@ -928,6 +948,7 @@ class MainView:
         password = self.prompt_for_password()
 
         name = self.prompt_for_string(model_type=role, field="name")
+        name = " ".join([n.capitalize() for n in name.split()])
 
         return email, password, name
 

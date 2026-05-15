@@ -44,7 +44,7 @@ class ContractView:
 
             self.console.print(Panel(renderable=f"  - {contract.id}. Contract between the client {client_name} "
                                                 f"and the commercial {commercial_name}",
-                                     border_style="bold red3",
+                                     border_style="bold bright_red",
                                      style="red3",
                                      expand=False))
 
@@ -56,19 +56,19 @@ class ContractView:
             contract (type[Contract]):
         """
         table = Table(show_header=False, box=None)
-        table.add_row(f"[bold red3]Id[/bold red3] : {contract.id}")
-        table.add_row(f"[bold red3]Client name[/bold red3] : "
+        table.add_row(f"[red3]Id[/red3] : {contract.id}")
+        table.add_row(f"[red3]Client name[/red3] : "
                       f"{contract.client_name if contract.client_name else ''}")
-        table.add_row(f"[bold red3]Client email[/bold red3] : "
+        table.add_row(f"[red3]Client email[/red3] : "
                       f"{contract.client_email if contract.client_email else ''}")
-        table.add_row(f"[bold red3]Client phone[/bold red3] : "
+        table.add_row(f"[red3]Client phone[/red3] : "
                       f"{contract.client_phone if contract.client_phone else ''}")
-        table.add_row(f"[bold red3]Commercial name[/bold red3] : "
+        table.add_row(f"[red3]Commercial name[/red3] : "
                       f"{contract.commercial_name if contract.commercial_name else ''}")
-        table.add_row(f"[bold red3]Total amount[/bold red3] : {contract.total_amount} $")
-        table.add_row(f"[bold red3]Bill to pay[/bold red3] : {contract.bill_to_pay} $")
-        table.add_row(f"[bold red3]Creation date[/bold red3] : {contract.creation_date}")
-        table.add_row(f"[bold red3]Contract signed[/bold red3] : {'✅' if contract.status else '❌'}\n")
+        table.add_row(f"[red3]Total amount[/red3] : {contract.total_amount} $")
+        table.add_row(f"[red3]Bill to pay[/red3] : {contract.bill_to_pay} $")
+        table.add_row(f"[red3]Creation date[/red3] : {contract.creation_date}")
+        table.add_row(f"[red3]Contract signed[/red3] : {'✅' if contract.status else '❌'}\n")
 
         return Panel(table, border_style="bold bright_red", expand=False)
 

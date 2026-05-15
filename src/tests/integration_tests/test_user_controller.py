@@ -285,7 +285,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        self.assertIn("⯀ CONTRACTS TO DISPLAY :", output)
+        self.assertIn("⯀ CONTRACTS", output)
 
     def test_action_ok(self) -> None:
         """
@@ -323,7 +323,7 @@ class TestCollaboratorController(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        self.assertIn("⯀ CONTRACTS TO DISPLAY :", output)
+        self.assertIn("⯀ CONTRACTS", output)
         self.assertIn("Contract between the client", output)
         self.assertIn("Here is the contract", output)
 

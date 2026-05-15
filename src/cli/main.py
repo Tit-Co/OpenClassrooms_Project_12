@@ -6,12 +6,14 @@ from src.cli.contract_cli import contract
 from src.cli.event_cli import event
 from src.controllers.main_controller import MainController
 from src.database import DATABASE_URL, get_engine, get_session
+from src.core.monitoring import sentry_flush, init_sentry
 
 
 @click.group()
 @click.pass_context
 def cli(ctx):
     ctx.ensure_object(dict)
+    init_sentry()
 
 
 cli.add_command(collaborator)
@@ -47,6 +49,7 @@ def login(ctx, email, password):
         main_controller.view.display_error_while_logging_in()
 
     session.close()
+    sentry_flush()
 
 
 if __name__ == "__main__":

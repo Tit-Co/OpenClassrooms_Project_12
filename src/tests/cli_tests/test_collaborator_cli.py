@@ -139,7 +139,7 @@ class TestCollaboratorCLI(unittest.TestCase):
                       obj={"session": test_session, "main_controller": test_controller})
 
         output = buffer.getvalue()
-        self.assertIn("⯀ COMMERCIALS TO DISPLAY", output)
+        self.assertIn("⯀ COMMERCIALS", output)
         self.assertIn(f"Name : {self.data["commercials"][0].name}", output)
         self.assertIn(f"E-mail : {self.data["commercials"][0].email}", output)
         self.assertIn(f"▶ Please enter the new data for the commercial "
@@ -180,7 +180,7 @@ class TestCollaboratorCLI(unittest.TestCase):
                       obj={"session": test_session, "main_controller": test_controller})
 
         output = buffer.getvalue()
-        self.assertIn("⯀ COMMERCIALS TO DISPLAY", output)
+        self.assertIn("⯀ COMMERCIALS", output)
         self.assertIn(f"Name : {self.data["commercials"][0].name}", output)
         self.assertIn(f"E-mail : {self.data["commercials"][0].email}", output)
         self.assertIn(f"▶ Please enter the new data for the commercial "
@@ -226,7 +226,7 @@ class TestCollaboratorCLI(unittest.TestCase):
 
         commercials = test_session.query(Commercial).filter(Commercial.is_active).all()
         self.assertEqual(len(commercials), len(self.data["commercials"]) - 1)
-        self.assertIn("⯀ COMMERCIALS TO DISPLAY", output)
+        self.assertIn("⯀ COMMERCIALS", output)
         commercial_deleted = (test_session.query(Commercial)
                               .filter(Commercial.name == self.data["commercials"][0].name)
                               .first()

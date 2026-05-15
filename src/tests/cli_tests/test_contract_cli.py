@@ -156,7 +156,7 @@ class TestContractCLI(unittest.TestCase):
                       obj={"session": test_session, "main_controller": test_controller})
 
         output = buffer.getvalue()
-        self.assertIn("CONTRACTS TO DISPLAY", output)
+        self.assertIn("CONTRACTS", output)
         self.assertIn("Here is the contract n°1", output)
         self.assertIn("Client name : Client Test", output)
         self.assertIn("Total amount : 100.0", output)

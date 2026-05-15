@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.core.monitoring import sentry_capture_exception, logger
+from src.core.monitoring import sentry_capture_exception, sentry_capture_message
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.user import Commercial
@@ -51,18 +51,18 @@ class ClientController:
 
                 client = self.get_client(session=session, model_id=client.id)
 
-                logger.info(f"Created client {client.name} successfully.")
+                sentry_capture_message(f"Created client '{client.name}' successfully.")
 
                 self.main_controller.view.client_view.display_client(client=client)
 
             else:
                 self.main_controller.view.display_something_wrong("creating")
 
-                logger.error("Failed to create client. Something wrong.", attributes=data)
+                sentry_capture_message(f"Failed to create client. Something wrong. {data=}")
         else:
             self.main_controller.view.display_model_already_exist(model_type="client")
 
-            logger.warning(f"Cannot create client : {name}/{email} already exists.")
+            sentry_capture_message(f"Cannot create client : '{name}/{email}' already exists.")
 
     def create_client(self, session: Session, data: dict) -> Client | None:
         """
@@ -146,14 +146,14 @@ class ClientController:
             if client:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type="client")
-                logger.info(f'Updated client {client.name} successfully.')
+                sentry_capture_message(f"Updated client '{client.name}' successfully.")
 
                 self.main_controller.view.client_view.display_client(client=client)
 
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-                logger.error("Failed to update client. Something wrong.", attributes=new_client_data)
+                sentry_capture_message(f"Failed to update client. Something wrong. {new_client_data=}")
 
     def update_client(self, session: Session, model_id: int, data: dict) -> None:
         """

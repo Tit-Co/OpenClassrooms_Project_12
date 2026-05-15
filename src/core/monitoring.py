@@ -5,15 +5,15 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 
 from src.config import APP_ENV, SENTRY_KEY
 
-logger = logging.getLogger("epic_events")
+logger = logging.getLogger(__name__)
 
 
 def init_sentry():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.CRITICAL)
 
     sentry_logging = LoggingIntegration(
         level=logging.INFO,
-        event_level=logging.ERROR,
+        event_level=logging.INFO,
     )
 
     if APP_ENV != "test":
@@ -32,3 +32,11 @@ def init_sentry():
 
 def sentry_capture_exception(error: Exception):
     sentry_sdk.capture_exception(error)
+
+
+def sentry_capture_message(s: str):
+    sentry_sdk.capture_message(s)
+
+
+def sentry_flush():
+    sentry_sdk.flush(timeout=2)

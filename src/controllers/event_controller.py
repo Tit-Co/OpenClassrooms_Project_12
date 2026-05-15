@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from src.core.monitoring import sentry_capture_exception, logger
+from src.core.monitoring import sentry_capture_exception, sentry_capture_message
 from src.models.client import Client
 from src.models.contract import Contract
 from src.models.event import Event
@@ -60,19 +60,19 @@ class EventController:
                 self.main_controller.view.display_action_successfully_done(action="created",
                                                                            model_type="event")
 
-                logger.info(f"Created event {event.name} successfully.")
+                sentry_capture_message(f"Created event '{event.name}' successfully.")
 
                 self.main_controller.view.event_view.display_event(event=event)
 
             else:
                 self.main_controller.view.display_something_wrong("creating")
 
-                logger.error("Failed to create event.", attributes=data)
+                sentry_capture_message(f"Failed to create event. {data=}")
 
         else:
             self.main_controller.view.display_model_already_exist(model_type="event")
 
-            logger.error(f"Failed to create event : {name} already exists.")
+            sentry_capture_message(f"Failed to create event : {name} already exists.")
 
     def create_event(self, session: Session, data: dict) -> Event | None:
         """
@@ -163,14 +163,14 @@ class EventController:
                 self.main_controller.view.display_action_successfully_done(action="updated",
                                                                            model_type="event")
 
-                logger.info(f"Updated event {event.name} successfully.")
+                sentry_capture_message(f"Updated event '{event.name}' successfully.")
 
                 self.main_controller.view.event_view.display_event(event=event)
 
             else:
                 self.main_controller.view.display_something_wrong("updating")
 
-                logger.error("Failed to update event. Something wrong.", attributes=new_event_data)
+                sentry_capture_message(f"Failed to update event. Something wrong. {new_event_data=}")
 
     def update_event(self, session: Session, model_id: int, data: dict) -> None:
         """

@@ -190,7 +190,7 @@ class TestEventCLI(unittest.TestCase):
                       obj={"session": test_session, "main_controller": test_controller})
 
         output = buffer.getvalue()
-        self.assertIn("EVENTS TO DISPLAY", output)
+        self.assertIn("EVENTS", output)
         self.assertIn(f"Here is the event n°{self.data["events"][0].id}", output)
         self.assertIn(f"Technician name : {self.data["technicians"][0].name}", output)
         self.assertIn(f"Location : {self.data["events"][0].location}", output)
@@ -258,7 +258,7 @@ class TestEventCLI(unittest.TestCase):
 
         events = test_session.query(Event).filter(Event.is_active).all()
         self.assertEqual(len(events), len(self.data["events"]) - 1)
-        self.assertIn("⯀ EVENTS TO DISPLAY", output)
+        self.assertIn("⯀ EVENTS", output)
         event_deleted = test_session.query(Event).filter(Event.name == self.data["events"][0].name).first()
         self.assertFalse(event_deleted.is_active)
         self.assertIn("✅ The event has been successfully deleted.", output)
@@ -295,6 +295,6 @@ class TestEventCLI(unittest.TestCase):
 
         self.assertEqual(len(events), len(self.data["events"]))
 
-        self.assertIn("⯀ EVENTS TO DISPLAY", output)
+        self.assertIn("⯀ EVENTS", output)
         for e in events:
             self.assertIn(e.name, output)

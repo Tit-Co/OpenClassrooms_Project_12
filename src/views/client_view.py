@@ -29,8 +29,8 @@ class ClientView:
         """
         clients = models
         for client in clients:
-            self.console.print(Panel(renderable="  [deep_sky_blue1]- [bold]{client.id}.[/bold] {client.name}"
-                                                "[/deep_sky_blue1]",
+            self.console.print(Panel(renderable=f"  [deep_sky_blue1]- [bold]{client.id}.[/bold] {client.name}"
+                                                f"[/deep_sky_blue1]",
                                      border_style="bold deep_sky_blue1",
                                      expand=False))
 
@@ -44,14 +44,14 @@ class ClientView:
             A Panel object
         """
         table = Table(show_header=False, box=None)
-        table.add_row(f"[bold deep_sky_blue1]Id[/bold deep_sky_blue1] :  : {client.id}")
-        table.add_row(f"[bold deep_sky_blue1]name[/bold deep_sky_blue1] : {client.name}")
-        table.add_row(f"[bold deep_sky_blue1]E-mail[/bold deep_sky_blue1] : {client.email}")
-        table.add_row(f"[bold deep_sky_blue1]Phone[/bold deep_sky_blue1] : {client.phone}")
-        table.add_row(f"[bold deep_sky_blue1]Company[/bold deep_sky_blue1] : {client.company}")
-        table.add_row(f"[bold deep_sky_blue1]Creation date[/bold deep_sky_blue1] : {client.creation_date}")
-        table.add_row(f"[bold deep_sky_blue1]Last update[/bold deep_sky_blue1] : {client.last_update}")
-        table.add_row(f"[bold deep_sky_blue1]Commercial name[/bold deep_sky_blue1] : "
+        table.add_row(f"[deep_sky_blue1]Id[/deep_sky_blue1] :  : {client.id}")
+        table.add_row(f"[deep_sky_blue1]name[/deep_sky_blue1] : {client.name}")
+        table.add_row(f"[deep_sky_blue1]E-mail[/deep_sky_blue1] : {client.email}")
+        table.add_row(f"[deep_sky_blue1]Phone[/deep_sky_blue1] : {client.phone}")
+        table.add_row(f"[deep_sky_blue1]Company[/deep_sky_blue1] : {client.company}")
+        table.add_row(f"[deep_sky_blue1]Creation date[/deep_sky_blue1] : {client.creation_date}")
+        table.add_row(f"[deep_sky_blue1]Last update[/deep_sky_blue1] : {client.last_update}")
+        table.add_row(f"[deep_sky_blue1]Commercial name[/deep_sky_blue1] : "
                       f"{client.commercial_name if client.commercial_name else '(unknown)'}\n")
 
         return Panel(table, border_style="bold deep_sky_blue1", expand=False)
@@ -69,6 +69,7 @@ class ClientView:
         client_id = self.prompt_for_id(model_type="commercial")
 
         name = self.main_view.prompt_for_string(model_type="client", field="name")
+        name = " ".join([n.capitalize() for n in name.split()])
 
         email = self.prompt_for_client_email()
 

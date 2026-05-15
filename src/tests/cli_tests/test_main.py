@@ -123,7 +123,7 @@ class TestCLI(unittest.TestCase):
 
         output = buffer.getvalue()
 
-        self.assertIn("✅ Admin, you are successfully logged in.", output)
+        self.assertIn("✅ admin, you are successfully logged in.", output)
 
     def test_login_fails_with_wrong_password(self):
         runner = CliRunner()

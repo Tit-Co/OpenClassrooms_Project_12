@@ -275,7 +275,7 @@ class TestClientCLI(unittest.TestCase):
 
         clients = test_session.query(Client).filter(Client.is_active).all()
         self.assertEqual(len(clients), nb)
-        self.assertIn("⯀ CLIENTS TO DISPLAY", output)
+        self.assertIn("⯀ CLIENTS", output)
         client_deleted = (
             test_session.query(Client)
             .filter(Client.name == self.data["clients"][0].name)
