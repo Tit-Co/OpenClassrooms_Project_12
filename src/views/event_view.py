@@ -84,9 +84,8 @@ class EventView:
         A tuple with the event data
         """
         self.main_view.display_models(model_type="contract", models=contracts)
-        print(contracts)
-        print(contracts.get("contracts"))
-        contract_id = self.prompt_for_id(model_type="contract", models=contracts.get("contracts"))
+
+        contract_id = self.prompt_for_id(model_type="contract", models=contracts["contracts"])
 
         self.main_view.display_models(model_type="technician", models=technicians)
         technician_id = self.prompt_for_id(model_type="technician", models=technicians)
