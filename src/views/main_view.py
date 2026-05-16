@@ -209,7 +209,7 @@ class MainView:
         self.console.print("▷▷ 3. Technician")
         self.console.print("▷▷ 4. Go back\n")
 
-    def display_models(self, model_type: str, models: list) -> None:
+    def display_models(self, model_type: str, models: dict | list) -> None:
         """
         Method to display the models list
         Args:

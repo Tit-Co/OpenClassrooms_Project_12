@@ -73,18 +73,20 @@ class EventView:
 
         return Panel(table, border_style="bold spring_green3", expand=False)
 
-    def prompt_for_event(self, contracts: list, technicians: list) -> EventDataTuple:
+    def prompt_for_event(self, contracts: dict, technicians: list) -> EventDataTuple:
         """
         Method that prompts the user to enter the event data
         Args:
-            contracts (list): List of contract
+            contracts (list): List of contracts
             technicians (list): List of technicians
 
         Returns:
         A tuple with the event data
         """
         self.main_view.display_models(model_type="contract", models=contracts)
-        contract_id = self.prompt_for_id(model_type="contract", models=contracts)
+        print(contracts)
+        print(contracts.get("contracts"))
+        contract_id = self.prompt_for_id(model_type="contract", models=contracts.get("contracts"))
 
         self.main_view.display_models(model_type="technician", models=technicians)
         technician_id = self.prompt_for_id(model_type="technician", models=technicians)
@@ -109,7 +111,7 @@ class EventView:
         Method that prompts the user to enter the id for the model
         Args:
             model_type (str): The model type
-            models (list): List of models
+            models (list): List of models (contracts or technicians)
 
         Returns:
         The id of the model or None
@@ -117,20 +119,21 @@ class EventView:
         while True:
             answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please select a {model_type} for the event if possible"
                                 f"[/bold light_goldenrod2]\n"
-                                f"▶▶ ",
-                                default="1").strip()
+                                f"▶▶ ").strip()
 
-            if not answer.isdigit():
+            if not answer.isdigit() and answer != "":
                 self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
                 continue
 
-            coll = (str(i + 1) for i in range(len(models)))
+            coll = [i.id for i in models]
 
-            if answer not in coll:
-                self.console.print(f"\n❗ [bold red]Please choose between 1 and {len(models)}.\n[/bold red]")
+            if answer != "" and answer.isdigit() and int(answer) != 0 and int(answer) not in coll:
+                self.console.print(f"\n❗ [bold bright_red]Please choose an id "
+                                   f"between {models[0].id} and {models[-1].id}."
+                                   f"\n[/bold bright_red]")
                 continue
 
-            return int(answer)
+            return None if (answer == "" or int(answer) == 0) else int(answer)
 
     def prompt_for_integer(self) -> int | None:
         """

@@ -86,15 +86,11 @@ class ContractView:
 
         self.main_view.display_models(model_type="client", models=clients)
 
-        client_id = self.prompt_for_id(model_type="client")
-
-        self.console.print(client_id)
+        client_id = self.prompt_for_id(model_type="client", models=clients)
 
         self.main_view.display_models(model_type="commercial", models=commercials)
 
-        commercial_id = self.prompt_for_id(model_type="commercial")
-
-        self.console.print(commercial_id)
+        commercial_id = self.prompt_for_id(model_type="commercial", models=commercials)
 
         total_amount = self.prompt_for_contract_float_number(amount_type="total_amount")
 
@@ -104,25 +100,34 @@ class ContractView:
 
         return client_id, commercial_id, total_amount, bill_to_pay, status
 
-    def prompt_for_id(self, model_type: str) -> int | None:
+    def prompt_for_id(self, model_type: str, models: list) -> int | None:
         """
         Method that prompts the user to enter the id of a model or leave it blank
         Args:
             model_type (str): The type of the model
+            models (list): The objects list ( clients or commercials)
 
         Returns:
         The id of the model or None
         """
         while True:
-            choice = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please select a {model_type} for the contract if possible"
+            answer = Prompt.ask(f"\n[bold light_goldenrod2]▶ Please select a {model_type} for the contract if possible"
                                 f"[/bold light_goldenrod2]\n"
                                 f"▶▶ ")
 
-            if not choice.isdigit() and choice != "":
+            if not answer.isdigit() and answer != "":
                 self.console.print("\n❗ [bold red]Please enter a number or leave blank.\n[/bold red]")
                 continue
 
-            return None if (choice == "" or int(choice) == 0) else int(choice)
+            coll = [i.id for i in models]
+
+            if answer != "" and answer.isdigit() and int(answer) != 0 and int(answer) not in coll:
+                self.console.print(f"\n❗ [bold bright_red]Please choose an id "
+                                   f"between {models[0].id} and {models[-1].id}."
+                                   f"\n[/bold bright_red]")
+                continue
+
+            return None if (answer == "" or int(answer) == 0) else int(answer)
 
     def prompt_for_contract_float_number(self, amount_type: str) -> float | None:
         """

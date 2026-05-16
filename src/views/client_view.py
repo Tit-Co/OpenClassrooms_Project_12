@@ -66,7 +66,7 @@ class ClientView:
             A tuple with client id, the client name, email, phone and company name or None.
         """
         self.main_view.display_models("commercial", commercials)
-        client_id = self.prompt_for_id(model_type="commercial")
+        client_id = self.prompt_for_id(model_type="commercial", models=commercials)
 
         name = self.main_view.prompt_for_string(model_type="client", field="name")
         name = " ".join([n.capitalize() for n in name.split()])
@@ -79,11 +79,12 @@ class ClientView:
 
         return client_id, name, email, phone, company
 
-    def prompt_for_id(self, model_type: str) -> int | None:
+    def prompt_for_id(self, model_type: str, models: list) -> int | None:
         """
         Method that prompts the user to enter the client ID
         Args:
             model_type (str): Type of model
+            models (list): List of models (commercials)
 
         Returns:
             The id or None
@@ -92,8 +93,16 @@ class ClientView:
             answer = Prompt.ask(f"\n▶ Please select a {model_type} for the client if possible\n"
                                 f"▶▶ ").strip()
 
-            if not answer.isdigit():
+            if not answer.isdigit() and answer != "":
                 self.console.print("\n❗ [bold red]Please enter a number.\n[/bold red]")
+                continue
+
+            coll = [i.id for i in models]
+
+            if answer != "" and answer.isdigit() and int(answer) != 0 and int(answer) not in coll:
+                self.console.print(f"\n❗ [bold bright_red]Please choose an id "
+                                   f"between {models[0].id} and {models[-1].id}."
+                                   f"\n[/bold bright_red]")
                 continue
 
             return None if answer == "" or int(answer) == 0 else int(answer)
