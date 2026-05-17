@@ -35,7 +35,7 @@ def create_collaborator(ctx):
             main_controller.view.display_wrong_collaborator_role()
 
     else:
-        main_controller.view.display_permission_denied(action="update", model_type=role)
+        main_controller.view.display_permission_denied(action="create", model_type=role)
 
 
 @collaborator.command()
@@ -83,7 +83,7 @@ def delete_collaborator(ctx):
 
     role = main_controller.view.prompt_for_collaborator_role_to_action(action="delete")
 
-    if "update:collaborator" in permissions:
+    if "delete:collaborator" in permissions:
         if role in main_controller.user_controller.COLLABORATORS.keys():
             main_controller.user_controller.delete_model_with_view(session=session, model_type=role)
 

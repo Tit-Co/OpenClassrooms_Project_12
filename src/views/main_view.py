@@ -76,9 +76,9 @@ class MainView:
             action (str): The action.
             model_type (str): The model type.
         """
-        self.console.print(Panel(renderable=f"❌[bold] You don't have the permission to [bold red]{action} "
+        self.console.print(Panel(renderable=f"❌[bold] You don't have the permission to {action} "
                                             f"a {model_type}[/bold].",
-                                 border_style="bold bright_red",
+                                 border_style="bold red3",
                                  style="white",
                                  expand=False))
 
@@ -218,7 +218,7 @@ class MainView:
         """
         if (None,) in models or not models:
             if model_type == "contract":
-                self.console.print(f"\n[bold red3] ⯀ {model_type.upper()}S[/bold red3] "
+                self.console.print(f"\n[bold bright_red] ⯀ {model_type.upper()}S[/bold bright_red] "
                                    f"- [gold3]No {model_type} to display.[/gold3]\n")
 
             elif model_type == "client":
@@ -235,7 +235,7 @@ class MainView:
 
         else:
             if model_type == "contract":
-                self.console.print(f"\n[bold red3] ⯀ {model_type.upper()}S : [/bold red3] \n")
+                self.console.print(f"\n[bold bright_red] ⯀ {model_type.upper()}S : [/bold bright_red] \n")
 
             elif model_type == "client":
                 self.console.print(f"\n[bold deep_sky_blue1] ⯀ {model_type.upper()}S : "
@@ -309,7 +309,7 @@ class MainView:
         color = ""
         match model_type:
             case "contract":
-                color = "bold red3"
+                color = "bold bright_red"
             case "client":
                 color = "bold deep_sky_blue1"
             case "event":
