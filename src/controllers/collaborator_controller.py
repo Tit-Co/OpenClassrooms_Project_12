@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from src.controllers.helper_controller import is_models_empty
 from src.core.monitoring import sentry_capture_exception, sentry_flush, sentry_capture_message
 from src.models.client import Client
 from src.models.contract import Contract
@@ -221,9 +222,12 @@ class CollaboratorController:
         """
         models = self.get_models(session, model_type)
 
-        self.main_controller.view.display_models(model_type=model_type, models=models)
+        if is_models_empty(models):
+            self.main_controller.view.display_models_empty(model_type=model_type)
 
-        if models:
+        else:
+            self.main_controller.view.display_models(model_type=model_type, models=models)
+
             model_id = self.main_controller.view.prompt_for_model_id_with_action(
                 action="display", model_type=model_type, models=models)
 

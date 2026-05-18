@@ -10,8 +10,8 @@ class Event(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(200), nullable=False)
-    start_date = Column(DateTime, nullable=True)
-    end_date = Column(DateTime, nullable=True)
+    start_date = Column(DateTime(timezone=True), nullable=True)
+    end_date = Column(DateTime(timezone=True), nullable=True)
     location = Column(String(200), nullable=True)
     attendees = Column(Integer, nullable=True)
     notes = Column(String(500), nullable=True)

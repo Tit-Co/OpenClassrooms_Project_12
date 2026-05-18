@@ -1,10 +1,7 @@
 import logging
-import os
-
-os.environ["APP_ENV"] = "test"
-
 import unittest
-from datetime import datetime
+
+from datetime import datetime, UTC
 from io import StringIO
 from unittest.mock import Mock
 
@@ -106,8 +103,6 @@ class TestEventCLI(unittest.TestCase):
                         email="client@clienttest.com",
                         phone="555123456",
                         company="Company Test",
-                        creation_date=datetime.now(),
-                        last_update=datetime.now(),
                         commercial_id=commercial.id)
 
         self.session.add(client)
@@ -117,14 +112,12 @@ class TestEventCLI(unittest.TestCase):
                             commercial_id=commercial.id,
                             total_amount=100,
                             bill_to_pay=50,
-                            creation_date=datetime.now(),
                             status=True)
 
         contract_2 = Contract(client_id=client.id,
                               commercial_id=commercial.id,
                               total_amount=1000,
                               bill_to_pay=500,
-                              creation_date=datetime.now(),
                               status=True)
 
         self.session.add(contract)
@@ -141,8 +134,8 @@ class TestEventCLI(unittest.TestCase):
         self.session.commit()
 
         event = Event(name="Event Test",
-                      start_date=datetime.now(),
-                      end_date=datetime.now(),
+                      start_date=datetime.now(UTC),
+                      end_date=datetime.now(UTC),
                       location="Paris",
                       attendees=100,
                       notes="Notes",
@@ -150,8 +143,8 @@ class TestEventCLI(unittest.TestCase):
                       technician_id=technician.id)
 
         event_2 = Event(name="Event Test 2",
-                        start_date=datetime.now(),
-                        end_date=datetime.now(),
+                        start_date=datetime.now(UTC),
+                        end_date=datetime.now(UTC),
                         location="Madrid",
                         attendees=1000,
                         notes="Notes",

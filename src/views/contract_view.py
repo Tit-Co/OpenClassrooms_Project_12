@@ -65,8 +65,8 @@ class ContractView:
                       f"{contract.client_phone if contract.client_phone else ''}")
         table.add_row(f"[bright_red]Commercial name[/bright_red] : "
                       f"{contract.commercial_name if contract.commercial_name else ''}")
-        table.add_row(f"[bright_red]Total amount[/bright_red] : {contract.total_amount} $")
-        table.add_row(f"[bright_red]Bill to pay[/bright_red] : {contract.bill_to_pay} $")
+        table.add_row(f"[bright_red]Total amount[/bright_red] : ${contract.total_amount}")
+        table.add_row(f"[bright_red]Bill to pay[/bright_red] : ${contract.bill_to_pay}")
         table.add_row(f"[bright_red]Creation date[/bright_red] : {contract.creation_date}")
         table.add_row(f"[bright_red]Contract signed[/bright_red] : {'✅' if contract.status else '❌'}\n")
 
@@ -116,13 +116,13 @@ class ContractView:
                                 f"▶▶ ")
 
             if not answer.isdigit() and answer != "":
-                self.console.print("\n❗ [bold red3]Please enter a number or leave blank.\n[/bold red3]")
+                self.console.print("\n[bold red3]❗ Please enter a number or leave blank.\n[/bold red3]")
                 continue
 
             coll = [i.id for i in models]
 
             if answer != "" and answer.isdigit() and int(answer) != 0 and int(answer) not in coll:
-                self.console.print(f"\n❗ [bold red3]Please choose an id "
+                self.console.print(f"\n[bold red3]❗ Please choose an id "
                                    f"between {models[0].id} and {models[-1].id}."
                                    f"\n[/bold red3]")
                 continue
@@ -149,7 +149,7 @@ class ContractView:
                                     "▶▶ ")
 
             if not is_float(answer):
-                self.console.print("\n❗ [bold red3]Please enter a number.\n[/bold red3]")
+                self.console.print("\n[bold red3]❗ Please enter a number.\n[/bold red3]")
                 continue
 
             return float(answer)
@@ -167,7 +167,7 @@ class ContractView:
                                 "▶▶ ", default="false")
 
             if not is_bool(answer.lower().strip()):
-                self.console.print("\n❗ [bold red3]Please enter a boolean (true/false | 1/0).\n[/bold red3]")
+                self.console.print("\n[bold red3]❗ Please enter a boolean (true/false | 1/0).\n[/bold red3]")
                 continue
 
             return bool(answer)

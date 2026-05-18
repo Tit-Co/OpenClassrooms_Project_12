@@ -40,8 +40,6 @@ class ClientController:
                 "email": email,
                 "phone": phone,
                 "company": company,
-                "creation_date": datetime.now(),
-                "last_update": datetime.now(),
             }
             client = self.create_client(session=session, data=data)
 
@@ -78,9 +76,8 @@ class ClientController:
                         name=data["name"],
                         email=data["email"],
                         phone=data["phone"],
-                        company=data["company"],
-                        creation_date=data["creation_date"],
-                        last_update=data["last_update"])
+                        company=data["company"]
+                        )
 
         session.add(client)
 
@@ -115,7 +112,6 @@ class ClientController:
                                                                       models=clients)
 
             client = self.get_client(session=session, model_id=client_id)
-            creation_date = client.creation_date
 
             self.main_controller.view.client_view.display_client(client=client)
 
@@ -134,9 +130,7 @@ class ClientController:
                 "name": name,
                 "email": email,
                 "phone": phone,
-                "company": company,
-                "creation_date": creation_date,
-                "last_update": datetime.now(),
+                "company": company
             }
 
             self.update_client(session=session, model_id=client_id, data=new_client_data)

@@ -121,13 +121,13 @@ class EventView:
                                 f"▶▶ ").strip()
 
             if not answer.isdigit() and answer != "":
-                self.console.print("\n❗ [bold red3]Please enter a number.\n[/bold red3]")
+                self.console.print("\n[bold red3]❗ Please enter a number.\n[/bold red3]")
                 continue
 
             coll = [i.id for i in models]
 
             if answer != "" and answer.isdigit() and int(answer) != 0 and int(answer) not in coll:
-                self.console.print(f"\n❗ [bold red3]Please choose an id "
+                self.console.print(f"\n[bold red3]❗ Please choose an id "
                                    f"between {models[0].id} and {models[-1].id}."
                                    f"\n[/bold red3]")
                 continue
@@ -146,7 +146,7 @@ class EventView:
                                 "▶▶ ").strip()
 
             if not answer.isdigit() and answer != "":
-                self.console.print("\n❗ [bold red3]Please enter a number.\n[/bold red3]")
+                self.console.print("\n[bold red3]❗ Please enter a number.\n[/bold red3]")
                 continue
 
             return int(answer) if answer.isdigit() else None

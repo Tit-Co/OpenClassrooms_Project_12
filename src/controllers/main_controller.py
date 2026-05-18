@@ -6,6 +6,7 @@ from sqlalchemy import Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from src.config import PERMISSIONS
 from src.controllers.client_controller import ClientController
 from src.controllers.collaborator_controller import CollaboratorController
 from src.controllers.contract_controller import ContractController
@@ -33,25 +34,7 @@ class MainController:
         self.client_controller = ClientController(self)
         self.event_controller = EventController(self)
 
-        self.role_permissions = {
-            "MANAGER": ["display:manager", "display:commercial", "display:technician",
-                        "create:collaborator", "update:collaborator", "delete:collaborator",
-                        "display:contract", "display:client", "display:event",
-                        "create:contract", "update:contract", "delete:contract",
-                        "update:event", "delete:event", "filter:event", "filter:client",
-                        "filter:manager", "filter:commercial", "filter:technician"],
-
-            "COMMERCIAL": ["display:manager", "display:commercial", "display:technician",
-                           "display:contract", "display:client", "display:event",
-                           "create:client", "update:client", "delete:client", "update:contract",
-                           "filter:contract", "create:event", "filter:client",
-                           "filter:manager", "filter:commercial", "filter:technician"],
-
-            "TECHNICIAN": ["display:manager", "display:commercial", "display:technician",
-                           "display:contract", "display:client", "display:event", "update:event",
-                           "filter:event", "filter:client", "filter:collaborator",
-                           "filter:manager", "filter:commercial", "filter:technician"]
-        }
+        self.role_permissions = PERMISSIONS
 
     def init_super_user(self) -> dict:
         """

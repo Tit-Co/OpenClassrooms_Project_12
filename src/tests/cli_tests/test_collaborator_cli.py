@@ -1,9 +1,6 @@
 import logging
-import os
-
-os.environ["APP_ENV"] = "test"
-
 import unittest
+
 from io import StringIO
 from unittest.mock import Mock
 

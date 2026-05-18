@@ -49,3 +49,10 @@ def is_bool(s: str) -> bool | None:
 
     else:
         return False
+
+
+def is_models_empty(models: dict | list) -> bool:
+    if isinstance(models, dict):
+        return not models["contracts"] and not models["clients"] and not models["commercials"]
+
+    return not models

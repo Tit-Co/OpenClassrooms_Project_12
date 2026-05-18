@@ -1,10 +1,6 @@
 import logging
-import os
-
-os.environ["APP_ENV"] = "test"
-
 import unittest
-from datetime import datetime
+
 from io import StringIO
 from unittest.mock import Mock
 
@@ -108,16 +104,12 @@ class TestClientCLI(unittest.TestCase):
                         email="client@clienttest.com",
                         phone="555123456",
                         company="Company Test",
-                        creation_date=datetime.now(),
-                        last_update=datetime.now(),
                         commercial_id=commercial.id)
 
         client_2 = Client(name="Another Client Test",
                           email="client2@clienttest.com",
                           phone="5551248966",
                           company="Company Test 2",
-                          creation_date=datetime.now(),
-                          last_update=datetime.now(),
                           commercial_id=commercial.id)
 
         self.session.add(client)
@@ -128,7 +120,6 @@ class TestClientCLI(unittest.TestCase):
                             commercial_id=commercial.id,
                             total_amount=100,
                             bill_to_pay=50,
-                            creation_date=datetime.now(),
                             status=True)
 
         self.session.add(contract)

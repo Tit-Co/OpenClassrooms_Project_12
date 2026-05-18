@@ -1,16 +1,17 @@
 import click
 
+from click_aliases import ClickAliasedGroup
 from src.controllers.main_controller import MainController
 from src.database import DATABASE_URL, get_engine, get_session
 
 
-@click.group()
+@click.group(cls=ClickAliasedGroup)
 @click.pass_context
 def collaborator(ctx):
     ctx.ensure_object(dict)
 
 
-@collaborator.command()
+@collaborator.command(aliases=['create'])
 @click.pass_context
 def create_collaborator(ctx):
     ctx.ensure_object(dict)
@@ -38,7 +39,7 @@ def create_collaborator(ctx):
         main_controller.view.display_permission_denied(action="create", model_type=role)
 
 
-@collaborator.command()
+@collaborator.command(aliases=['update'])
 @click.pass_context
 def update_collaborator(ctx):
     ctx.ensure_object(dict)
@@ -66,7 +67,7 @@ def update_collaborator(ctx):
         main_controller.view.display_permission_denied(action="update", model_type=role)
 
 
-@collaborator.command()
+@collaborator.command(aliases=['delete'])
 @click.pass_context
 def delete_collaborator(ctx):
     ctx.ensure_object(dict)
@@ -94,7 +95,7 @@ def delete_collaborator(ctx):
         main_controller.view.display_permission_denied(action="delete", model_type=role)
 
 
-@collaborator.command()
+@collaborator.command(aliases=['filter'])
 @click.pass_context
 def filter_collaborator(ctx):
     ctx.ensure_object(dict)
@@ -122,7 +123,7 @@ def filter_collaborator(ctx):
         main_controller.view.display_permission_denied(action="filter", model_type=role)
 
 
-@collaborator.command()
+@collaborator.command(aliases=['display'])
 @click.pass_context
 def display_collaborator(ctx):
     ctx.ensure_object(dict)
@@ -144,7 +145,7 @@ def display_collaborator(ctx):
         main_controller.view.display_wrong_collaborator_role()
 
 
-@collaborator.command()
+@collaborator.command(aliases=['logout'])
 @click.pass_context
 def logout(ctx):
     ctx.ensure_object(dict)

@@ -1,10 +1,7 @@
 import logging
-import os
-
-os.environ["APP_ENV"] = "test"
-
 import unittest
-from datetime import datetime
+
+from datetime import datetime, UTC
 from io import StringIO
 
 from rich.console import Console
@@ -118,8 +115,6 @@ class TestCollaboratorController(unittest.TestCase):
                         email="client@clienttest.com",
                         phone="555123456",
                         company="Company Test",
-                        creation_date=datetime.now(),
-                        last_update=datetime.now(),
                         commercial_id=commercial.id)
 
         self.session.add(client)
@@ -129,7 +124,6 @@ class TestCollaboratorController(unittest.TestCase):
                             commercial_id=commercial.id,
                             total_amount=100,
                             bill_to_pay=50,
-                            creation_date=datetime.now(),
                             status=True)
 
         self.session.add(contract)
@@ -210,8 +204,8 @@ class TestCollaboratorController(unittest.TestCase):
         self.session.commit()
 
         event = Event(name="Event Test",
-                      start_date=datetime.now(),
-                      end_date=datetime.now(),
+                      start_date=datetime.now(UTC),
+                      end_date=datetime.now(UTC),
                       location="Location Test",
                       attendees=100,
                       notes="Notes event",

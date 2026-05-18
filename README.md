@@ -4,7 +4,6 @@
 ---
 
 ## DESCRIPTION
-### (Work In Progress)
 
 This project was completed as part of the "Python Developer" path at OpenClassrooms.
 
@@ -114,11 +113,12 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 - Finally, launch the CLI app by typing commands : 
   - Examples
     - `python -m src.cli.main login`
-    - `python -m src.cli.main collaborator create-collaborator`
-    - `python -m src.cli.main event display-event`
-    - `python -m src.cli.main client filter-client`
-    - `python -m src.cli.main contract delete-contract`
-
+    - `python -m src.cli.main collaborator create-collaborator` or `python -m src.cli.main collaborator create`
+    - `python -m src.cli.main event display-event` or `python -m src.cli.main event display`
+    - `python -m src.cli.main client filter-client` or `python -m src.cli.main client filter`
+    - `python -m src.cli.main contract delete-contract` or `python -m src.cli.main contract delete`
+    - `python -m src.cli.main collaborator logout`
+    
 ---
 
 ## EXPLANATIONS OF WHAT THE APP DOES
@@ -156,11 +156,82 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 
 ---
 
-## CLI VIEWS EXAMPLES
+## CLI EXAMPLES
 
-- 
+Here are some examples of results with views obtained when entering CLI commands.
+
+- Authentication
 <p align="center">
-    <img src="docs/screenshots/registration_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+    <img src="docs/screenshots/authentication_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Creation of a collaborator
+<p align="center">
+    <img src="docs/screenshots/collaborator_creation_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Creation of a client
+<p align="center">
+    <img src="docs/screenshots/client_creation_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Displaying a client
+<p align="center">
+    <img src="docs/screenshots/client_displaying_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Update of a client
+<p align="center">
+    <img src="docs/screenshots/client_update_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Creation of a contract
+<p align="center">
+    <img src="docs/screenshots/contract_creation_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Displaying a contract
+<p align="center">
+    <img src="docs/screenshots/contract_displaying_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Contract deletion impossible (when an event is still linked because an event can't exists on its own without a contract)
+<p align="center">
+    <img src="docs/screenshots/deleting_contract_impossible_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Contract deletion possible
+<p align="center">
+    <img src="docs/screenshots/deleting_contract_possible_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Permission error when creating contract with wrong role (Commercial role in this case instead of Manager)
+<p align="center">
+    <img src="docs/screenshots/permission_error_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Client filtering by name
+<p align="center">
+    <img src="docs/screenshots/client_filtering_by_name_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Client filtering by prior-date (on creation date, i.e. in the results, the creation date is prior to the entered date)
+<p align="center">
+    <img src="docs/screenshots/client_filtering_by_prior_date_screenshot_1.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+    <img src="docs/screenshots/client_filtering_by_prior_date_screenshot_2.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Logout
+<p align="center">
+    <img src="docs/screenshots/logout_screenshot.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+
+- Help command examples
+<p align="center">
+    <img src="docs/screenshots/help_command_screenshot_1.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
+</p>
+<p align="center">
+    <img src="docs/screenshots/help_command_screenshot_2.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
 </p>
 
 ---
@@ -175,6 +246,15 @@ git clone https://github.com/Tit-Co/OpenClassrooms_Project_12.git
 **Type the line below in the terminal to generate another report with [flake8-html](https://pypi.org/project/flake8-html/) tool :**
 
 ` flake8 --format=html --htmldir=flake8-report --max-line-length=119 --extend-exclude=env/ --ignore="E402, F821"`
+
+- Imports sorting with isort
+
+All libraries imports are sorted by type and alphabetically. I used the [isort](https://isort.readthedocs.io/en/latest/) 
+library to do that in order to comfy Pep 8 conventions
+
+**Type the line below in the terminal to generate another another sorting :**
+
+` isort .` to sort all files in project folder. If needed, specify the file to sort : `isort <file>`
 
 ---
 

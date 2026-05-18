@@ -1,16 +1,17 @@
 import click
 
+from click_aliases import ClickAliasedGroup
 from src.controllers.main_controller import MainController
 from src.database import DATABASE_URL, get_engine, get_session
 
 
-@click.group()
+@click.group(cls=ClickAliasedGroup)
 @click.pass_context
 def event(ctx):
     ctx.ensure_object(dict)
 
 
-@event.command()
+@event.command(aliases=['create'])
 @click.pass_context
 def create_event(ctx):
     ctx.ensure_object(dict)
@@ -30,7 +31,7 @@ def create_event(ctx):
         main_controller.view.display_permission_denied(action="create", model_type="event")
 
 
-@event.command()
+@event.command(aliases=['update'])
 @click.pass_context
 def update_event(ctx):
     ctx.ensure_object(dict)
@@ -50,7 +51,7 @@ def update_event(ctx):
         main_controller.view.display_permission_denied(action="update", model_type="event")
 
 
-@event.command()
+@event.command(aliases=['delete'])
 @click.pass_context
 def delete_event(ctx):
     ctx.ensure_object(dict)
@@ -70,7 +71,7 @@ def delete_event(ctx):
         main_controller.view.display_permission_denied(action="delete", model_type="event")
 
 
-@event.command()
+@event.command(aliases=['filter'])
 @click.pass_context
 def filter_event(ctx):
     ctx.ensure_object(dict)
@@ -94,7 +95,7 @@ def filter_event(ctx):
         main_controller.view.display_permission_denied(action="filter", model_type="event")
 
 
-@event.command()
+@event.command(aliases=['display'])
 @click.pass_context
 def display_event(ctx):
     ctx.ensure_object(dict)

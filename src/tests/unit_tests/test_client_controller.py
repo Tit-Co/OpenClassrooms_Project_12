@@ -1,10 +1,5 @@
 import logging
-import os
-
-os.environ["APP_ENV"] = "test"
-
 import unittest
-from datetime import datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -108,8 +103,6 @@ class TestCollaboratorController(unittest.TestCase):
                         email="client@clienttest.com",
                         phone="555123456",
                         company="Company Test",
-                        creation_date=datetime.now(),
-                        last_update=datetime.now(),
                         commercial_id=commercial.id)
 
         self.session.add(client)
@@ -119,7 +112,6 @@ class TestCollaboratorController(unittest.TestCase):
                             commercial_id=commercial.id,
                             total_amount=100,
                             bill_to_pay=50,
-                            creation_date=datetime.now(),
                             status=True)
 
         self.session.add(contract)

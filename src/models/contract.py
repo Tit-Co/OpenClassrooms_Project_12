@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer
 from sqlalchemy.orm import relationship
@@ -17,7 +17,7 @@ class Contract(Base):
     commercial = relationship("Commercial")
     total_amount = Column(Float, nullable=True)
     bill_to_pay = Column(Float, nullable=True)
-    creation_date = Column(DateTime, nullable=False, default=datetime.now())
+    creation_date = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC))
     status = Column(Boolean, nullable=False, default=False)
     events = relationship(argument="Event", back_populates="contract")
 

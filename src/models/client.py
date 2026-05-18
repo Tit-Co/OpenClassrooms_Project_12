@@ -1,3 +1,4 @@
+from datetime import datetime, UTC
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -13,8 +14,13 @@ class Client(Base):
     email = Column(String(200), nullable=False)
     phone = Column(String(20), nullable=False)
     company = Column(String(200), nullable=False)
-    creation_date = Column(DateTime, nullable=False)
-    last_update = Column(DateTime, nullable=False)
+    creation_date = Column(DateTime(timezone=True),
+                           nullable=False,
+                           default=lambda: datetime.now(UTC))
+    last_update = Column(DateTime(timezone=True),
+                         nullable=False,
+                         default=lambda: datetime.now(UTC),
+                         onupdate=lambda: datetime.now(UTC))
     commercial_id = Column(Integer, ForeignKey("commercial.id", ondelete="SET NULL"), nullable=True)
     commercial = relationship("Commercial")
 

@@ -1,10 +1,6 @@
 import logging
-import os
-
-os.environ["APP_ENV"] = "test"
-
 import unittest
-from datetime import datetime
+
 from io import StringIO
 from unittest.mock import Mock
 
@@ -105,8 +101,6 @@ class TestContractCLI(unittest.TestCase):
                         email="client@clienttest.com",
                         phone="555123456",
                         company="Company Test",
-                        creation_date=datetime.now(),
-                        last_update=datetime.now(),
                         commercial_id=commercial.id)
 
         self.session.add(client)
@@ -116,14 +110,12 @@ class TestContractCLI(unittest.TestCase):
                             commercial_id=commercial.id,
                             total_amount=100,
                             bill_to_pay=50,
-                            creation_date=datetime.now(),
                             status=True)
 
         contract_2 = Contract(client_id=client.id,
                               commercial_id=commercial.id,
                               total_amount=1000,
                               bill_to_pay=500,
-                              creation_date=datetime.now(),
                               status=True)
 
         self.session.add(contract)
@@ -159,7 +151,7 @@ class TestContractCLI(unittest.TestCase):
         self.assertIn("CONTRACTS", output)
         self.assertIn("Here is the contract n°1", output)
         self.assertIn("Client name : Client Test", output)
-        self.assertIn("Total amount : 100.0", output)
+        self.assertIn("Total amount : $100.0", output)
 
     def test_delete_contract_with_no_permission_fails(self):
         runner = CliRunner()
