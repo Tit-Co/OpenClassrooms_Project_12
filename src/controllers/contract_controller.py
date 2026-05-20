@@ -253,6 +253,7 @@ class ContractController:
                            )
 
             case "status":
+                print(filter_value)
                 results = (session.query(class_name)
                            .filter_by(is_active=True, status=filter_value)
                            .all()
@@ -271,9 +272,10 @@ class ContractController:
                            )
 
             case "creation-date":
+                filter_value = filter_value.date()
                 results = (session.query(class_name)
-                           .filter(Contract.is_active,
-                                   Contract.creation_date.contains(datetime.date(filter_value)))
+                           .filter(class_name.is_active,
+                                   class_name.creation_date.contains(filter_value))
                            .all()
                            )
 

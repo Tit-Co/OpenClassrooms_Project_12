@@ -598,7 +598,7 @@ class CollaboratorController:
 
         try:
             match my_filter:
-                case "commercial-id" | "client_id":
+                case "commercial-id" | "client-id" | "technician-id":
                     filter_value = self.main_controller.view.prompt_for_integer(model_type=model_type,
                                                                                 my_filter=my_filter)
 
@@ -606,7 +606,7 @@ class CollaboratorController:
                     filter_value = self.main_controller.view.prompt_for_integer(model_type=model_type,
                                                                                 my_filter=my_filter)
 
-                case "prior-date" | "afterward-date":
+                case "prior-date" | "afterward-date" | "creation-date":
                     filter_value = self.main_controller.view.prompt_for_date_filter_value(model_type=model_type,
                                                                                           my_filter=my_filter)
 

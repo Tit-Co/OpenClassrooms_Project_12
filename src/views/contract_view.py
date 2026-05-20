@@ -166,8 +166,10 @@ class ContractView:
                                 "(true/false | 1/0) ?[/bold light_goldenrod2]\n"
                                 "▶▶ ", default="false")
 
-            if not is_bool(answer.lower().strip()):
+            answer = answer.lower().strip()
+
+            if not is_bool(answer):
                 self.console.print("\n[bold red3]❗ Please enter a boolean (true/false | 1/0).\n[/bold red3]")
                 continue
 
-            return bool(answer)
+            return True if answer == "true" or (answer.isdigit() and int(answer) == 1) else False
