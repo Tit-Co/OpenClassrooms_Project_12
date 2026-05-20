@@ -265,7 +265,7 @@ library to do that in order to comfy Pep 8 conventions
     <img src="docs/cov_report.png" width="auto" style="border: 1px solid grey; border-radius: 10px;">
 </p>
 
-- **Type the lines below in the terminal to generate another coverage report with pytest**
+- **Type the lines below in the terminal to generate another coverage report with unittest**
 
     `python -m coverage run -m unittest discover -s src/tests`
     `python -m coverage html --omit=tests/*`
